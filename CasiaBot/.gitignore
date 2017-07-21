@@ -1,0 +1,15 @@
+VisualStudio/Release
+VisualStudio/Debug
+bin/*
+source/*.o
+CasiaBot/CAB_ErrorLog.txt
+CasiaBot/CAB_ErrorLog.txt
+*.pd_
+CasiaBot/CAB_ErrorLog.txt
+BOSS/VisualStudio/BOSS.VC.db
+*.sdf
+*.suo
+*.opensdf
+*.user
+*.dll
+*.exe

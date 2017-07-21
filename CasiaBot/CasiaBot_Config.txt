@@ -1,0 +1,127 @@
+{
+    "Bot Info" :
+    {
+        "BotName"                   : "CasiaBot",
+        "Authors"                   : "David Churchill",
+        "PrintInfoOnStart"          : false
+    },
+        
+    "BWAPI" : 
+    {
+        "SetLocalSpeed"             : 5,
+        "SetFrameSkip"              : 0,
+        "UserInput"                 : true,
+        "CompleteMapInformation"    : false
+    },
+    
+    "Micro" :
+    {
+        "UseSparcraftSimulation"    : true,
+        "KiteWithRangedUnits"       : true,
+        "KiteLongerRangedUnits"     : ["Mutalisk", "Vulture"],
+        "WorkersDefendRush"         : true,
+        "RetreatMeleeUnitShields"   : 0,
+        "RetreatMeleeUnitHP"        : 0,
+        "InCombatRadius"            : 1000,
+        "RegroupRadius"             : 300,
+        "UnitNearEnemyRadius"       : 600
+    },
+    
+    "Macro" :
+    {
+        "BOSSFrameLimit"            : 160,
+        "WorkersPerRefinery"        : 3,
+        "BuildingSpacing"           : 1,
+        "PylonSpacing"              : 3
+    },
+
+    "Debug" :
+    {
+        "ErrorLogFilename"          : "bwapi-data/AI/CasiaBot_ErrorLog.txt",
+        "LogAssertToErrorFile"      : false,
+        
+        "DrawGameInfo"              : false,   
+        "DrawUnitHealthBars"        : true,
+        "DrawProductionInfo"        : true, 
+        "DrawBuildOrderSearchInfo"  : false,
+        "DrawScoutInfo"             : false,
+        "DrawEnemyUnitInfo"         : false,
+        "DrawModuleTimers"          : false,
+        "DrawResourceInfo"          : false,
+        "DrawCombatSimInfo"         : false,
+        "DrawUnitTargetInfo"        : false,
+        "DrawBWTAInfo"              : false,
+        "DrawMapGrid"               : false,
+        "DrawSquadInfo"             : false,
+        "DrawWorkerInfo"            : false,
+        "DrawMouseCursorInfo"       : false,
+        "DrawBuildingInfo"          : false,
+        "DrawReservedBuildingTiles" : false,
+        "DrawBOSSStateInfo"         : false,
+        "PrintModuleTimeout"        : false
+    },
+    
+    "Modules" :
+    {
+        "UseGameCommander"          : true,
+        "UseScoutManager"           : true,
+        "UseCombatCommander"        : true,
+        "UseBuildOrderSearch"       : true,
+        "UseStrategyIO"             : true,
+        "UseAutoObserver"           : false
+    },
+    
+    "Tools" :
+    {
+        "MapGridSize"               : 320
+    },
+    
+    "Strategy" :
+    {
+        "Protoss"                   :
+		{
+			"Protoss"				: "",
+			"Terran"				: "",
+			"Zerg"					: "",
+			"Unknown"				: ""
+		},
+		
+        "Terran"                    :
+		{
+			"Protoss"				: "",
+			"Terran"				: "",
+			"Zerg"					: "",
+			"Unknown"				: ""
+		},
+		
+        "Zerg"                      :
+		{
+			"Protoss"				: "Zerg_5D",
+			"Terran"				: "Zerg_9D",
+			"Zerg"					: "Zerg_9D",
+			"Unknown"				: "Zerg_5D"
+		},
+        
+        "ScoutGasSteal"             : false,
+        "ScoutHarassEnemy"          : true,
+        
+        "ReadDirectory"             : "bwapi-data/read/",
+        "WriteDirectory"            : "bwapi-data/write/",
+                
+        "UseEnemySpecificStrategy"  : true,
+        "EnemySpecificStrategy"     :
+        {
+            "BotName1"              : { "Protoss" : "Protoss_ZealotRush", "Terran" : "Terran_VultureRush", "Zerg" : "Zerg_9D" },
+            "BotName2"              : { "Protoss" : "Protoss_DragoonRush", "Terran" : "Terran_MarineRush", "Zerg" : "Zerg_9D" },
+            "LetaBot"               : { "Protoss" : "Protoss_ZealotRush", "Terran" : "Terran_4RaxMarines", "Zerg" : "Zerg_9D" }
+        },
+        
+        "Strategies" :
+        {
+			"Zerg_Lurker_Test": { "Race" : "Zerg",    "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Extractor", "Spawning Pool", "Drone", "Drone", "Lair", "Hydralisk Den", "Lurker_Aspect", "Hydralisk", "Hydralisk", "Lurker", "Lurker"]},
+            "Zerg_9D_Lurker"     : { "Race" : "Zerg",    "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Extractor", "Spawning Pool", "Drone", "Drone", "Zergling", "Zergling", "Zergling", "Lair", "Hydralisk Den"] },
+            "Zerg_9D"     			: { "Race" : "Zerg",    "OpeningBuildOrder" : [ "Drone", "Drone", "Drone", "Drone", "Drone", "Spawning Pool", "Drone", "Overlord", "Zergling", "Zergling", "Zergling" ] },
+			"Zerg_5D"				: { "Race" : "Zerg", 	"OpeningBuildOrder" : [ "Drone", "Spawning Pool", "Drone", "Drone", "Zergling", "Zergling", "Zergling" ] }
+        }
+    }
+}
