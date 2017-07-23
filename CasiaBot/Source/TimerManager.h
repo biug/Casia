@@ -2,7 +2,7 @@
 
 #include "Config.h"
 #include "Common.h"
-#include "../../BOSS/source/Timer.hpp"
+#include "Timer.hpp"
 
 namespace CasiaBot
 {

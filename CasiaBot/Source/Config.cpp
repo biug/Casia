@@ -78,7 +78,6 @@ namespace Config
         bool DrawMapGrid                    = false;
         bool DrawUnitTargetInfo             = false;
         bool DrawSquadInfo                  = false;
-        bool DrawBOSSStateInfo              = false;
         bool PrintModuleTimeout             = false;	
 
         std::string ErrorLogFilename        = "CAB_ErrorLog.txt";
@@ -105,7 +104,6 @@ namespace Config
 
     namespace Macro
     {
-        int BOSSFrameLimit                  = 160;
         int WorkersPerRefinery              = 3;
         int WorkersPerMineralPatch          = 3;
         int BuildingSpacing                 = 1;

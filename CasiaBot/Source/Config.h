@@ -73,7 +73,6 @@ namespace Config
         extern bool DrawMapGrid;
         extern bool DrawUnitTargetInfo;
         extern bool DrawSquadInfo;
-        extern bool DrawBOSSStateInfo;
         extern bool PrintModuleTimeout;		
 
         extern std::string ErrorLogFilename;
@@ -100,7 +99,6 @@ namespace Config
 
     namespace Macro
     {
-        extern int BOSSFrameLimit;
         extern int WorkersPerRefinery;
 		extern int WorkersPerMineralPatch;
         extern int BuildingSpacing;

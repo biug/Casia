@@ -24,9 +24,6 @@ void CasiaBotModule::onStart()
     // Initialize SparCraft, the combat simulation package
     SparCraft::init();
 
-    // Initialize BOSS, the Build Order Search System
-    BOSS::init();
-
     // Parse the bot's configuration file if it has one, change this file path to where your config file is
     // Any relative path name will be relative to Starcraft installation folder
     ParseUtils::ParseConfigFile(Config::ConfigFile::ConfigFileLocation);

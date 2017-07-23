@@ -108,9 +108,6 @@
     <ClCompile Include="..\source\BuildOrderQueue.cpp">
       <Filter>game\macro\buildorders</Filter>
     </ClCompile>
-    <ClCompile Include="..\Source\BOSSManager.cpp">
-      <Filter>game\macro\buildorders</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\BuildOrder.cpp">
       <Filter>game\macro\buildorders</Filter>
     </ClCompile>
@@ -282,9 +279,6 @@
       <Filter>game\combat\micro</Filter>
     </ClInclude>
     <ClInclude Include="..\source\BuildOrderQueue.h">
-      <Filter>game\macro\buildorders</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Source\BOSSManager.h">
       <Filter>game\macro\buildorders</Filter>
     </ClInclude>
     <ClInclude Include="..\source\BuildOrder.h">

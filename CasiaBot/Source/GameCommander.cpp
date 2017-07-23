@@ -30,10 +30,6 @@ void GameCommander::update()
 	//MapTools::Instance().update();
 	_timerManager.stopTimer(TimerManager::MapTools);
 
-	//_timerManager.startTimer(TimerManager::Search);
-	//BOSSManager::Instance().update(35 - _timerManager.getTotalElapsed());
-	//_timerManager.stopTimer(TimerManager::Search);
-
 	// economy and base managers
 	_timerManager.startTimer(TimerManager::Worker);
 	WorkerManager::Instance().update();
@@ -69,8 +65,6 @@ void GameCommander::drawDebugInterface()
 	BuildingManager::Instance().drawBuildingInformation(200,50);
 	BuildingPlacer::Instance().drawReservedTiles();
 	ProductionManager::Instance().drawProductionInformation(30, 50);
-	BOSSManager::Instance().drawSearchInformation(490, 100);
-    BOSSManager::Instance().drawStateInformation(250, 0);
     
 	_combatCommander.drawSquadInformation(200, 30);
     _timerManager.displayTimers(490, 225);

@@ -4,7 +4,6 @@
 #include "BuildOrderQueue.h"
 #include "BuildingManager.h"
 #include "StrategyManager.h"
-#include "BOSSManager.h"
 #include "BuildOrder.h"
 #include "ProductionQueue.h"
 

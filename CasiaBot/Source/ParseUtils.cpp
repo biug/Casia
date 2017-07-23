@@ -78,7 +78,6 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
     if (doc.HasMember("Macro") && doc["Macro"].IsObject())
     {
         const rapidjson::Value & macro = doc["Macro"];
-        JSONTools::ReadInt("BOSSFrameLimit", macro, Config::Macro::BOSSFrameLimit);
         JSONTools::ReadInt("BuildingSpacing", macro, Config::Macro::BuildingSpacing);
         JSONTools::ReadInt("PylongSpacing", macro, Config::Macro::PylonSpacing);
         JSONTools::ReadInt("WorkersPerRefinery", macro, Config::Macro::WorkersPerRefinery);
@@ -107,7 +106,6 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
         JSONTools::ReadBool("DrawMapGrid", debug, Config::Debug::DrawMapGrid);
         JSONTools::ReadBool("DrawUnitTargetInfo", debug, Config::Debug::DrawUnitTargetInfo);
         JSONTools::ReadBool("DrawReservedBuildingTiles", debug, Config::Debug::DrawReservedBuildingTiles);
-        JSONTools::ReadBool("DrawBOSSStateInfo", debug, Config::Debug::DrawBOSSStateInfo); 
         JSONTools::ReadBool("PrintModuleTimeout", debug, Config::Debug::PrintModuleTimeout);
     }
 
