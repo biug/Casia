@@ -53,10 +53,10 @@ void CasiaBotModule::onStart()
 		//BWTA::readMap();
 		BWTA::analyze();
 
-        if (Config::Modules::UsingStrategyIO)
+        if (Config::Modules::UsingOpeningIO)
         {
-            StrategyManager::Instance().readResults();
-            StrategyManager::Instance().setLearnedStrategy();
+            StrategyManager::Instance().readOpeningResults();
+            StrategyManager::Instance().setLearnedOpening();
         }
 	}
 }

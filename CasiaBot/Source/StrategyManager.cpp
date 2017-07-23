@@ -35,16 +35,16 @@ const int StrategyManager::getScore(BWAPI::Player player) const
 
 const BuildOrder & StrategyManager::getOpeningBookBuildOrder() const
 {
-    auto buildOrderIt = _strategies.find(Config::Strategy::StrategyName);
+    auto buildOrderIt = _openings.find(Config::Opening::OpeningName);
 
     // look for the build order in the build order map
-	if (buildOrderIt != std::end(_strategies))
+	if (buildOrderIt != std::end(_openings))
     {
         return (*buildOrderIt).second._buildOrder;
     }
     else
     {
-        CAB_ASSERT_WARNING(false, "Strategy not found: %s, returning empty initial build order", Config::Strategy::StrategyName.c_str());
+        CAB_ASSERT_WARNING(false, "Opening not found: %s, returning empty initial build order", Config::Opening::OpeningName.c_str());
         return _emptyBuildOrder;
     }
 }
@@ -90,9 +90,9 @@ const bool StrategyManager::shouldExpandNow() const
 	return false;
 }
 
-void StrategyManager::addStrategy(const std::string & name, Strategy & strategy)
+void StrategyManager::addOpening(const std::string & name, Opening & opening)
 {
-    _strategies[name] = strategy;
+	_openings[name] = opening;
 }
 
 void StrategyManager::updateProductionQueue(ProductionQueue & queue)
@@ -204,73 +204,9 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 	}
 }
 
-const MetaPairVector StrategyManager::getZergBuildOrderGoal() const
+void StrategyManager::readOpeningResults()
 {
-	// the goal to return
-	std::vector<MetaPair> goal;
-	
-    int numWorkers      = UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Drone);
-    int numCC           = UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Hatchery)
-                        + UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Lair)
-                        + UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Hive);
-	int numMutas        = UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Mutalisk);
-    int numDrones       = UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Drone);
-    int zerglings       = UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Zergling);
-	int numHydras       = UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Hydralisk);
-    int numScourge      = UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Scourge);
-    int numGuardians    = UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Guardian);
-	int numLurkers		= UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Lurker);
-
-	int mutasWanted = numMutas + 6;
-	int hydrasWanted = numHydras + 6;
-
-	bool canHydras = BWAPI::Broodwar->self()->isUnitAvailable(BWAPI::UnitTypes::Zerg_Hydralisk);
-	bool canLurker = BWAPI::Broodwar->self()->hasResearched(BWAPI::TechTypes::Lurker_Aspect);
-	bool lurkering = BWAPI::Broodwar->self()->isResearchAvailable(BWAPI::TechTypes::Lurker_Aspect);
-
-    if (Config::Strategy::StrategyName == "Zerg_9D_Lurker")
-	{
-		if (BWAPI::Broodwar->self()->isResearchAvailable(BWAPI::TechTypes::Lurker_Aspect)) {
-			if (!BWAPI::Broodwar->self()->isResearching(BWAPI::TechTypes::Lurker_Aspect)
-				&& !BWAPI::Broodwar->self()->hasResearched(BWAPI::TechTypes::Lurker_Aspect)) {
-				goal.push_back(std::pair<MetaType, int>(BWAPI::TechTypes::Lurker_Aspect, 1));
-			}
-		}
-		goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Zergling, 3));
-		if (numDrones < numCC * 9) {
-			goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Drone, 1));
-		}
-		if (canHydras && numHydras < 4) {
-			goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Hydralisk, 1));
-		}
-		if (canLurker && numHydras > 0 && numLurkers < 4) {
-			goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Lurker, 1));
-		}
-		if (BWAPI::Broodwar->self()->minerals() > 300 && numCC < 3) {
-			goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Hatchery, 1));
-			goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Drone, 1));
-		}
-	}
-	else if (Config::Strategy::StrategyName == "Zerg_9D")
-	{
-		if (numDrones < 9){
-			goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Drone, 1));
-		}
-		goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Zergling, 3));
-	}
-
-    //if (shouldExpandNow())
-    //{
-    //    goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Hatchery, numCC + 1));
-    //    goal.push_back(std::pair<MetaType, int>(BWAPI::UnitTypes::Zerg_Drone, numWorkers + 10));
-    //}
-
-	return goal;
-}
-
-void StrategyManager::readResults()
-{
-    if (!Config::Modules::UsingStrategyIO)
+    if (!Config::Modules::UsingOpeningIO)
     {
         return;
     }
@@ -278,7 +214,7 @@ void StrategyManager::readResults()
     std::string enemyName = BWAPI::Broodwar->enemy()->getName();
     std::replace(enemyName.begin(), enemyName.end(), ' ', '_');
 
-    std::string enemyResultsFile = Config::Strategy::ReadDir + enemyName + ".txt";
+    std::string enemyResultsFile = Config::Opening::ReadDir + enemyName + ".txt";
     
     std::string strategyName;
     int wins = 0;
@@ -298,14 +234,14 @@ void StrategyManager::readResults()
 
             //BWAPI::Broodwar->printf("Results Found: %s %d %d", strategyName.c_str(), wins, losses);
 
-            if (_strategies.find(strategyName) == _strategies.end())
+            if (_openings.find(strategyName) == _openings.end())
             {
                 //BWAPI::Broodwar->printf("Warning: Results file has unknown Strategy: %s", strategyName.c_str());
             }
             else
             {
-                _strategies[strategyName]._wins = wins;
-                _strategies[strategyName]._losses = losses;
+				_openings[strategyName]._wins = wins;
+				_openings[strategyName]._losses = losses;
             }
         }
 
@@ -313,13 +249,13 @@ void StrategyManager::readResults()
     }
     else
     {
-        //BWAPI::Broodwar->printf("No results file found: %s", enemyResultsFile.c_str());
+        BWAPI::Broodwar->printf("No results file found: %s", enemyResultsFile.c_str());
     }
 }
 
 void StrategyManager::writeResults()
 {
-    if (!Config::Modules::UsingStrategyIO)
+    if (!Config::Modules::UsingOpeningIO)
     {
         return;
     }
@@ -327,15 +263,15 @@ void StrategyManager::writeResults()
     std::string enemyName = BWAPI::Broodwar->enemy()->getName();
     std::replace(enemyName.begin(), enemyName.end(), ' ', '_');
 
-    std::string enemyResultsFile = Config::Strategy::WriteDir + enemyName + ".txt";
+    std::string enemyResultsFile = Config::Opening::WriteDir + enemyName + ".txt";
 
     std::stringstream ss;
 
-    for (auto & kv : _strategies)
+    for (auto & kv : _openings)
     {
-        const Strategy & strategy = kv.second;
+        const Opening & opening = kv.second;
 
-        ss << strategy._name << " " << strategy._wins << " " << strategy._losses << "\n";
+        ss << opening._name << " " << opening._wins << " " << opening._losses << "\n";
     }
 
     Logger::LogOverwriteToFile(enemyResultsFile, ss.str());
@@ -343,61 +279,61 @@ void StrategyManager::writeResults()
 
 void StrategyManager::onEnd(const bool isWinner)
 {
-    if (!Config::Modules::UsingStrategyIO)
+    if (!Config::Modules::UsingOpeningIO)
     {
         return;
     }
 
     if (isWinner)
     {
-        _strategies[Config::Strategy::StrategyName]._wins++;
+		_openings[Config::Opening::OpeningName]._wins++;
     }
     else
     {
-        _strategies[Config::Strategy::StrategyName]._losses++;
+		_openings[Config::Opening::OpeningName]._losses++;
     }
 
     writeResults();
 }
 
-void StrategyManager::setLearnedStrategy()
+void StrategyManager::setLearnedOpening()
 {
     // we are currently not using this functionality for the competition so turn it off 
-    return;
+    //return;
 
-    if (!Config::Modules::UsingStrategyIO)
+    if (!Config::Modules::UsingOpeningIO)
     {
         return;
     }
 
-    const std::string & strategyName = Config::Strategy::StrategyName;
-    Strategy & currentStrategy = _strategies[strategyName];
+    const std::string & strategyName = Config::Opening::OpeningName;
+    Opening & currentStrategy = _openings[strategyName];
 
     int totalGamesPlayed = 0;
-    int strategyGamesPlayed = currentStrategy._wins + currentStrategy._losses;
-    double winRate = strategyGamesPlayed > 0 ? currentStrategy._wins / static_cast<double>(strategyGamesPlayed) : 0;
+    int openingGamesPlayed = currentStrategy._wins + currentStrategy._losses;
+    double winRate = openingGamesPlayed > 0 ? currentStrategy._wins / static_cast<double>(openingGamesPlayed) : 0;
 
     // if we are using an enemy specific strategy
-    if (Config::Strategy::FoundEnemySpecificStrategy)
+    if (Config::Opening::FoundEnemySpecificOpening)
     {        
         return;
     }
 
     // if our win rate with the current strategy is super high don't explore at all
     // also we're pretty confident in our base strategies so don't change if insufficient games have been played
-    if (strategyGamesPlayed < 5 || (strategyGamesPlayed > 0 && winRate > 0.49))
+    if (openingGamesPlayed < 5 || (openingGamesPlayed > 0 && winRate > 0.49))
     {
         BWAPI::Broodwar->printf("Still using default strategy");
         return;
     }
 
     // get the total number of games played so far with this race
-    for (auto & kv : _strategies)
+    for (auto & kv : _openings)
     {
-        Strategy & strategy = kv.second;
-        if (strategy._race == BWAPI::Broodwar->self()->getRace())
+        Opening & opening = kv.second;
+        if (opening._race == BWAPI::Broodwar->self()->getRace())
         {
-            totalGamesPlayed += strategy._wins + strategy._losses;
+            totalGamesPlayed += opening._wins + opening._losses;
         }
     }
 
@@ -405,25 +341,25 @@ void StrategyManager::setLearnedStrategy()
     double C = 0.5;
     std::string bestUCBStrategy;
     double bestUCBStrategyVal = std::numeric_limits<double>::lowest();
-    for (auto & kv : _strategies)
+    for (auto & kv : _openings)
     {
-        Strategy & strategy = kv.second;
-        if (strategy._race != BWAPI::Broodwar->self()->getRace())
+        Opening & opening = kv.second;
+        if (opening._race != BWAPI::Broodwar->self()->getRace())
         {
             continue;
         }
 
-        int sGamesPlayed = strategy._wins + strategy._losses;
-        double sWinRate = sGamesPlayed > 0 ? currentStrategy._wins / static_cast<double>(strategyGamesPlayed) : 0;
+        int sGamesPlayed = opening._wins + opening._losses;
+        double sWinRate = sGamesPlayed > 0 ? currentStrategy._wins / static_cast<double>(openingGamesPlayed) : 0;
         double ucbVal = C * sqrt( log( (double)totalGamesPlayed / sGamesPlayed ) );
         double val = sWinRate + ucbVal;
 
         if (val > bestUCBStrategyVal)
         {
-            bestUCBStrategy = strategy._name;
+            bestUCBStrategy = opening._name;
             bestUCBStrategyVal = val;
         }
     }
 
-    Config::Strategy::StrategyName = bestUCBStrategy;
+    Config::Opening::OpeningName = bestUCBStrategy;
 }

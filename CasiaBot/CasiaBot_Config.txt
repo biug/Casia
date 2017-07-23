@@ -67,7 +67,7 @@
         "UseScoutManager"           : true,
         "UseCombatCommander"        : true,
         "UseBuildOrderSearch"       : true,
-        "UseStrategyIO"             : true,
+        "UseOpeningIO"              : true,
         "UseAutoObserver"           : false
     },
     
@@ -76,31 +76,11 @@
         "MapGridSize"               : 320
     },
     
-    "Strategy" :
+    "Opening" :
     {
-        "Protoss"                   :
-		{
-			"Protoss"				: "",
-			"Terran"				: "",
-			"Zerg"					: "",
-			"Unknown"				: ""
-		},
-		
-        "Terran"                    :
-		{
-			"Protoss"				: "",
-			"Terran"				: "",
-			"Zerg"					: "",
-			"Unknown"				: ""
-		},
-		
-        "Zerg"                      :
-		{
-			"Protoss"				: "Zerg_5D",
-			"Terran"				: "Zerg_9D",
-			"Zerg"					: "Zerg_9D",
-			"Unknown"				: "Zerg_5D"
-		},
+        "Protoss"                   : "Protoss_ZealotRush",
+        "Terran"                    : "Terran_MarineRush",
+        "Zerg"                      : "Zerg_9D",
         
         "ScoutGasSteal"             : false,
         "ScoutHarassEnemy"          : true,
@@ -108,20 +88,19 @@
         "ReadDirectory"             : "bwapi-data/read/",
         "WriteDirectory"            : "bwapi-data/write/",
                 
-        "UseEnemySpecificStrategy"  : true,
-        "EnemySpecificStrategy"     :
+        "UseEnemySpecificOpening"  : true,
+        "EnemySpecificOpening"     :
         {
             "BotName1"              : { "Protoss" : "Protoss_ZealotRush", "Terran" : "Terran_VultureRush", "Zerg" : "Zerg_9D" },
             "BotName2"              : { "Protoss" : "Protoss_DragoonRush", "Terran" : "Terran_MarineRush", "Zerg" : "Zerg_9D" },
             "LetaBot"               : { "Protoss" : "Protoss_ZealotRush", "Terran" : "Terran_4RaxMarines", "Zerg" : "Zerg_9D" }
         },
         
-        "Strategies" :
+        "Openings" :
         {
 			"Zerg_Lurker_Test": { "Race" : "Zerg",    "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Extractor", "Spawning Pool", "Drone", "Drone", "Lair", "Hydralisk Den", "Lurker_Aspect", "Hydralisk", "Hydralisk", "Lurker", "Lurker"]},
             "Zerg_9D_Lurker"     : { "Race" : "Zerg",    "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Extractor", "Spawning Pool", "Drone", "Drone", "Zergling", "Zergling", "Zergling", "Lair", "Hydralisk Den"] },
-            "Zerg_9D"     			: { "Race" : "Zerg",    "OpeningBuildOrder" : [ "Drone", "Drone", "Drone", "Drone", "Drone", "Spawning Pool", "Drone", "Overlord", "Zergling", "Zergling", "Zergling" ] },
-			"Zerg_5D"				: { "Race" : "Zerg", 	"OpeningBuildOrder" : [ "Drone", "Spawning Pool", "Drone", "Drone", "Zergling", "Zergling", "Zergling" ] }
+            "Zerg_9D"     : { "Race" : "Zerg",    "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone"] }
         }
     }
 }

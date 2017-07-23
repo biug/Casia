@@ -128,7 +128,7 @@ void ScoutManager::moveScouts()
 			if (!_scoutUnderAttack)
 			{
 				// if there is a worker nearby, harass it
-				if (Config::Strategy::ScoutHarassEnemy && (!Config::Strategy::GasStealWithScout || _gasStealFinished) && closestWorker && (_workerScout->getDistance(closestWorker) < 800))
+				if (Config::Opening::ScoutHarassEnemy && (!Config::Opening::GasStealWithScout || _gasStealFinished) && closestWorker && (_workerScout->getDistance(closestWorker) < 800))
 				{
                     _scoutStatus = "Harass enemy worker";
                     _currentRegionVertexIndex = -1;
@@ -200,7 +200,7 @@ void ScoutManager::followPerimeter()
 
 void ScoutManager::gasSteal()
 {
-    if (!Config::Strategy::GasStealWithScout)
+    if (!Config::Opening::GasStealWithScout)
     {
         _gasStealStatus = "Not using gas steal";
         return;

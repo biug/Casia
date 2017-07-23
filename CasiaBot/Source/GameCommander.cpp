@@ -86,8 +86,8 @@ void GameCommander::drawGameInformation(int x, int y)
                                                                   BWAPI::Broodwar->enemy()->getTextColor(), BWAPI::Broodwar->enemy()->getName().c_str());
 	y += 12;
 		
-    BWAPI::Broodwar->drawTextScreen(x, y, "\x04Strategy:");
-	BWAPI::Broodwar->drawTextScreen(x+50, y, "\x03%s %s", Config::Strategy::StrategyName.c_str(), Config::Strategy::FoundEnemySpecificStrategy ? "(enemy specific)" : "");
+    BWAPI::Broodwar->drawTextScreen(x, y, "\x04Opening:");
+	BWAPI::Broodwar->drawTextScreen(x+50, y, "\x03%s %s", Config::Opening::OpeningName.c_str(), Config::Opening::FoundEnemySpecificOpening ? "(enemy specific)" : "");
 	BWAPI::Broodwar->setTextSize();
 	y += 12;
 
@@ -111,7 +111,7 @@ void GameCommander::handleUnitAssignments()
 
 	// set each type of unit
 	// zerg_5d不需要侦查
-	if (Config::Strategy::StrategyName != "Zerg_5D")
+	if (Config::Opening::OpeningName != "Zerg_5D")
 		setScoutUnits();
 	setCombatUnits();
 }

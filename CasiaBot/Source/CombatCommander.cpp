@@ -102,7 +102,7 @@ void CombatCommander::updateAttackSquads()
 
 void CombatCommander::updateDropSquads()
 {
-    if (Config::Strategy::StrategyName != "Protoss_Drop")
+    if (Config::Opening::OpeningName != "Protoss_Drop")
     {
         return;
     }

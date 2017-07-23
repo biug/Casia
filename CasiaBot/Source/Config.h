@@ -20,7 +20,7 @@ namespace Config
         extern bool UsingUnitCommandManager;
         extern bool UsingBuildOrderSearch;  
         extern bool UsingAutoObserver;
-        extern bool UsingStrategyIO;			
+        extern bool UsingOpeningIO;			
     }
     
     namespace BotInfo
@@ -30,15 +30,15 @@ namespace Config
         extern bool PrintInfoOnStart;
     }
 
-    namespace Strategy
+    namespace Opening
     {
-        extern std::string StrategyName;
+        extern std::string OpeningName;
         extern std::string ReadDir;
         extern std::string WriteDir;
         extern bool GasStealWithScout;
         extern bool ScoutHarassEnemy;
-        extern bool UseEnemySpecificStrategy;
-        extern bool FoundEnemySpecificStrategy;
+        extern bool UseEnemySpecificOpening;
+        extern bool FoundEnemySpecificOpening;
     }
 
     namespace BWAPIOptions

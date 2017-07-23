@@ -10,18 +10,18 @@ namespace Config
 		std::string ConfigFileLocation = "bwapi-data/AI/CasiaBot_Config.txt";
     }
 
-    namespace Strategy
+    namespace Opening
     {
-        std::string ProtossStrategyName     = "Protoss_ZealotRush";
-        std::string TerranStrategyName      = "Terran_MarineRush";
-        std::string ZergStrategyName        = "Zerg_3HatchMuta";
-        std::string StrategyName            = "Protoss_ZealotRush";
+        std::string ProtossOpeningName     = "Protoss_ZealotRush";
+        std::string TerranOpeningName      = "Terran_MarineRush";
+        std::string ZergOpeningName        = "Zerg_3HatchMuta";
+        std::string OpeningName            = "Zerg_9D";
         std::string ReadDir                 = "bwapi-data/read/";
         std::string WriteDir                = "bwapi-data/write/";
         bool GasStealWithScout              = false;
         bool ScoutHarassEnemy               = true;
-        bool UseEnemySpecificStrategy       = false;
-        bool FoundEnemySpecificStrategy     = false;
+        bool UseEnemySpecificOpening       = false;
+        bool FoundEnemySpecificOpening     = false;
     }
 
     namespace Modules							    
@@ -32,7 +32,7 @@ namespace Config
         bool UsingCombatCommander           = true;
         bool UsingBuildOrderSearch          = true;     // toggle use of Build Order Search, currently no backup
         bool UsingAutoObserver              = false;
-        bool UsingStrategyIO                = false;    // toggle the use of file io for strategy
+        bool UsingOpeningIO					= true;    // toggle the use of file io for strategy
         bool UsingUnitCommandManager        = false;    // handles all unit commands
 		
         // extra things, don't enable unless you know what they are

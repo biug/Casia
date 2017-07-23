@@ -118,7 +118,7 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
         JSONTools::ReadBool("UseScoutManager", module, Config::Modules::UsingScoutManager);
         JSONTools::ReadBool("UseCombatCommander", module, Config::Modules::UsingCombatCommander);
         JSONTools::ReadBool("UseBuildOrderSearch", module, Config::Modules::UsingBuildOrderSearch);
-        JSONTools::ReadBool("UseStrategyIO", module, Config::Modules::UsingStrategyIO);
+        JSONTools::ReadBool("UseOpeningIO", module, Config::Modules::UsingOpeningIO);
         JSONTools::ReadBool("UseUnitCommandManager", module, Config::Modules::UsingUnitCommandManager);
         JSONTools::ReadBool("UseAutoObserver", module, Config::Modules::UsingAutoObserver);
     }
@@ -131,68 +131,68 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
         JSONTools::ReadInt("MapGridSize", tool, Config::Tools::MAP_GRID_SIZE);
     }
 
-    // Parse the Strategy Options
-    if (doc.HasMember("Strategy") && doc["Strategy"].IsObject())
+    // Parse the Opening Options
+    if (doc.HasMember("Opening") && doc["Opening"].IsObject())
     {
-        const rapidjson::Value & strategy = doc["Strategy"];
+        const rapidjson::Value & opening = doc["Opening"];
 
         // read in the various strategic elements
-        JSONTools::ReadBool("ScoutGasSteal", strategy, Config::Strategy::GasStealWithScout);
-        JSONTools::ReadBool("ScoutHarassEnemy", strategy, Config::Strategy::ScoutHarassEnemy);
-        JSONTools::ReadString("ReadDirectory", strategy, Config::Strategy::ReadDir);
-        JSONTools::ReadString("WriteDirectory", strategy, Config::Strategy::WriteDir);
+        JSONTools::ReadBool("ScoutGasSteal", opening, Config::Opening::GasStealWithScout);
+        JSONTools::ReadBool("ScoutHarassEnemy", opening, Config::Opening::ScoutHarassEnemy);
+        JSONTools::ReadString("ReadDirectory", opening, Config::Opening::ReadDir);
+        JSONTools::ReadString("WriteDirectory", opening, Config::Opening::WriteDir);
 
-        // if we have set a strategy for the current race, use it
-        if (strategy.HasMember(race.c_str()) && strategy[race.c_str()].IsObject())
+        // if we have set a opening for the current race, use it
+        if (opening.HasMember(race.c_str()) && opening[race.c_str()].IsObject())
         {
-			const rapidjson::Value & specific = strategy[race.c_str()];
+			const rapidjson::Value & specific = opening[race.c_str()];
 			if (specific.HasMember(erace.c_str()) && specific[erace.c_str()].IsString())
-				Config::Strategy::StrategyName = specific[erace.c_str()].GetString();
+				Config::Opening::OpeningName = specific[erace.c_str()].GetString();
         }
 
-        // check if we are using an enemy specific strategy
-        JSONTools::ReadBool("UseEnemySpecificStrategy", strategy, Config::Strategy::UseEnemySpecificStrategy);
-        if (Config::Strategy::UseEnemySpecificStrategy && strategy.HasMember("EnemySpecificStrategy") && strategy["EnemySpecificStrategy"].IsObject())
+        // check if we are using an enemy specific opening
+        JSONTools::ReadBool("UseEnemySpecificOpening", opening, Config::Opening::UseEnemySpecificOpening);
+        if (Config::Opening::UseEnemySpecificOpening && opening.HasMember("EnemySpecificOpening") && opening["EnemySpecificOpening"].IsObject())
         {
             const std::string enemyName = BWAPI::Broodwar->enemy()->getName();
-            const rapidjson::Value & specific = strategy["EnemySpecificStrategy"];
+            const rapidjson::Value & specific = opening["EnemySpecificOpening"];
 
             // check to see if our current enemy name is listed anywhere in the specific strategies
             if (specific.HasMember(enemyName.c_str()) && specific[enemyName.c_str()].IsObject())
             {
                 const rapidjson::Value & enemyStrategies = specific[enemyName.c_str()];
 
-                // if that enemy has a strategy listed for our current race, use it
+                // if that enemy has a opening listed for our current race, use it
                 if (enemyStrategies.HasMember(race.c_str()) && enemyStrategies[race.c_str()].IsString())
                 {
-                    Config::Strategy::StrategyName = enemyStrategies[race.c_str()].GetString();
-                    Config::Strategy::FoundEnemySpecificStrategy = true;
+                    Config::Opening::OpeningName = enemyStrategies[race.c_str()].GetString();
+                    Config::Opening::FoundEnemySpecificOpening = true;
                 }
             }
         }
 
         // Parse all the Strategies
-        if (strategy.HasMember("Strategies") && strategy["Strategies"].IsObject())
+        if (opening.HasMember("Openings") && opening["Openings"].IsObject())
         {
-            const rapidjson::Value & strategies = strategy["Strategies"];
-            for (rapidjson::Value::ConstMemberIterator itr = strategies.MemberBegin(); itr != strategies.MemberEnd(); ++itr)
+            const rapidjson::Value & openings = opening["Openings"];
+            for (rapidjson::Value::ConstMemberIterator itr = openings.MemberBegin(); itr != openings.MemberEnd(); ++itr)
             {
                 const std::string &         name = itr->name.GetString();
                 const rapidjson::Value &    val  = itr->value;
         
 
-                BWAPI::Race strategyRace;
+                BWAPI::Race openingRace;
                 if (val.HasMember("Race") && val["Race"].IsString())
                 {
-                    strategyRace = GetRace(val["Race"].GetString());
+					openingRace = GetRace(val["Race"].GetString());
                 }
                 else
                 {
-                    CAB_ASSERT_WARNING(false, "Strategy must have a Race string. Skipping strategy %s", name.c_str());
+                    CAB_ASSERT_WARNING(false, "Opening must have a Race string. Skipping opening %s", name.c_str());
                     continue;
                 }
 
-                BuildOrder buildOrder(strategyRace);
+                BuildOrder buildOrder(openingRace);
                 if (val.HasMember("OpeningBuildOrder") && val["OpeningBuildOrder"].IsArray())
                 {
                     const rapidjson::Value & build = val["OpeningBuildOrder"];
@@ -216,7 +216,7 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
                     }
                 }
 
-                StrategyManager::Instance().addStrategy(name, Strategy(name, strategyRace, buildOrder));
+                StrategyManager::Instance().addOpening(name, Opening(name, openingRace, buildOrder));
             }
         }
     }
@@ -285,7 +285,7 @@ void ParseUtils::ParseTextCommand(const std::string & commandString)
         else if (variableName == "usecombatcommander") { Config::Modules::UsingCombatCommander = GetBoolFromString(val); }
         else if (variableName == "usebuildordersearch") { Config::Modules::UsingBuildOrderSearch = GetBoolFromString(val); }
         else if (variableName == "useautoobserver") { Config::Modules::UsingAutoObserver = GetBoolFromString(val); }
-        else if (variableName == "usestrategyio") { Config::Modules::UsingStrategyIO = GetBoolFromString(val); }
+        else if (variableName == "useopeningio") { Config::Modules::UsingOpeningIO = GetBoolFromString(val); }
         else if (variableName == "useunitcommandmanager") { Config::Modules::UsingUnitCommandManager = GetBoolFromString(val); }
 
         else { CAB_ASSERT_WARNING(false, "Unknown variable name for /set: %s", variableName.c_str()); }
