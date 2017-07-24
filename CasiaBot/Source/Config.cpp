@@ -12,10 +12,7 @@ namespace Config
 
     namespace Opening
     {
-        std::string ProtossOpeningName     = "Protoss_ZealotRush";
-        std::string TerranOpeningName      = "Terran_MarineRush";
-        std::string ZergOpeningName        = "Zerg_3HatchMuta";
-        std::string OpeningName            = "Zerg_9D";
+        std::string OpeningName            = "ZVP_9D";
         std::string ReadDir                 = "bwapi-data/read/";
         std::string WriteDir                = "bwapi-data/write/";
         bool GasStealWithScout              = false;

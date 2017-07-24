@@ -142,13 +142,12 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
         JSONTools::ReadString("ReadDirectory", opening, Config::Opening::ReadDir);
         JSONTools::ReadString("WriteDirectory", opening, Config::Opening::WriteDir);
 
-        // if we have set a opening for the current race, use it
-        if (opening.HasMember(race.c_str()) && opening[race.c_str()].IsObject())
-        {
-			const rapidjson::Value & specific = opening[race.c_str()];
-			if (specific.HasMember(erace.c_str()) && specific[erace.c_str()].IsString())
-				Config::Opening::OpeningName = specific[erace.c_str()].GetString();
-        }
+        // we should use zerg as our race
+		CAB_ASSERT(race == BWAPI::Races::Zerg, "should choose zerg");
+		std::string gameType = "Random";
+		if (erace == BWAPI::Races::Terran)			gameType = "ZVT";
+		else if (erace == BWAPI::Races::Protoss)	gameType = "ZVP";
+		else if (erace == BWAPI::Races::Zerg)		gameType = "ZVZ";
 
         // check if we are using an enemy specific opening
         JSONTools::ReadBool("UseEnemySpecificOpening", opening, Config::Opening::UseEnemySpecificOpening);
@@ -160,14 +159,9 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
             // check to see if our current enemy name is listed anywhere in the specific strategies
             if (specific.HasMember(enemyName.c_str()) && specific[enemyName.c_str()].IsObject())
             {
-                const rapidjson::Value & enemyStrategies = specific[enemyName.c_str()];
-
-                // if that enemy has a opening listed for our current race, use it
-                if (enemyStrategies.HasMember(race.c_str()) && enemyStrategies[race.c_str()].IsString())
-                {
-                    Config::Opening::OpeningName = enemyStrategies[race.c_str()].GetString();
-                    Config::Opening::FoundEnemySpecificOpening = true;
-                }
+                // if that enemy has a opening, use it
+				Config::Opening::OpeningName = specific[enemyName.c_str()].GetString();
+				Config::Opening::FoundEnemySpecificOpening = true;
             }
         }
 
@@ -179,20 +173,11 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
             {
                 const std::string &         name = itr->name.GetString();
                 const rapidjson::Value &    val  = itr->value;
-        
+				
+				// must use specific game type
+				if (name.find(gameType) != 0) continue;
 
-                BWAPI::Race openingRace;
-                if (val.HasMember("Race") && val["Race"].IsString())
-                {
-					openingRace = GetRace(val["Race"].GetString());
-                }
-                else
-                {
-                    CAB_ASSERT_WARNING(false, "Opening must have a Race string. Skipping opening %s", name.c_str());
-                    continue;
-                }
-
-                BuildOrder buildOrder(openingRace);
+                BuildOrder buildOrder(race);
                 if (val.HasMember("OpeningBuildOrder") && val["OpeningBuildOrder"].IsArray())
                 {
                     const rapidjson::Value & build = val["OpeningBuildOrder"];
@@ -216,7 +201,7 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
                     }
                 }
 
-                StrategyManager::Instance().addOpening(name, Opening(name, openingRace, buildOrder));
+                StrategyManager::Instance().addOpening(name, Opening(name, race, buildOrder));
             }
         }
     }

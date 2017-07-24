@@ -2,83 +2,97 @@
 
 using namespace CasiaBot;
 
-MetaType::MetaType () 
-    : _type(MetaTypes::Default) 
-    , _race(BWAPI::Races::None)
+MetaCondition::MetaCondition(const std::string & cond)
+	: _condition(cond)
+{
+
+}
+
+std::hash_map<std::string, BWAPI::UnitType>		MetaType::_unitTypes;
+std::hash_map<std::string, BWAPI::TechType>		MetaType::_techTypes;
+std::hash_map<std::string, BWAPI::UpgradeType>	MetaType::_upgradeTypes;
+
+MetaType::MetaType()
+	: _type(MetaTypes::Default)
+	, _race(BWAPI::Races::None)
+	, _condition("")
 {
 }
 
 MetaType::MetaType(const std::string & name)
     : _type(MetaTypes::Default) 
     , _race(BWAPI::Races::None)
+	, _condition("")
 {
     std::string inputName(name);
-    std::replace(inputName.begin(), inputName.end(), '_', ' ');
+	std::string condition = "";
+	std::size_t condPos = inputName.find('@');
+	if (condPos != std::string::npos)
+	{
+		condition = inputName.substr(condPos + 1);
+		inputName = inputName.substr(0, condPos);
+	}
 
-    for (const BWAPI::UnitType & unitType : BWAPI::UnitTypes::allUnitTypes())
-    {
-        // check to see if the names match exactly
-        std::string typeName = unitType.getName();
-        std::replace(typeName.begin(), typeName.end(), '_', ' ');
-        if (typeName == inputName)
-        {
-            *this = MetaType(unitType);
-            return;
-        }
-
-        // check to see if the names match without the race prefix
-        const std::string & raceName = unitType.getRace().getName();
-        if ((typeName.length() > raceName.length()) && (typeName.compare(raceName.length() + 1, typeName.length(), inputName) == 0))
-        {
-            *this = MetaType(unitType);
-            return;
-        }
-    }
-
-    for (const BWAPI::TechType & techType : BWAPI::TechTypes::allTechTypes())
-    {
-        std::string typeName = techType.getName();
-        std::replace(typeName.begin(), typeName.end(), '_', ' ');
-        if (typeName == inputName)
-        {
-            *this = MetaType(techType);
-            return;
-        }
-    }
-
-    for (const BWAPI::UpgradeType & upgradeType : BWAPI::UpgradeTypes::allUpgradeTypes())
-    {
-        std::string typeName = upgradeType.getName();
-        std::replace(typeName.begin(), typeName.end(), '_', ' ');
-        if (typeName == inputName)
-        {
-            *this = MetaType(upgradeType);
-            return;
-        }
-    }
+	if (_unitTypes.find(inputName) != _unitTypes.end())
+	{
+		*this = MetaType(_unitTypes.at(inputName), condition);
+		return;
+	}
+	else if (_techTypes.find(inputName) != _techTypes.end())
+	{
+		*this = MetaType(_techTypes.at(inputName), condition);
+		return;
+	}
+	else if (_upgradeTypes.find(inputName) != _upgradeTypes.end())
+	{
+		*this = MetaType(_upgradeTypes.at(inputName), condition);
+		return;
+	}
 
     CAB_ASSERT_WARNING(false, "Could not find MetaType with name: %s", name.c_str());
 }
 
-MetaType::MetaType (BWAPI::UnitType t) 
+MetaType::MetaType (BWAPI::UnitType t, const std::string & cond)
     : _unitType(t)
     , _type(MetaTypes::Unit) 
     , _race(t.getRace())
+	, _condition(cond)
 {
 }
 
-MetaType::MetaType (BWAPI::TechType t) 
+MetaType::MetaType (BWAPI::TechType t, const std::string & cond)
     : _techType(t)
     , _type(MetaTypes::Tech) 
     , _race(t.getRace())
+	, _condition(cond)
 {
 }
 
-MetaType::MetaType (BWAPI::UpgradeType t) 
+MetaType::MetaType (BWAPI::UpgradeType t, const std::string & cond)
     : _upgradeType(t)
     , _type(MetaTypes::Upgrade) 
     , _race(t.getRace())
+	, _condition(cond)
 {
+}
+
+void MetaType::initTypes()
+{
+	for (const auto & unitType : BWAPI::UnitTypes::allUnitTypes())
+	{
+		std::string name = unitType.getName();
+		std::string race = unitType.getRace().getName();
+		if (name.find(race) == 0 && name != race) name = name.substr(race.length() + 1);
+		MetaType::_unitTypes.insert({ name, unitType });
+	}
+	for (const auto & techType : BWAPI::TechTypes::allTechTypes())
+	{
+		MetaType::_techTypes.insert({ techType.getName(), techType });
+	}
+	for (const auto & upgradeType : BWAPI::UpgradeTypes::allUpgradeTypes())
+	{
+		MetaType::_upgradeTypes.insert({ upgradeType.getName(), upgradeType });
+	}
 }
 
 const size_t & MetaType::type() const
@@ -134,6 +148,11 @@ const BWAPI::TechType & MetaType::getTechType() const
 const BWAPI::UpgradeType & MetaType::getUpgradeType() const
 {
     return _upgradeType;
+}
+
+const MetaCondition & MetaType::getCond() const
+{
+	return _condition;
 }
 
 int MetaType::supplyRequired()
