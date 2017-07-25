@@ -1,4 +1,5 @@
 #include "MetaType.h"
+#include <numeric>
 
 using namespace CasiaBot;
 
@@ -6,6 +7,74 @@ MetaCondition::MetaCondition(const std::string & cond)
 	: _condition(cond)
 {
 
+}
+
+bool MetaCondition::isNone() const
+{
+	return _condition.empty();
+}
+
+bool MetaCondition::isCancel() const
+{
+	return _condition.compare("Cancel") == 0;
+}
+
+bool MetaCondition::isMineral() const
+{
+	auto itr = std::find_if_not(_condition.begin(), _condition.end(), [](char c) { return isdigit(c); });
+	return itr == _condition.end() - 1 && *itr == 'M';
+}
+
+bool MetaCondition::isGas() const
+{
+	auto itr = std::find_if_not(_condition.begin(), _condition.end(), [](char c) { return isdigit(c); });
+	return itr == _condition.end() - 1 && *itr == 'G';
+}
+
+bool MetaCondition::isUnit() const
+{
+	auto itr = std::find_if_not(_condition.begin(), _condition.end(), [](char c) { return isdigit(c); });
+	if (itr == _condition.begin() || itr == _condition.end()) return false;
+	auto type = _condition.substr(itr - _condition.begin());
+	return MetaType::_unitTypes.find(type) != MetaType::_unitTypes.end();
+}
+
+bool MetaCondition::isPercent() const
+{
+	auto itr = std::find_if_not(_condition.begin(), _condition.end(), [](char c) { return isdigit(c); });
+	if (itr == _condition.begin() || itr == _condition.end() || *itr != '%') return false;
+	auto type = _condition.substr(itr + 1 - _condition.begin());
+	return MetaType::_unitTypes.find(type) != MetaType::_unitTypes.end();
+}
+
+int MetaCondition::getMineral() const
+{
+	return std::accumulate<std::string::const_iterator, int>
+		(_condition.begin(), _condition.end() - 1, 0, [](int high, int low) {return high * 10 + low - '0'; });
+}
+
+int MetaCondition::getGas() const
+{
+	return std::accumulate<std::string::const_iterator, int>
+		(_condition.begin(), _condition.end() - 1, 0, [](int high, int low) {return high * 10 + low - '0'; });
+}
+
+std::pair<BWAPI::UnitType, int> MetaCondition::getUnit() const
+{
+	auto itr = std::find_if_not(_condition.begin(), _condition.end(), [](char c) { return isdigit(c); });
+	int num = std::accumulate<std::string::const_iterator, int>
+		(_condition.begin(), itr, 0, [](int high, int low) {return high * 10 + low - '0'; });
+	auto type = MetaType::_unitTypes.at(_condition.substr(itr - _condition.begin()));
+	return { type, num };
+}
+
+std::pair<BWAPI::UnitType, float> MetaCondition::getPercent() const
+{
+	auto itr = std::find_if_not(_condition.begin(), _condition.end(), [](char c) { return isdigit(c); });
+	int num = std::accumulate<std::string::const_iterator, int>
+		(_condition.begin(), itr, 0, [](int high, int low) {return high * 10 + low - '0'; });
+	auto type = MetaType::_unitTypes.at(_condition.substr(itr + 1 - _condition.begin()));
+	return { type, (float)num / 100.0 };
 }
 
 std::hash_map<std::string, BWAPI::UnitType>		MetaType::_unitTypes;

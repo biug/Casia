@@ -10,6 +10,7 @@ ProductionQueue::ProductionQueue()
 
 void ProductionQueue::updateCount(const MetaType & unit, int offset)
 {
+	if (unit.getCond().isCancel()) return;
 	if (unit.isUnit()) _unitCount[unit.getUnitType().getID()] += offset;
 	else if (unit.isTech()) _techCount[unit.getTechType().getID()] += offset;
 	else if (unit.isUpgrade()) _upgradeCount[unit.getUpgradeType().getID()] += offset;
@@ -113,7 +114,6 @@ void ProductionQueue::checkSupply()
 void ProductionQueue::addOpenning(const ProductionItem & item)
 {
 	const MetaType & unit = item._unit;
-
 	updateCount(unit, 1);
 
 	

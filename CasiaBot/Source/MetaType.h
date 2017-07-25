@@ -17,6 +17,18 @@ class MetaCondition
 public:
 
 	MetaCondition(const std::string & cond);
+
+	bool isNone() const;
+	bool isCancel() const;
+	bool isMineral() const;
+	bool isGas() const;
+	bool isUnit() const;
+	bool isPercent() const;
+
+	int									getMineral() const;
+	int									getGas() const;
+	std::pair<BWAPI::UnitType, int>		getUnit() const;
+	std::pair<BWAPI::UnitType, float>	getPercent() const;
 };
 
 class MetaType 

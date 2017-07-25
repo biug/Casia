@@ -99,6 +99,18 @@ void ProductionManager::manageBuildOrderQueue()
 	{
 		return;
 	}
+	// if we should cancel
+	if (item._unit.getCond().isCancel())
+	{
+		for (auto & unit : BWAPI::Broodwar->self()->getUnits())
+		{
+			if (unit->getType().isRefinery() && unit->isConstructing())
+			{
+				unit->cancelConstruction();
+				return;
+			}
+		}
+	}
 	MetaType & unit = item._unit;
 	// this is the unit which can produce the currentItem
     BWAPI::Unit producer = getProducer(unit);
