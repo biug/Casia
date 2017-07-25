@@ -148,6 +148,10 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
 		if (erace == BWAPI::Races::Terran)			gameType = "ZVT";
 		else if (erace == BWAPI::Races::Protoss)	gameType = "ZVP";
 		else if (erace == BWAPI::Races::Zerg)		gameType = "ZVZ";
+		if (opening.HasMember("OpeningName"))
+		{
+			Config::Opening::OpeningName = opening["OpeningName"].GetString();
+		}
 
         // check if we are using an enemy specific opening
         JSONTools::ReadBool("UseEnemySpecificOpening", opening, Config::Opening::UseEnemySpecificOpening);

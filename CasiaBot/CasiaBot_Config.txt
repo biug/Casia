@@ -78,6 +78,8 @@
     
     "Opening" :
     {        
+        "OpeningName"               :"ZVP_9D_Speed",
+        
         "ScoutGasSteal"             : false,
         "ScoutHarassEnemy"          : true,
         
@@ -102,7 +104,7 @@
 
             "ZVP_10Hatch"  : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Extractor", "Drone", "Extractor@Cancel", "Hatchery", "Spawning_Pool", "Drone", "Overlord", "Extractor", "Extractor@Cancel", "Hatchery", "Zergling", "Zergling", "Zergling", "Zergling", "Overlord"] },
 
-            "ZVP_9D_Speed"  : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Overlord", "Drone", "Drone", "Drone", "Hatchery", "Spawning_Pool", "Drone", "Drone", "Drone", "Drone", "Hatchery", "Zergling", "Zergling", "Zergling", "Zergling", "Extractor", "Overlord", "Hydralisk_Den", "Muscular_Augments", "Extractor", "Hydralisk", "Hydralisk", "Hydralisk", "Hydralisk", "Grooved_Spines"] },
+            "ZVP_3Hatch"  : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Overlord", "Drone", "Drone", "Drone", "Hatchery", "Spawning_Pool", "Drone", "Drone", "Drone", "Drone", "Hatchery", "Zergling", "Zergling", "Zergling", "Zergling", "Extractor", "Overlord", "Hydralisk_Den", "Muscular_Augments", "Extractor", "Hydralisk", "Hydralisk", "Hydralisk", "Hydralisk", "Grooved_Spines"] },
 
             "ZVP_3Hatch_Before_Pool"  : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Overlord", "Drone", "Drone", "Drone", "Hatchery", "Hatchery", "Spawning_Pool"] },
 
