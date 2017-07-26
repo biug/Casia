@@ -350,6 +350,21 @@ BWAPI::Unit WorkerManager::getLarvaDepot()
 	return workerData.getLarvaDepot();
 }
 
+const BWAPI::Unitset & WorkerManager::getRefineries() const
+{
+	return workerData.getRefineries();
+}
+
+void WorkerManager::addCanceledRefineryLocation(BWAPI::TilePosition position)
+{
+	return workerData.addCanceledRefineryLocation(position);
+}
+
+const std::set<BWAPI::TilePosition> & WorkerManager::getCanceledRefineryLocations() const
+{
+	return workerData.getCanceledRefineryLocations();
+}
+
 void WorkerManager::handleMoveWorkers() 
 {
 	// for each of our workers

@@ -19,16 +19,21 @@ bool MetaCondition::isCancel() const
 	return _condition.compare("Cancel") == 0;
 }
 
+bool MetaCondition::isMain() const
+{
+	return _condition.compare("Main") == 0;
+}
+
 bool MetaCondition::isMineral() const
 {
 	auto itr = std::find_if_not(_condition.begin(), _condition.end(), [](char c) { return isdigit(c); });
-	return itr == _condition.end() - 1 && *itr == 'M';
+	return !_condition.empty() && itr == _condition.end() - 1 && *itr == 'M';
 }
 
 bool MetaCondition::isGas() const
 {
 	auto itr = std::find_if_not(_condition.begin(), _condition.end(), [](char c) { return isdigit(c); });
-	return itr == _condition.end() - 1 && *itr == 'G';
+	return !_condition.empty() && itr == _condition.end() - 1 && *itr == 'G';
 }
 
 bool MetaCondition::isUnit() const

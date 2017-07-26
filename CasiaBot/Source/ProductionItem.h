@@ -10,7 +10,6 @@ namespace CasiaBot
 
 		MetaType	_unit;
 		bool		_assigned;
-		bool		_nexpHatchery;
 		BWAPI::TilePosition _desiredPosition;
 
 	public:
@@ -19,6 +18,5 @@ namespace CasiaBot
 		ProductionItem(const MetaType & unit, BWAPI::TilePosition desiredPosition);
 		ProductionItem(const ProductionItem & item, BWAPI::TilePosition desiredPosition);
 		ProductionItem &operator=(const ProductionItem & item);
-		void setNExpHatchery();
 	};
 }

@@ -1,6 +1,7 @@
 #include "Common.h"
 #include "BuildingPlacer.h"
 #include "MapGrid.h"
+#include "WorkerManager.h"
 
 using namespace CasiaBot;
 
@@ -325,12 +326,15 @@ void BuildingPlacer::freeTiles(BWAPI::TilePosition position, int width, int heig
 
 BWAPI::TilePosition BuildingPlacer::getRefineryPosition()
 {
+	BWAPI::Unit bestgeyser = nullptr;
     BWAPI::TilePosition closestGeyser = BWAPI::TilePositions::None;
     double minGeyserDistanceFromHome = std::numeric_limits<double>::max();
     BWAPI::Position homePosition = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
+	BWAPI::TilePosition homeTilePosition = BWAPI::Broodwar->self()->getStartLocation();
+	BWAPI::Unit depot = nullptr;
 
     // for each geyser
-    for (auto & geyser : BWAPI::Broodwar->getStaticGeysers())
+    for (const auto & geyser : BWAPI::Broodwar->getGeysers())
     {
         if (geyser->getType() != BWAPI::UnitTypes::Resource_Vespene_Geyser)
         {
@@ -340,11 +344,16 @@ BWAPI::TilePosition BuildingPlacer::getRefineryPosition()
         BWAPI::Position geyserPos = geyser->getInitialPosition();
         BWAPI::TilePosition geyserTilePos = geyser->getInitialTilePosition();
 
+		if (!geyserTilePos.isValid())
+		{
+			continue;
+		}
+
         // check to see if it's next to one of our depots
         bool nearDepot = false;
         for (auto & unit : BWAPI::Broodwar->self()->getUnits())
         {
-            if (unit->getType().isResourceDepot() && unit->getDistance(geyserPos) < 300)
+            if (unit->getType().isResourceDepot() && unit->isCompleted() && unit->getDistance(geyserPos) < 300)
             {
                 nearDepot = true;
             }
@@ -356,12 +365,27 @@ BWAPI::TilePosition BuildingPlacer::getRefineryPosition()
 
             if (homeDistance < minGeyserDistanceFromHome)
             {
+				bestgeyser = geyser;
                 minGeyserDistanceFromHome = homeDistance;
                 closestGeyser = geyser->getInitialTilePosition();
             }
         }
     }
-    
+	if (!closestGeyser.isValid())
+	{
+		minGeyserDistanceFromHome = std::numeric_limits<double>::max();
+		const auto & locations = WorkerManager::Instance().getCanceledRefineryLocations();
+		for (const auto & location : locations)
+		{
+			double homeDistance = location.getDistance(homeTilePosition);
+
+			if (homeDistance < minGeyserDistanceFromHome)
+			{
+				minGeyserDistanceFromHome = homeDistance;
+				closestGeyser = location;
+			}
+		}
+	}
     return closestGeyser;
 }
 

@@ -35,6 +35,7 @@ private:
 	BWAPI::Unitset workers;
 	BWAPI::Unitset mineralBases;
 	BWAPI::Unitset refineries;
+	std::set<BWAPI::TilePosition> canceledRefineryLocations;
 
 	std::hash_map<BWAPI::Unit, enum WorkerJob>				workerJobMap;
 	std::hash_map<BWAPI::Unit, BWAPI::Unit>					workerRepairMap;
@@ -67,6 +68,7 @@ public:
 	void					workerDestroyed(BWAPI::Unit worker);
 	void					addMineralBase(BWAPI::Unit mineralBase);
 	void					addRefinery(BWAPI::Unit refinery);
+	void					addCanceledRefineryLocation(BWAPI::TilePosition position);
 	void					removeMineralBase(BWAPI::Unit mineralBase);
 	void					removeMineralPatch(BWAPI::Unit mineralPatch);
 	void					removeRefinery(BWAPI::Unit refinery);
@@ -98,6 +100,8 @@ public:
 	std::pair<BWAPI::Unit, BWAPI::Unit>				getClosestMineral(BWAPI::Unit worker) const;
 	BWAPI::Unit										getClosestRefinery(BWAPI::Unit worker) const;
 	BWAPI::Unit										getLarvaDepot() const;
+	const BWAPI::Unitset &							getRefineries() const;
+	const std::set<BWAPI::TilePosition> &			getCanceledRefineryLocations() const;
 
 	enum WorkerJob	getWorkerJob(BWAPI::Unit unit) const;
 	BWAPI::Unit		getWorkerMineralBase(BWAPI::Unit unit) const;

@@ -99,18 +99,6 @@ void ProductionManager::manageBuildOrderQueue()
 	{
 		return;
 	}
-	// if we should cancel
-	if (item._unit.getCond().isCancel())
-	{
-		for (auto & unit : BWAPI::Broodwar->self()->getUnits())
-		{
-			if (unit->getType().isRefinery() && unit->isConstructing())
-			{
-				unit->cancelConstruction();
-				return;
-			}
-		}
-	}
 	MetaType & unit = item._unit;
 	// this is the unit which can produce the currentItem
     BWAPI::Unit producer = getProducer(unit);
@@ -118,13 +106,66 @@ void ProductionManager::manageBuildOrderQueue()
 	// check to see if we can make it right now
 	bool canMake = canMakeNow(producer, unit);
 
+	// if we should cancel
+	if (item._unit.getCond().isCancel())
+	{
+		for (auto & unit : BWAPI::Broodwar->self()->getUnits())
+		{
+			if (item._unit.isUnit() && unit->getType() == item._unit.getUnitType() && unit->isConstructing())
+			{
+				if (unit->getType().isRefinery())
+				{
+					WorkerManager::Instance().addCanceledRefineryLocation(unit->getTilePosition());
+				}
+				unit->cancelConstruction();
+				return;
+			}
+		}
+		return;
+	}
+	else if (item._unit.getCond().isMineral())
+	{
+		int mineral = item._unit.getCond().getMineral();
+		std::string info = std::to_string(mineral) + "M";
+		CAB_ASSERT(false, info.c_str());
+		if (BWAPI::Broodwar->self()->minerals() < mineral)
+		{
+			canMake = false;
+		}
+	}
+	else if (item._unit.getCond().isGas())
+	{
+		int gas = item._unit.getCond().getGas();
+		std::string info = std::to_string(gas) + "G";
+		CAB_ASSERT(false, info.c_str());
+		if (BWAPI::Broodwar->self()->minerals() < gas)
+		{
+			canMake = false;
+		}
+	}
+	else if (item._unit.getCond().isPercent())
+	{
+		auto percent = item._unit.getCond().getPercent();
+		for (const auto & unit : BWAPI::Broodwar->self()->getUnits())
+		{
+			if (unit->getType() == percent.first)
+			{
+				float rate = (float)unit->getRemainingBuildTime() / (float)percent.first.buildTime();
+				if (rate > percent.second)
+				{
+					canMake = false;
+				}
+			}
+		}
+	}
+
 	// if the next item in the list is a building and we can't yet make it
     if (unit.isBuilding() && !(producer && canMake) && unit.whatBuilds().isWorker() && !item._assigned)
 	{
 		// construct a temporary building object
 		Building b(unit.getUnitType(), item._desiredPosition);
         b.isGasSteal = false;
-		b.nexpHatchery = item._nexpHatchery;
+		b.nexpHatchery = item._unit.getCond().isMain();
 
 		// set the producer as the closest worker, but do not set its job yet
 		producer = WorkerManager::Instance().getBuilder(b, false);
@@ -240,7 +281,7 @@ void ProductionManager::create(BWAPI::Unit producer, ProductionItem & item)
 		&& unit.getUnitType() != BWAPI::UnitTypes::Zerg_Spore_Colony)
     {
         // send the building task to the building manager
-        BuildingManager::Instance().addBuildingTask(unit.getUnitType(), item._desiredPosition, false, item._nexpHatchery);
+        BuildingManager::Instance().addBuildingTask(unit.getUnitType(), item._desiredPosition, false, item._unit.getCond().isMain());
     }
     // if we're dealing with a non-building unit
 	else if (unit.isUnit())

@@ -20,6 +20,7 @@ public:
 
 	bool isNone() const;
 	bool isCancel() const;
+	bool isMain() const;
 	bool isMineral() const;
 	bool isGas() const;
 	bool isUnit() const;

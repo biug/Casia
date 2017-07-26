@@ -113,8 +113,7 @@ void ActionZVZZerglingMutalisk::getBuildOrderList(CasiaBot::ProductionQueue & qu
 		{
 			if (zergling_count >= 4)
 			{
-				ProductionItem item = MetaType(BWAPI::UnitTypes::Zerg_Hatchery);
-				item.setNExpHatchery();
+				ProductionItem item = MetaType(BWAPI::UnitTypes::Zerg_Hatchery, "Main");
 				queue.add(item);
 			}
 		}

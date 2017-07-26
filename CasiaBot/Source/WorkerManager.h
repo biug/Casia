@@ -67,6 +67,9 @@ public:
     BWAPI::Unit getClosestMineralWorkerTo(BWAPI::Unit enemyUnit);
     BWAPI::Unit getWorkerScout();
 	BWAPI::Unit getLarvaDepot();
+	const BWAPI::Unitset & getRefineries() const;
+	void addCanceledRefineryLocation(BWAPI::TilePosition position);
+	const std::set<BWAPI::TilePosition> & getCanceledRefineryLocations() const;
 
 	void        setWorkerBuilding(BWAPI::Unit worker, Building & b);
     void        setWorkerRepairing(BWAPI::Unit worker,BWAPI::Unit unitToRepair);

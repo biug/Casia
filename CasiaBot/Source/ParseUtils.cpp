@@ -148,9 +148,9 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
 		if (erace == BWAPI::Races::Terran)			gameType = "ZVT";
 		else if (erace == BWAPI::Races::Protoss)	gameType = "ZVP";
 		else if (erace == BWAPI::Races::Zerg)		gameType = "ZVZ";
-		if (opening.HasMember("OpeningName"))
+		if (opening.HasMember(gameType.c_str()))
 		{
-			Config::Opening::OpeningName = opening["OpeningName"].GetString();
+			Config::Opening::OpeningName = opening[gameType.c_str()].GetString();
 		}
 
         // check if we are using an enemy specific opening

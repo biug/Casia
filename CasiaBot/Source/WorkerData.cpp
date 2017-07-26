@@ -101,11 +101,22 @@ void WorkerData::addRefinery(BWAPI::Unit refinery)
 {
 	if (!refinery) { return; }
 
+	if (canceledRefineryLocations.find(refinery->getTilePosition())
+		!= canceledRefineryLocations.end())
+	{
+		canceledRefineryLocations.erase(refinery->getTilePosition());
+	}
+
 	if (refineries.find(refinery) == refineries.end())
 	{
 		refineries.insert(refinery);
 		refineryWorkersCountMap[refinery] = 0;
 	}
+}
+
+void WorkerData::addCanceledRefineryLocation(BWAPI::TilePosition position)
+{
+	canceledRefineryLocations.insert(position);
 }
 
 void WorkerData::removeMineralBase(BWAPI::Unit mineralBase)
@@ -531,6 +542,16 @@ BWAPI::Unit WorkerData::getLarvaDepot() const
 		}
 	}
 	return nullptr;
+}
+
+const BWAPI::Unitset & WorkerData::getRefineries() const
+{
+	return refineries;
+}
+
+const std::set<BWAPI::TilePosition> & WorkerData::getCanceledRefineryLocations() const
+{
+	return canceledRefineryLocations;
 }
 
 BWAPI::Unit WorkerData::getWorkerRepairUnit(BWAPI::Unit unit) const

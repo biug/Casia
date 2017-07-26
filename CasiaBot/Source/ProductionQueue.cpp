@@ -75,9 +75,6 @@ void ProductionQueue::checkSupply()
 		_straightCheckOverlord = 0;
 	}
 	int overlordReady = overlordInQueue + overlordInConstructing;
-	std::string info = std::to_string(supplyUsed) + " / " + std::to_string(supply);
-	std::string overlord = std::to_string(overlordInQueue) + " + " + std::to_string(overlordInConstructing);
-	//CAB_ASSERT(false, info.c_str());
 	if (supply - supplyUsed <= 7)
 	{
 		if (supply <= 9)
