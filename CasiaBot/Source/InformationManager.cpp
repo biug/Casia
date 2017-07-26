@@ -591,6 +591,7 @@ bool InformationManager::enemyHasCloakedUnits()
 	return false;
 }
 
+<<<<<<< HEAD
 void InformationManager::PrintInfo(int x,int y){
 	int UnitNum;
 	int i = 0;
@@ -598,12 +599,22 @@ void InformationManager::PrintInfo(int x,int y){
 	for (auto & type : BWAPI::UnitTypes::allUnitTypes()){
 		UnitNum = InformationManager::getNumUnits(type,_self);
 		if (UnitNum){
+=======
+void InformationManager::PrintInfo(int x, int y) {
+	int UnitNum;
+	int i = 0;
+	BWAPI::UnitType t;
+	for (auto & type : BWAPI::UnitTypes::allUnitTypes()) {
+		UnitNum = InformationManager::getNumUnits(type, _self);
+		if (UnitNum) {
+>>>>>>> refs/remotes/origin/feature-debug-mode
 			std::string info = type.getName() + " " + std::to_string(UnitNum);
 			BWAPI::Broodwar->drawTextScreen(x, y + i, info.c_str());
 			i = i + 30;
 		}
 	}
 	i = 0;
+<<<<<<< HEAD
 	for (auto & type : BWAPI::UnitTypes::allUnitTypes()){
 		UnitNum = InformationManager::getNumUnits(type, _enemy);
 		if (UnitNum){
@@ -614,3 +625,15 @@ void InformationManager::PrintInfo(int x,int y){
 	}
 	
 }
+=======
+	for (auto & type : BWAPI::UnitTypes::allUnitTypes()) {
+		UnitNum = InformationManager::getNumUnits(type, _enemy);
+		if (UnitNum) {
+			std::string info = type.getName() + " " + std::to_string(UnitNum);
+			BWAPI::Broodwar->drawTextScreen(x + 60, y + i, info.c_str());
+			i = i + 30;
+		}
+	}
+
+}
+>>>>>>> refs/remotes/origin/feature-debug-mode
