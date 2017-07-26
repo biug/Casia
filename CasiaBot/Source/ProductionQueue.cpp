@@ -438,6 +438,7 @@ void ProductionQueue::printQueue(int x, int y) {
 
 	int i = 0;
 	BWAPI::Broodwar->drawTextScreen(x-30, y, "\x01 army queue:");
+	/*
 	for (std::map <std::string, int>::iterator Iter = armyMap.begin(); Iter != armyMap.end(); Iter++)
 		BWAPI::Broodwar->drawTextScreen(x + 30 * i++, y, "%s: %d, ", Iter->first, Iter->second);
 	
@@ -465,5 +466,5 @@ void ProductionQueue::printQueue(int x, int y) {
 	BWAPI::Broodwar->drawTextScreen(100, y + 150, "\x06 tech upgrade queue:");
 	for (std::map <std::string, int>::iterator Iter = techUpgradeMap.begin(); Iter != techUpgradeMap.end(); Iter++)
 		BWAPI::Broodwar->drawTextScreen(x + 30 * i++, y + 150, "%s: %d, ", Iter->first, Iter->second);
-	
+	*/
 }

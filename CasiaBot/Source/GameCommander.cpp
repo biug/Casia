@@ -65,6 +65,7 @@ void GameCommander::drawDebugInterface()
 	BuildingManager::Instance().drawBuildingInformation(200,50);
 	BuildingPlacer::Instance().drawReservedTiles();
 	ProductionManager::Instance().drawProductionInformation(30, 50);
+	InformationManager::Instance().PrintInfo(30, 100);
 	_productionQueue.printQueue(200, 100);
 	_combatCommander.drawSquadInformation(200, 30);
     _timerManager.displayTimers(490, 225);

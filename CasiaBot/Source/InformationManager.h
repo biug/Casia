@@ -68,6 +68,7 @@ public:
     void                    drawExtendedInterface();
     void                    drawUnitInformation(int x,int y);
     void                    drawMapInformation();
+	void					PrintInfo(int x, int y);
 
     const UnitData &        getUnitData(BWAPI::Player player) const;
 };
