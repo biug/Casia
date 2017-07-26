@@ -179,7 +179,7 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
                 const rapidjson::Value &    val  = itr->value;
 				
 				// must use specific game type
-				if (name.find(gameType) != 0) continue;
+				if (gameType != "Random" && name.find(gameType) != 0) continue;
 
                 BuildOrder buildOrder(race);
                 if (val.HasMember("OpeningBuildOrder") && val["OpeningBuildOrder"].IsArray())
