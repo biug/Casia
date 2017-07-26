@@ -71,6 +71,5 @@ public:
 	void					PrintInfo(int x, int y);
 
     const UnitData &        getUnitData(BWAPI::Player player) const;
-	void					PrintInfo(int x,int y);
 };
 }

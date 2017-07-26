@@ -66,11 +66,7 @@ void GameCommander::drawDebugInterface()
 	BuildingPlacer::Instance().drawReservedTiles();
 	ProductionManager::Instance().drawProductionInformation(30, 50);
 	InformationManager::Instance().PrintInfo(30, 100);
-<<<<<<< HEAD
-    
-=======
 	_productionQueue.printQueue(200, 100);
->>>>>>> refs/remotes/origin/feature-debug-mode
 	_combatCommander.drawSquadInformation(200, 30);
     _timerManager.displayTimers(490, 225);
     drawGameInformation(4, 1);
