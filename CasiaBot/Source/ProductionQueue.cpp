@@ -1,6 +1,5 @@
 #include "ProductionQueue.h"
 #include "InformationManager.h"
-
 using namespace CasiaBot;
 
 ProductionQueue::ProductionQueue()
@@ -414,4 +413,57 @@ bool ProductionQueue::empty()
 		&& _openningQueue.empty()
 		&& _workerQueue.empty()
 		&& _techUpgradeQueue.empty();
+}
+
+void ProductionQueue::printQueue(int x, int y) {
+	std::map<std::string, int> armyMap;
+	std::map<std::string, int> overlordMap;
+	std::map<std::string, int> priorityMap;
+	std::map<std::string, int> openningMap;
+	std::map<std::string, int> workerMap;
+	std::map<std::string, int> techUpgradeMap;
+	
+	for (int i = 0; i < sizeof(_armyQueue); i++) 
+		armyMap[_armyQueue.at(i)._unit.getName()] += 1;
+	for (int i = 0; i < sizeof(_overlordQueue); i++)
+		overlordMap[_overlordQueue.at(i)._unit.getName()] += 1;
+	for (int i = 0; i < sizeof(_priorityQueue); i++)
+		priorityMap[_priorityQueue.at(i)._unit.getName()] += 1;
+	for (int i = 0; i < sizeof(_openningQueue); i++)
+		openningMap[_openningQueue.at(i)._unit.getName()] += 1;
+	for (int i = 0; i < sizeof(_workerQueue); i++)
+		workerMap[_workerQueue.at(i)._unit.getName()] += 1;
+	for (int i = 0; i < sizeof(_techUpgradeQueue); i++)
+		techUpgradeMap[_techUpgradeQueue.at(i)._unit.getName()] += 1;
+
+	int i = 0;
+	BWAPI::Broodwar->drawTextScreen(x-30, y, "\x01 army queue:");
+	for (std::map <std::string, int>::iterator Iter = armyMap.begin(); Iter != armyMap.end(); Iter++)
+		BWAPI::Broodwar->drawTextScreen(x + 30 * i++, y, "%s: %d, ", Iter->first, Iter->second);
+	
+	i = 0;
+	BWAPI::Broodwar->drawTextScreen(100, y + 30, "\x02 overlord queue:");
+	for (std::map <std::string, int>::iterator Iter = overlordMap.begin(); Iter != overlordMap.end(); Iter++)
+		BWAPI::Broodwar->drawTextScreen(x + 30 * i++, y + 30, "%s: %d, ", Iter->first, Iter->second);
+
+	i = 0;
+	BWAPI::Broodwar->drawTextScreen(100, y + 60, "\x03 priority queue:");
+	for (std::map <std::string, int>::iterator Iter = priorityMap.begin(); Iter != priorityMap.end(); Iter++)
+		BWAPI::Broodwar->drawTextScreen(x + 30 * i++, y + 60, "%s: %d, ", Iter->first, Iter->second);
+
+	i = 0;
+	BWAPI::Broodwar->drawTextScreen(100, y + 90, "\x04 openning queue:");
+	for (std::map <std::string, int>::iterator Iter = openningMap.begin(); Iter != openningMap.end(); Iter++)
+		BWAPI::Broodwar->drawTextScreen(x + 30 * i++, y + 90, "%s: %d, ", Iter->first, Iter->second);
+
+	i = 0;
+	BWAPI::Broodwar->drawTextScreen(100, y + 120, "\x05 worker queue:");
+	for (std::map <std::string, int>::iterator Iter = workerMap.begin(); Iter != workerMap.end(); Iter++)
+		BWAPI::Broodwar->drawTextScreen(x + 30 * i++, y + 120, "%s: %d, ", Iter->first, Iter->second);
+
+	i = 0;
+	BWAPI::Broodwar->drawTextScreen(100, y + 150, "\x06 tech upgrade queue:");
+	for (std::map <std::string, int>::iterator Iter = techUpgradeMap.begin(); Iter != techUpgradeMap.end(); Iter++)
+		BWAPI::Broodwar->drawTextScreen(x + 30 * i++, y + 150, "%s: %d, ", Iter->first, Iter->second);
+	
 }
