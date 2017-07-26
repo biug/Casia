@@ -158,6 +158,15 @@ void ProductionManager::manageBuildOrderQueue()
 			}
 		}
 	}
+	else if (item._unit.getCond().isUnit())
+	{
+		auto unit = item._unit.getCond().getUnit();
+		int num = InformationManager::Instance().getNumUnits(unit.first, BWAPI::Broodwar->self());
+		if (num < unit.second)
+		{
+			canMake = false;
+		}
+	}
 
 	// if the next item in the list is a building and we can't yet make it
     if (unit.isBuilding() && !(producer && canMake) && unit.whatBuilds().isWorker() && !item._assigned)
