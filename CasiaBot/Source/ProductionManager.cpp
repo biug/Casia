@@ -502,6 +502,9 @@ void ProductionManager::queueGasSteal()
     _queue.add(MetaType(BWAPI::Broodwar->self()->getRace().getRefinery()), true);
 }
 
+void ProductionManager::queuePrint(int x, int y){
+	_queue.printQueues(x, y);
+}
 
 // this will return true if any unit is on the first frame if it's training time remaining
 // this can cause issues for the build order search system so don't plan a search on these frames

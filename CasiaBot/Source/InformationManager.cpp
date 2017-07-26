@@ -608,7 +608,7 @@ void InformationManager::PrintInfo(int x, int y) {
 		UnitNum = InformationManager::getNumUnits(type, _enemy);
 		if (UnitNum){
 			std::string info = type.getName() + " " + std::to_string(UnitNum);
-			BWAPI::Broodwar->drawTextScreen(x + 60, y + i, info.c_str());
+			BWAPI::Broodwar->drawTextScreen(x + 100, y + i, info.c_str());
 			i = i + 20 ;
 		}
 	}

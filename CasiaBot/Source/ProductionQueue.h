@@ -52,6 +52,6 @@ namespace CasiaBot
 		ProductionItem popItem();
 
 		bool empty();
-		void printQueue(int x, int y );
+		void printQueues(int x, int y);
 	};
 }

@@ -415,7 +415,7 @@ bool ProductionQueue::empty()
 		&& _techUpgradeQueue.empty();
 }
 
-void ProductionQueue::printQueue(int x, int y) {
+void ProductionQueue::printQueues(int x, int y){
 	std::map<std::string, int> armyMap;
 	std::map<std::string, int> overlordMap;
 	std::map<std::string, int> priorityMap;
@@ -423,48 +423,97 @@ void ProductionQueue::printQueue(int x, int y) {
 	std::map<std::string, int> workerMap;
 	std::map<std::string, int> techUpgradeMap;
 	
-	for (int i = 0; i < sizeof(_armyQueue); i++) 
-		armyMap[_armyQueue.at(i)._unit.getName()] += 1;
-	for (int i = 0; i < sizeof(_overlordQueue); i++)
-		overlordMap[_overlordQueue.at(i)._unit.getName()] += 1;
-	for (int i = 0; i < sizeof(_priorityQueue); i++)
-		priorityMap[_priorityQueue.at(i)._unit.getName()] += 1;
-	for (int i = 0; i < sizeof(_openningQueue); i++)
-		openningMap[_openningQueue.at(i)._unit.getName()] += 1;
-	for (int i = 0; i < sizeof(_workerQueue); i++)
-		workerMap[_workerQueue.at(i)._unit.getName()] += 1;
-	for (int i = 0; i < sizeof(_techUpgradeQueue); i++)
-		techUpgradeMap[_techUpgradeQueue.at(i)._unit.getName()] += 1;
-
+	for (unsigned int i = 0; i < _armyQueue.size(); i++){
+		if (armyMap.find(_armyQueue.at(i)._unit.getName()) == armyMap.end())
+			armyMap[_armyQueue.at(i)._unit.getName()] = 1;
+		else
+			armyMap[_armyQueue.at(i)._unit.getName()] += 1;
+	}
+	
+	for (unsigned int i = 0; i < _overlordQueue.size(); i++){
+		if (overlordMap.find(_overlordQueue.at(i)._unit.getName()) == overlordMap.end())
+			overlordMap[_overlordQueue.at(i)._unit.getName()] = 1;
+		else
+			overlordMap[_overlordQueue.at(i)._unit.getName()] += 1;
+	}
+	
+	for (unsigned int i = 0; i < _priorityQueue.size(); i++){
+		if (priorityMap.find(_priorityQueue.at(i)._unit.getName()) == priorityMap.end())
+			priorityMap[_priorityQueue.at(i)._unit.getName()] = 1;
+		else
+			priorityMap[_priorityQueue.at(i)._unit.getName()] += 1;
+	}
+	
+	for (unsigned int i = 0; i < _openningQueue.size(); i++){
+		if (openningMap.find(_openningQueue.at(i)._unit.getName()) == openningMap.end())
+			openningMap[_openningQueue.at(i)._unit.getName()] = 1;
+		else
+			openningMap[_openningQueue.at(i)._unit.getName()] += 1;
+	}
+	
+	for (unsigned int i = 0; i < _workerQueue.size(); i++){
+		if (workerMap.find(_workerQueue.at(i)._unit.getName()) == workerMap.end())
+			workerMap[_workerQueue.at(i)._unit.getName()] = 1;
+		else
+			workerMap[_workerQueue.at(i)._unit.getName()] += 1;
+	}
+	
+	for (unsigned int i = 0; i <_techUpgradeQueue.size(); i++){
+		if (techUpgradeMap.find(_techUpgradeQueue.at(i)._unit.getName()) == techUpgradeMap.end())
+			techUpgradeMap[_techUpgradeQueue.at(i)._unit.getName()] = 1;
+		else
+			techUpgradeMap[_techUpgradeQueue.at(i)._unit.getName()] += 1;
+	}
+	
+	
+	
+	
+	BWAPI::Broodwar->drawTextScreen(x - 150, y,       "\x01 army queue:		   %d", _armyQueue.size());
+	BWAPI::Broodwar->drawTextScreen(x - 150, y + 20,  "\x02 _overlordQueue:	   %d", _overlordQueue.size());
+	BWAPI::Broodwar->drawTextScreen(x - 150, y + 40,  "\x03 _priorityQueue:    %d", _priorityQueue.size());
+	BWAPI::Broodwar->drawTextScreen(x - 150, y + 60,  "\x04 _openningQueue:    %d", _openningQueue.size());
+	BWAPI::Broodwar->drawTextScreen(x - 150, y + 80,  "\x05 _workerQueue:      %d", _workerQueue.size());
+	BWAPI::Broodwar->drawTextScreen(x - 150, y + 100, "\x06 _techUpgradeQueue: %d", _techUpgradeQueue.size());
+	
 	int i = 0;
-	BWAPI::Broodwar->drawTextScreen(x-30, y, "\x01 army queue:");
-	/*
 	for (std::map <std::string, int>::iterator Iter = armyMap.begin(); Iter != armyMap.end(); Iter++)
-		BWAPI::Broodwar->drawTextScreen(x + 30 * i++, y, "%s: %d, ", Iter->first, Iter->second);
+		BWAPI::Broodwar->drawTextScreen(x + 80 * i++, y, "\x01 %s: %d, ", Iter->first.c_str(), Iter->second);
+	for (unsigned int j = 0; j < _armyQueue.size() && j < 4 ; j++)
+		BWAPI::Broodwar->drawTextScreen(x - 100 + 80 * j, y + 10, "\x01 %s ", _armyQueue.at(j)._unit.getName().c_str());
 	
 	i = 0;
-	BWAPI::Broodwar->drawTextScreen(100, y + 30, "\x02 overlord queue:");
+	//BWAPI::Broodwar->drawTextScreen(x - 100, y + 20, "\x02 overlord queue:");
 	for (std::map <std::string, int>::iterator Iter = overlordMap.begin(); Iter != overlordMap.end(); Iter++)
-		BWAPI::Broodwar->drawTextScreen(x + 30 * i++, y + 30, "%s: %d, ", Iter->first, Iter->second);
+		BWAPI::Broodwar->drawTextScreen(x + 80 * i++, y + 20, "\x02 %s: %d, ", Iter->first.c_str(), Iter->second);
+	for (unsigned int j = 0; j < _overlordQueue.size() && j < 4; j++)
+		BWAPI::Broodwar->drawTextScreen(x - 100 + 80 * j, y + 30, "\x02 %s ", _overlordQueue.at(j)._unit.getName().c_str());
 
 	i = 0;
-	BWAPI::Broodwar->drawTextScreen(100, y + 60, "\x03 priority queue:");
+	//BWAPI::Broodwar->drawTextScreen(x - 100, y + 40, "\x03 priority queue:");
 	for (std::map <std::string, int>::iterator Iter = priorityMap.begin(); Iter != priorityMap.end(); Iter++)
-		BWAPI::Broodwar->drawTextScreen(x + 30 * i++, y + 60, "%s: %d, ", Iter->first, Iter->second);
+		BWAPI::Broodwar->drawTextScreen(x + 80 * i++, y + 40, "\x03 %s: %d, ", Iter->first.c_str(), Iter->second);
+	for (unsigned int j = 0; j < _priorityQueue.size() && j < 4; j++)
+		BWAPI::Broodwar->drawTextScreen(x - 100 + 80 * j, y + 50, "\x03 %s ", _priorityQueue.at(j)._unit.getName().c_str());
 
 	i = 0;
-	BWAPI::Broodwar->drawTextScreen(100, y + 90, "\x04 openning queue:");
+	//BWAPI::Broodwar->drawTextScreen(x - 100, y + 80, "\x04 openning queue:");
 	for (std::map <std::string, int>::iterator Iter = openningMap.begin(); Iter != openningMap.end(); Iter++)
-		BWAPI::Broodwar->drawTextScreen(x + 30 * i++, y + 90, "%s: %d, ", Iter->first, Iter->second);
+		BWAPI::Broodwar->drawTextScreen(x + 80 * i++, y + 60, "\x04 %s: %d, ", Iter->first.c_str(), Iter->second);
+	for (unsigned int j = 0; j < _openningQueue.size() && j < 4; j++)
+		BWAPI::Broodwar->drawTextScreen(x - 100 + 80 * j, y + 70, "\x04 %s ", _openningQueue.at(j)._unit.getName().c_str());
 
 	i = 0;
-	BWAPI::Broodwar->drawTextScreen(100, y + 120, "\x05 worker queue:");
+	//BWAPI::Broodwar->drawTextScreen(x - 100, y + 80, "\x05 worker queue:");
 	for (std::map <std::string, int>::iterator Iter = workerMap.begin(); Iter != workerMap.end(); Iter++)
-		BWAPI::Broodwar->drawTextScreen(x + 30 * i++, y + 120, "%s: %d, ", Iter->first, Iter->second);
+		BWAPI::Broodwar->drawTextScreen(x + 80 * i++, y + 80, "\x05 %s: %d, ", Iter->first.c_str(), Iter->second);
+	for (unsigned int j = 0; j < _workerQueue.size() && j < 4; j++)
+		BWAPI::Broodwar->drawTextScreen(x - 100 + 80 * j, y + 90, "\x05 %s ", _workerQueue.at(j)._unit.getName().c_str());
 
 	i = 0;
-	BWAPI::Broodwar->drawTextScreen(100, y + 150, "\x06 tech upgrade queue:");
+	//BWAPI::Broodwar->drawTextScreen(x - 100, y + 100, "\x06 tech upgrade queue:");
 	for (std::map <std::string, int>::iterator Iter = techUpgradeMap.begin(); Iter != techUpgradeMap.end(); Iter++)
-		BWAPI::Broodwar->drawTextScreen(x + 30 * i++, y + 150, "%s: %d, ", Iter->first, Iter->second);
-	*/
+		BWAPI::Broodwar->drawTextScreen(x + 80 * i++, y + 100, "\x06 %s: %d, ", Iter->first.c_str(), Iter->second);
+	for (unsigned int j = 0; j < _techUpgradeQueue.size() && j < 4; j++)
+		BWAPI::Broodwar->drawTextScreen(x - 100 + 80 * j, y + 110, "\x06 %s ", _techUpgradeQueue.at(j)._unit.getName().c_str());
+	
 }
