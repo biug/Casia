@@ -70,5 +70,6 @@ public:
     void                    drawMapInformation();
 
     const UnitData &        getUnitData(BWAPI::Player player) const;
+	void					PrintInfo(int x,int y);
 };
 }
