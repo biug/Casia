@@ -590,3 +590,27 @@ bool InformationManager::enemyHasCloakedUnits()
 
 	return false;
 }
+
+void InformationManager::PrintInfo(int x, int y) {
+	int UnitNum;
+	int i = 0;
+	BWAPI::UnitType t;
+	for (auto & type : BWAPI::UnitTypes::allUnitTypes()) {
+		UnitNum = InformationManager::getNumUnits(type, _self);
+		if (UnitNum) {
+			std::string info = type.getName() + " " + std::to_string(UnitNum);
+			BWAPI::Broodwar->drawTextScreen(x, y + i, info.c_str());
+			i = i + 20;
+		}
+	}
+	i = 0;
+	for (auto & type : BWAPI::UnitTypes::allUnitTypes()){
+		UnitNum = InformationManager::getNumUnits(type, _enemy);
+		if (UnitNum){
+			std::string info = type.getName() + " " + std::to_string(UnitNum);
+			BWAPI::Broodwar->drawTextScreen(x + 100, y + i, info.c_str());
+			i = i + 20 ;
+		}
+	}
+	
+}

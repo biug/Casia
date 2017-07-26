@@ -558,9 +558,14 @@ ProductionManager & ProductionManager::Instance()
 	return instance;
 }
 
+
 void ProductionManager::queueGasSteal()
 {
     _queue.add(MetaType(BWAPI::Broodwar->self()->getRace().getRefinery()), true);
+}
+
+void ProductionManager::queuePrint(int x, int y){
+	_queue.printQueues(x, y);
 }
 
 // this will return true if any unit is on the first frame if it's training time remaining

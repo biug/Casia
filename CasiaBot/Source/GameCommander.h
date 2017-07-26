@@ -33,6 +33,7 @@ class GameCommander
 {
 	CombatCommander		    _combatCommander;
 	TimerManager		    _timerManager;
+	ProductionQueue			_productionQueue;
 
 	BWAPI::Unitset          _validUnits;
 	BWAPI::Unitset          _combatUnits;
