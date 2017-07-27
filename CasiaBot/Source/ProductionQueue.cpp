@@ -467,49 +467,49 @@ void ProductionQueue::printQueues(int x, int y){
 
 	
 	int i = 0;
-	BWAPI::Broodwar->drawTextScreen(x - 150, y,		  "\x0A army queue:		   %d", _armyQueue.size());
+	BWAPI::Broodwar->drawTextScreen(x - 150, y,		  "\x08 army queue:		   %d", _armyQueue.size());
 	for (std::map <std::string, int>::iterator Iter = armyMap.begin(); Iter != armyMap.end(); Iter++) {
 		if (i < 2)
-			BWAPI::Broodwar->drawTextScreen(x + 100 * i++, y, "\x0A %s: %d, ", Iter->first.c_str(), Iter->second);
+			BWAPI::Broodwar->drawTextScreen(x + 100 * i++, y, "\x08 %s: %d, ", Iter->first.c_str(), Iter->second);
 		if (i == 2) {
 			y += 10;
-			BWAPI::Broodwar->drawTextScreen(x - 100 , y, "\x0A %s: %d, ", Iter->first.c_str(), Iter->second);
+			BWAPI::Broodwar->drawTextScreen(x - 100 , y, "\x08 %s: %d, ", Iter->first.c_str(), Iter->second);
 			i++;
 		}
 		else {
 			if (i % 3 == 2)
 				y += 10;
-			BWAPI::Broodwar->drawTextScreen(x + 100 * (++i % 3) - 100, y, "\x0A %s: %d, ", Iter->first.c_str(), Iter->second);
+			BWAPI::Broodwar->drawTextScreen(x + 100 * (++i % 3) - 100, y, "\x08 %s: %d, ", Iter->first.c_str(), Iter->second);
 		}
 	}
-	if (i % 3 == 2 || i < 2)
+	//if (i % 3 == 2 || i < 2)
 		y += 10;
 	for (unsigned int j = 0; j < _armyQueue.size() && j < 4 ; j++)
-		BWAPI::Broodwar->drawTextScreen(x - 100 + 90 * j, y, "\x0A %s ", _armyQueue.at(j)._unit.getName().c_str());
+		BWAPI::Broodwar->drawTextScreen(x - 100 + 90 * j, y, "\x08 %s ", _armyQueue.at(j)._unit.getName().c_str());
 	
 
 	i = 0;
-	y += 10;
-	BWAPI::Broodwar->drawTextScreen(x - 150, y,  "\x02 _overlordQueue:	   %d", _overlordQueue.size());
+	y += 30;
+	BWAPI::Broodwar->drawTextScreen(x - 150, y,  "\x11 _overlordQueue:	   %d", _overlordQueue.size());
 	//BWAPI::Broodwar->drawTextScreen(x - 100, y + 20, "\x02 overlord queue:");
 	for (std::map <std::string, int>::iterator Iter = overlordMap.begin(); Iter != overlordMap.end(); Iter++) {
 		if (i < 2)
-			BWAPI::Broodwar->drawTextScreen(x + 100 * i++, y, "\x02 %s: %d, ", Iter->first.c_str(), Iter->second);
+			BWAPI::Broodwar->drawTextScreen(x + 100 * i++, y, "\x11 %s: %d, ", Iter->first.c_str(), Iter->second);
 		if (i == 2) {
 			y += 10;
-			BWAPI::Broodwar->drawTextScreen(x - 100, y, "\x02 %s: %d, ", Iter->first.c_str(), Iter->second);
+			BWAPI::Broodwar->drawTextScreen(x - 100, y, "\x11 %s: %d, ", Iter->first.c_str(), Iter->second);
 			i++;
 		}
 		else {
 			if (i % 3 == 2)
 				y += 10;
-			BWAPI::Broodwar->drawTextScreen(x + 100 * (++i % 3) - 100, y, "\x02 %s: %d, ", Iter->first.c_str(), Iter->second);
+			BWAPI::Broodwar->drawTextScreen(x + 100 * (++i % 3) - 100, y, "\x11 %s: %d, ", Iter->first.c_str(), Iter->second);
 		}
 	}
-	if (i % 3 == 2 || i < 2)
+	//if (i % 3 == 2 || i < 2)
 		y += 10;
 	for (unsigned int j = 0; j < _overlordQueue.size() && j < 4; j++)
-		BWAPI::Broodwar->drawTextScreen(x - 100 + 90 * j, y, "\x02 %s ", _overlordQueue.at(j)._unit.getName().c_str());
+		BWAPI::Broodwar->drawTextScreen(x - 100 + 90 * j, y, "\x11 %s ", _overlordQueue.at(j)._unit.getName().c_str());
 
 	i = 0;
 	y += 10;
@@ -529,7 +529,7 @@ void ProductionQueue::printQueues(int x, int y){
 			BWAPI::Broodwar->drawTextScreen(x + 100 * (++i % 3) - 100, y, "\x03 %s: %d, ", Iter->first.c_str(), Iter->second);
 		}
 	}
-	if (i % 3 == 2 || i < 2)
+	//if (i % 3 == 2 || i < 2)
 		y += 10;
 	for (unsigned int j = 0; j < _priorityQueue.size() && j < 4; j++)
 		BWAPI::Broodwar->drawTextScreen(x - 100 + 90 * j, y, "\x03 %s ", _priorityQueue.at(j)._unit.getName().c_str());
@@ -552,33 +552,33 @@ void ProductionQueue::printQueues(int x, int y){
 			BWAPI::Broodwar->drawTextScreen(x + 100 * (++i % 3) - 100, y, "\x04 %s: %d, ", Iter->first.c_str(), Iter->second);
 		}
 	}
-	if (i % 3 == 2 || i < 2)
+	//if (i % 3 == 2 || i < 2)
 		y += 10;
 	for (unsigned int j = 0; j < _openningQueue.size() && j < 4; j++)
 		BWAPI::Broodwar->drawTextScreen(x - 100 + 90 * j, y, "\x04 %s ", _openningQueue.at(j)._unit.getName().c_str());
 
 	i = 0;
 	y += 10;
-	BWAPI::Broodwar->drawTextScreen(x - 150, y,  "\x05 _workerQueue:      %d", _workerQueue.size());
+	BWAPI::Broodwar->drawTextScreen(x - 150, y,  "\x03 _workerQueue:      %d", _workerQueue.size());
 	//BWAPI::Broodwar->drawTextScreen(x - 100, y + 80, "\x05 worker queue:");
 	for (std::map <std::string, int>::iterator Iter = workerMap.begin(); Iter != workerMap.end(); Iter++){
 		if (i < 2)
-			BWAPI::Broodwar->drawTextScreen(x + 100 * i++, y, "\x05 %s: %d, ", Iter->first.c_str(), Iter->second);
+			BWAPI::Broodwar->drawTextScreen(x + 100 * i++, y, "\x03 %s: %d, ", Iter->first.c_str(), Iter->second);
 		if (i == 2) {
 			y += 10;
-			BWAPI::Broodwar->drawTextScreen(x - 100, y, "\x05 %s: %d, ", Iter->first.c_str(), Iter->second);
+			BWAPI::Broodwar->drawTextScreen(x - 100, y, "\x03 %s: %d, ", Iter->first.c_str(), Iter->second);
 			i++;
 		}
 		else {
 			if (i % 3 == 2)
 				y += 10;
-			BWAPI::Broodwar->drawTextScreen(x + 100 * (++i % 3) - 100, y, "\x05 %s: %d, ", Iter->first.c_str(), Iter->second);
+			BWAPI::Broodwar->drawTextScreen(x + 100 * (++i % 3) - 100, y, "\x03 %s: %d, ", Iter->first.c_str(), Iter->second);
 		}
 	}
-	if (i % 3 == 2 || i < 2)
+	//if (i % 3 == 2 || i < 2)
 		y += 10;
 	for (unsigned int j = 0; j < _workerQueue.size() && j < 4; j++)
-		BWAPI::Broodwar->drawTextScreen(x - 100 + 90 * j, y, "\x05 %s ", _workerQueue.at(j)._unit.getName().c_str());
+		BWAPI::Broodwar->drawTextScreen(x - 100 + 90 * j, y, "\x03 %s ", _workerQueue.at(j)._unit.getName().c_str());
 
 	i = 0;
 	y += 10;
@@ -598,7 +598,7 @@ void ProductionQueue::printQueues(int x, int y){
 			BWAPI::Broodwar->drawTextScreen(x + 100 * (++i % 3) - 100, y, "\x06 %s: %d, ", Iter->first.c_str(), Iter->second);
 		}
 	}
-	if (i % 3 == 2 || i < 2)
+	//if (i % 3 == 2 || i < 2)
 		y += 10;
 	for (unsigned int j = 0; j < _techUpgradeQueue.size() && j < 4; j++)
 		BWAPI::Broodwar->drawTextScreen(x - 100 + 90 * j, y, "\x06 %s ", _techUpgradeQueue.at(j)._unit.getName().c_str());
