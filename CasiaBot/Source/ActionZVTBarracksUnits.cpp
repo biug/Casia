@@ -2,6 +2,7 @@
 #include "BuildingManager.h"
 #include "ActionHelper.h"
 #include "InformationManager.h"
+#include "CombatCommander.h"
 
 using namespace CasiaBot;
 using namespace CasiaBot::ActionHelper;
@@ -44,8 +45,8 @@ bool ActionZVTBarracksUnits::tick()
 
 void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 {
+	being_rushed = CombatCommander::beingMarineRushed();
 	// 当前帧数（累计）
-	beingRush();
 	int gas = BWAPI::Broodwar->self()->gas();
 	int minerals = BWAPI::Broodwar->self()->minerals();
 	int currentFrameCount = BWAPI::Broodwar->getFrameCount();
@@ -79,9 +80,9 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 	}
 
 	if (creep_colony_completed > 0 && spawning_pool_completed > 0 &&
-		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < (being_rushed ? 2 : 0))
+		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < creep_colony_completed)
 	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony), being_rushed);
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony));
 	}
 
 	bool isExtractorExist = extractor_being_built + extractor_count + extractor_in_queue > 0;
@@ -222,15 +223,4 @@ void ActionZVTBarracksUnits::updateCurrentState(ProductionQueue &queue)
 	enemyTerranFactoryUnitsAmount = enemy_vulture_count * 2 + enemy_tank_count * 2 + enemy_goliath_count * 2;
 	enemyTerranMechanizationRate = enemyTerranBarrackUnitsAmount == 0 ? 10 : (double)enemyTerranFactoryUnitsAmount / (double)enemyTerranBarrackUnitsAmount;
 	if (enemyTerranFactoryUnitsAmount == 0) enemyTerranMechanizationRate = 0;
-}
-
-bool ActionZVTBarracksUnits::beingRush()
-{
-	if (enemy_ground_army_supply > 2.0 || enemy_attacking_worker_count >= 4) {
-		if (BWAPI::Broodwar->getFrameCount() < 15 * 60 * 8) {
-			being_rushed = true;
-			CAB_ASSERT(false, "being rushed");
-		}
-	}
-	return being_rushed;
 }

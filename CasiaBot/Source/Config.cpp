@@ -75,6 +75,7 @@ namespace Config
         bool DrawMapGrid                    = false;
         bool DrawUnitTargetInfo             = false;
         bool DrawSquadInfo                  = false;
+		bool DrawSquadTypeInfo				= true;
         bool PrintModuleTimeout             = false;	
 
         std::string ErrorLogFilename        = "CAB_ErrorLog.txt";

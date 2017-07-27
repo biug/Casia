@@ -53,6 +53,7 @@
         "DrawBWTAInfo"              : false,
         "DrawMapGrid"               : false,
         "DrawSquadInfo"             : false,
+        "DrawSquadTypeInfo"         : true,
         "DrawWorkerInfo"            : false,
         "DrawMouseCursorInfo"       : false,
         "DrawBuildingInfo"          : false,
@@ -79,7 +80,7 @@
     
     "Opening" :
     {        
-        "ZVP"                       : "ZVP_10Hatch",
+        "ZVP"                       : "ZVP_5D",
         "ZVT"                       : "ZVT_9D",
         "ZVZ"                       : "ZVZ_9D",
         "Random"                    : "ZVT_5D",
