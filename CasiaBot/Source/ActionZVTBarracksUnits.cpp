@@ -234,3 +234,7 @@ bool ActionZVTBarracksUnits::beingRush()
 	}
 	return being_rushed;
 }
+
+void ActionZVTBarracksUnits::tryAddInQueue(ProductionQueue & queue, const ProductionItem & item, bool priority)
+{
+}

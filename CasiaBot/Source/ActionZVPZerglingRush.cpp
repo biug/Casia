@@ -78,3 +78,8 @@ void ActionZVPZerglingRush::updateCurrentState(ProductionQueue & queue)
 {
 	ActionZergBase::updateCurrentState(queue);
 }
+
+void ActionZVPZerglingRush::tryAddInQueue(ProductionQueue & queue, const ProductionItem & item, bool priority)
+{
+
+}

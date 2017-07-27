@@ -143,7 +143,7 @@ void ActionZVZZerglingLurker::getBuildOrderList(CasiaBot::ProductionQueue & queu
 	if (real_base_count == 1)
 	{
 		if (drone_count + drone_in_queue < 9)
-			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone));
+			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
 		else if (zergling_count >= 6 && drone_count + drone_in_queue < 15)
 			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone));
 		notEnoughDrone = drone_count + drone_in_queue < 12;
@@ -283,4 +283,8 @@ void ActionZVZZerglingLurker::getBuildOrderList(CasiaBot::ProductionQueue & queu
 void ActionZVZZerglingLurker::updateCurrentState(ProductionQueue &queue)
 {
 	ActionZergBase::updateCurrentState(queue);
+}
+
+void ActionZVZZerglingLurker::tryAddInQueue(ProductionQueue & queue, const ProductionItem & item, bool priority)
+{
 }
