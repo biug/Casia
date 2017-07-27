@@ -497,10 +497,12 @@ void ProductionQueue::printQueues(int x, int y){
 	}
 	if (i > 1)
 		x += 100;
+	y + 10;
 	for (unsigned int j = 0; j < _overlordQueue.size() && j < 4; j++)
 		BWAPI::Broodwar->drawTextScreen(x - 100 + 80 * j, y, "\x02 %s ", _overlordQueue.at(j)._unit.getName().c_str());
 
 	i = 0;
+	y + 10;
 	BWAPI::Broodwar->drawTextScreen(x - 150, y, "\x03 _priorityQueue:    %d", _priorityQueue.size());
 	//BWAPI::Broodwar->drawTextScreen(x - 100, y + 40, "\x03 priority queue:");
 	for (std::map <std::string, int>::iterator Iter = priorityMap.begin(); Iter != priorityMap.end(); Iter++) {
@@ -514,10 +516,12 @@ void ProductionQueue::printQueues(int x, int y){
 	}
 	if (i > 1)
 		x += 100;
+	y + 10;
 	for (unsigned int j = 0; j < _priorityQueue.size() && j < 4; j++)
 		BWAPI::Broodwar->drawTextScreen(x - 100 + 80 * j, y, "\x03 %s ", _priorityQueue.at(j)._unit.getName().c_str());
 
-	i = 0;	
+	i = 0;
+	y + 10;
 	BWAPI::Broodwar->drawTextScreen(x - 150, y,  "\x04 _openningQueue:    %d", _openningQueue.size());
 	//BWAPI::Broodwar->drawTextScreen(x - 100, y + 80, "\x04 openning queue:");
 	for (std::map <std::string, int>::iterator Iter = openningMap.begin(); Iter != openningMap.end(); Iter++) {
@@ -531,10 +535,12 @@ void ProductionQueue::printQueues(int x, int y){
 	}
 	if (i > 1)
 		x += 100;
+	y + 10;
 	for (unsigned int j = 0; j < _openningQueue.size() && j < 4; j++)
 		BWAPI::Broodwar->drawTextScreen(x - 100 + 80 * j, y, "\x04 %s ", _openningQueue.at(j)._unit.getName().c_str());
 
 	i = 0;
+	y + 10;
 	BWAPI::Broodwar->drawTextScreen(x - 150, y,  "\x05 _workerQueue:      %d", _workerQueue.size());
 	//BWAPI::Broodwar->drawTextScreen(x - 100, y + 80, "\x05 worker queue:");
 	for (std::map <std::string, int>::iterator Iter = workerMap.begin(); Iter != workerMap.end(); Iter++){
@@ -548,10 +554,12 @@ void ProductionQueue::printQueues(int x, int y){
 	}
 	if (i > 1)
 		x += 100;
+	y + 10;
 	for (unsigned int j = 0; j < _workerQueue.size() && j < 4; j++)
 		BWAPI::Broodwar->drawTextScreen(x - 100 + 80 * j, y, "\x05 %s ", _workerQueue.at(j)._unit.getName().c_str());
 
 	i = 0;
+	y + 10;
 	BWAPI::Broodwar->drawTextScreen(x - 150, y, "\x06 _techUpgradeQueue: %d", _techUpgradeQueue.size());
 	//BWAPI::Broodwar->drawTextScreen(x - 100, y + 100, "\x06 tech upgrade queue:");
 	for (std::map <std::string, int>::iterator Iter = techUpgradeMap.begin(); Iter != techUpgradeMap.end(); Iter++){
@@ -565,6 +573,7 @@ void ProductionQueue::printQueues(int x, int y){
 	}
 	if (i > 1)
 		x += 100;
+	y + 10;
 	for (unsigned int j = 0; j < _techUpgradeQueue.size() && j < 4; j++)
 		BWAPI::Broodwar->drawTextScreen(x - 100 + 80 * j, y, "\x06 %s ", _techUpgradeQueue.at(j)._unit.getName().c_str());
 	
