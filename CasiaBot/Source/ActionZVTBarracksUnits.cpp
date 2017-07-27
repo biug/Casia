@@ -224,17 +224,6 @@ void ActionZVTBarracksUnits::updateCurrentState(ProductionQueue &queue)
 	if (enemyTerranFactoryUnitsAmount == 0) enemyTerranMechanizationRate = 0;
 }
 
-bool ActionZVTBarracksUnits::beingRush()
-{
-	if (enemy_ground_army_supply > 2.0 || enemy_attacking_worker_count >= 4) {
-		if (BWAPI::Broodwar->getFrameCount() < 15 * 60 * 8) {
-			being_rushed = true;
-			CAB_ASSERT(false, "being rushed");
-		}
-	}
-	return being_rushed;
-}
-
 void ActionZVTBarracksUnits::tryAddInQueue(ProductionQueue & queue, const ProductionItem & item, bool priority)
 {
 

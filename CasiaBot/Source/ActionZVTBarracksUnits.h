@@ -15,7 +15,6 @@ namespace CasiaBot
 		bool tick() override;
 		void getBuildOrderList(CasiaBot::ProductionQueue &queue) override;
 		void updateCurrentState(CasiaBot::ProductionQueue &queue) override;
-		bool beingRush();
 
 	protected:
 		void tryAddInQueue(CasiaBot::ProductionQueue &queue, const CasiaBot::ProductionItem & item, bool priority = false) override;
