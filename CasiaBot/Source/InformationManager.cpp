@@ -595,12 +595,12 @@ void InformationManager::PrintInfo(int x, int y) {
 	int UnitNum;
 	int i = 0;
 	BWAPI::UnitType t;
-	BWAPI::Broodwar->drawTextScreen(x, y - 10, "\x4 self_count");
-	BWAPI::Broodwar->drawTextScreen(x + 130, y - 10, "\x3 enemy_count");
+	BWAPI::Broodwar->drawTextScreen(x, y - 10, "\x3 self_count");
+	BWAPI::Broodwar->drawTextScreen(x + 130, y - 10, "\x4 enemy_count");
 	for (auto & type : BWAPI::UnitTypes::allUnitTypes()) {
 		UnitNum = InformationManager::getNumUnits(type, _self);
 		if (UnitNum) {
-			std::string info = "\x04" + type.getName() + " " + std::to_string(UnitNum);
+			std::string info = "\x03" + type.getName() + " " + std::to_string(UnitNum);
 			BWAPI::Broodwar->drawTextScreen(x, y + i, info.c_str());
 			i = i + 10;
 		}
@@ -609,7 +609,7 @@ void InformationManager::PrintInfo(int x, int y) {
 	for (auto & type : BWAPI::UnitTypes::allUnitTypes()) {
 		UnitNum = InformationManager::getNumUnits(type, _enemy);
 		if (UnitNum) {
-			std::string info = "\x03" + type.getName() + " " + std::to_string(UnitNum);
+			std::string info = "\x04" + type.getName() + " " + std::to_string(UnitNum);
 			BWAPI::Broodwar->drawTextScreen(x + 130, y + i, info.c_str());
 			i = i + 10;
 		}
