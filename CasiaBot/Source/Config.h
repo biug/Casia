@@ -73,6 +73,7 @@ namespace Config
         extern bool DrawMapGrid;
         extern bool DrawUnitTargetInfo;
         extern bool DrawSquadInfo;
+		extern bool DrawSquadTypeInfo;
         extern bool PrintModuleTimeout;		
 
         extern std::string ErrorLogFilename;

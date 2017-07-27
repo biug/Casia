@@ -97,6 +97,7 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
         JSONTools::ReadBool("DrawProductionInfo", debug, Config::Debug::DrawProductionInfo);
         JSONTools::ReadBool("DrawScoutInfo", debug, Config::Debug::DrawScoutInfo);
         JSONTools::ReadBool("DrawSquadInfo", debug, Config::Debug::DrawSquadInfo);
+		JSONTools::ReadBool("DrawSquadTypeInfo", debug, Config::Debug::DrawSquadTypeInfo);
         JSONTools::ReadBool("DrawCombatSimInfo", debug, Config::Debug::DrawCombatSimulationInfo);
         JSONTools::ReadBool("DrawBuildingInfo", debug, Config::Debug::DrawBuildingInfo);
         JSONTools::ReadBool("DrawModuleTimers", debug, Config::Debug::DrawModuleTimers);

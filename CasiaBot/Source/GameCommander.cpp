@@ -67,6 +67,8 @@ void GameCommander::drawDebugInterface()
 	ProductionManager::Instance().drawProductionInformation(30, 50);
 	InformationManager::Instance().PrintInfo(10, 200);
 	ProductionManager::Instance().queuePrint(250, 20);
+	WorkerManager::Instance().drawResourceDebugInfo(480, 20);
+	WorkerManager::Instance().drawWorkerDebugInfo();
 	_combatCommander.drawSquadInformation(200, 30);
     _timerManager.displayTimers(490, 225);
     drawGameInformation(4, 1);
