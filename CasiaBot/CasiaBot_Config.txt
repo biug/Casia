@@ -80,7 +80,7 @@
     
     "Opening" :
     {        
-        "ZVP"                       : "ZVP_5D",
+        "ZVP"                       : "ZVP_9D",
         "ZVT"                       : "ZVT_9D",
         "ZVZ"                       : "ZVZ_9D",
         "Random"                    : "ZVT_5D",

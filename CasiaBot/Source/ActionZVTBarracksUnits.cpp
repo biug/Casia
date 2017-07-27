@@ -2,7 +2,6 @@
 #include "BuildingManager.h"
 #include "ActionHelper.h"
 #include "InformationManager.h"
-#include "CombatCommander.h"
 
 using namespace CasiaBot;
 using namespace CasiaBot::ActionHelper;
@@ -45,7 +44,7 @@ bool ActionZVTBarracksUnits::tick()
 
 void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 {
-	being_rushed = CombatCommander::beingMarineRushed();
+	being_rushed = InformationManager::Instance().isEncounterRush();
 	// 当前帧数（累计）
 	int gas = BWAPI::Broodwar->self()->gas();
 	int minerals = BWAPI::Broodwar->self()->minerals();

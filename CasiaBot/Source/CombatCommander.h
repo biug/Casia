@@ -46,9 +46,5 @@ public:
 	void update(const BWAPI::Unitset & combatUnits);
     
 	void drawSquadInformation(int x, int y);
-
-	static bool			beingMarineRushed();
-	static bool			beingZerglingRushed();
-	static bool			beingZealotRushed();
 };
 }

@@ -562,29 +562,3 @@ bool CombatCommander::beingBuildingRushed()
 
     return false;
 }
-
-bool CombatCommander::beingMarineRushed()
-{
-	int numBarracks = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Terran_Barracks, BWAPI::Broodwar->enemy());
-	int numMarine = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Terran_Marine, BWAPI::Broodwar->enemy());
-	int frameCount = BWAPI::Broodwar->getFrameCount();
-	return (frameCount <= 3600 && numBarracks >= 2) ||
-		(frameCount <= 5000 && numMarine >= 5);
-}
-
-bool CombatCommander::beingZealotRushed()
-{
-	int numGateway = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Protoss_Gateway, BWAPI::Broodwar->enemy());
-	int numZealot = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Protoss_Zealot, BWAPI::Broodwar->enemy());
-	int frameCount = BWAPI::Broodwar->getFrameCount();
-	return (frameCount <= 3300 && numGateway >= 2) ||
-		(frameCount <= 4000 && numZealot >= 2) ||
-		(frameCount <= 5000 && numZealot >= 5);
-}
-
-bool CombatCommander::beingZerglingRushed()
-{
-	int numZergling = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Zergling, BWAPI::Broodwar->enemy());
-	int frameCount = BWAPI::Broodwar->getFrameCount();
-	return (frameCount <= 3200 && numZergling >= 6);
-}

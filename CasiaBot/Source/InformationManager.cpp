@@ -6,6 +6,7 @@ using namespace CasiaBot;
 InformationManager::InformationManager()
     : _self(BWAPI::Broodwar->self())
     , _enemy(BWAPI::Broodwar->enemy())
+	, _isEncounterRush(false)
 {
 	initializeRegionInformation();
 }
@@ -20,6 +21,7 @@ void InformationManager::update()
 {
 	updateUnitInfo();
 	updateBaseLocationInfo();
+	updateRush();
 }
 
 void InformationManager::updateUnitInfo() 
@@ -170,6 +172,45 @@ bool InformationManager::isEnemyBuildingInRegion(BWTA::Region * region)
 	}
 
 	return false;
+}
+
+bool InformationManager::beingMarineRushed()
+{
+	int numBarracks = getNumUnits(BWAPI::UnitTypes::Terran_Barracks, BWAPI::Broodwar->enemy());
+	int numMarine = getNumUnits(BWAPI::UnitTypes::Terran_Marine, BWAPI::Broodwar->enemy());
+	int frameCount = BWAPI::Broodwar->getFrameCount();
+	return (frameCount <= 3600 && numBarracks >= 2) ||
+		(frameCount <= 5000 && numMarine >= 5);
+}
+
+bool InformationManager::beingZealotRushed()
+{
+	int numGateway = getNumUnits(BWAPI::UnitTypes::Protoss_Gateway, BWAPI::Broodwar->enemy());
+	int numZealot = getNumUnits(BWAPI::UnitTypes::Protoss_Zealot, BWAPI::Broodwar->enemy());
+	int frameCount = BWAPI::Broodwar->getFrameCount();
+	return (frameCount <= 3300 && numGateway >= 2) ||
+		(frameCount <= 4000 && numZealot >= 2) ||
+		(frameCount <= 5000 && numZealot >= 5);
+}
+
+bool InformationManager::beingZerglingRushed()
+{
+	int numZergling = getNumUnits(BWAPI::UnitTypes::Zerg_Zergling, BWAPI::Broodwar->enemy());
+	int frameCount = BWAPI::Broodwar->getFrameCount();
+	return (frameCount <= 3200 && numZergling >= 6);
+}
+
+void InformationManager::updateRush()
+{
+	if (getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Lurker, BWAPI::Broodwar->self()) > 0
+		|| getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Mutalisk, BWAPI::Broodwar->self()) > 0)
+	{
+		_isEncounterRush = false;
+	}
+	else if (!_isEncounterRush)
+	{
+		_isEncounterRush = beingMarineRushed() || beingZerglingRushed() || beingZealotRushed();
+	}
 }
 
 const UIMap & InformationManager::getUnitInfo(BWAPI::Player player) const
@@ -598,7 +639,7 @@ void InformationManager::PrintInfo(int x, int y) {
 	BWAPI::Broodwar->drawTextScreen(x, y - 10, "\x3 self_count");
 	BWAPI::Broodwar->drawTextScreen(x + 130, y - 10, "\x4 enemy_count");
 	for (auto & type : BWAPI::UnitTypes::allUnitTypes()) {
-		UnitNum = InformationManager::getNumUnits(type, _self);
+		UnitNum = getNumUnits(type, _self);
 		if (UnitNum) {
 			std::string info = "\x03" + type.getName() + " " + std::to_string(UnitNum);
 			BWAPI::Broodwar->drawTextScreen(x, y + i, info.c_str());
@@ -607,7 +648,7 @@ void InformationManager::PrintInfo(int x, int y) {
 	}
 	i = 0;
 	for (auto & type : BWAPI::UnitTypes::allUnitTypes()) {
-		UnitNum = InformationManager::getNumUnits(type, _enemy);
+		UnitNum = getNumUnits(type, _enemy);
 		if (UnitNum) {
 			std::string info = "\x04" + type.getName() + " " + std::to_string(UnitNum);
 			BWAPI::Broodwar->drawTextScreen(x + 130, y + i, info.c_str());
@@ -615,4 +656,9 @@ void InformationManager::PrintInfo(int x, int y) {
 		}
 	}
 
+}
+
+bool InformationManager::isEncounterRush()
+{
+	return _isEncounterRush;
 }
