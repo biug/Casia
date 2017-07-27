@@ -27,7 +27,7 @@ void WorkerManager::update()
 	handleCombatWorkers();
 
 	workerData.drawWorkerDebugInfo();
-	workerData.drawResourceDebugInfo(480, 20);
+	workerData.drawResourceDebugInfo(540, 200);
 }
 
 void WorkerManager::updateResourceStatus()
