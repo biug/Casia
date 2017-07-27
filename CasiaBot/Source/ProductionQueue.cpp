@@ -563,5 +563,20 @@ void ProductionQueue::printQueues(int x, int y){
 		info = info + " " + _techUpgradeQueue.at(j)._unit.getName() + " ||";
 	}
 	BWAPI::Broodwar->drawTextScreen(x, y, "%s", info.c_str());
+
+	y += 10;
+	info = "\x04";
+	BWAPI::Broodwar->drawTextScreen(x - 60, y, "\x04 tech:  %d", _buildingQueue.size());
+	for (std::map <std::string, int>::iterator Iter = buildingMap.begin(); Iter != buildingMap.end(); Iter++) {
+		info = info + " " + Iter->first + ": " + std::to_string(Iter->second) + " ||";
+	}
+	BWAPI::Broodwar->drawTextScreen(x, y, "%s", info.c_str());
+
+	y += 10;
+	info = "\x04 ";
+	for (unsigned int j = 0; j < _buildingQueue.size() && j < 4; j++) {
+		info = info + " " + _buildingQueue.at(j)._unit.getName() + " ||";
+	}
+	BWAPI::Broodwar->drawTextScreen(x, y, "%s", info.c_str());
 	
 }
