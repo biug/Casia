@@ -165,7 +165,7 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 		//to do
 		if (_action == nullptr) {
 			if (queue.empty())
-				_action = &_actionZVPZerglingRush;
+				_action = &_actionZVPZealot;
 			
 			//queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
 		}
@@ -175,7 +175,8 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 				queue.clear();
 				bool useZealot = _actionZVPZealot.canDeployAction();
 				bool useDragoon = _actionZVPDragoon.canDeployAction();
-				bool useZergling = _actionZVPZerglingRush.canDeployAction();
+				//bool useZergling = _actionZVPZerglingRush.canDeployAction();
+				bool useZergling = false;
 				_action = &_actionZVPZealot;
 				if (useZealot) {
 					_action = &_actionZVPZealot;
