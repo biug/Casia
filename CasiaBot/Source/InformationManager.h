@@ -23,6 +23,8 @@ class InformationManager
     std::map<BWAPI::Player, BWTA::BaseLocation *>       _mainBaseLocations;
     std::map<BWAPI::Player, std::set<BWTA::Region *> >  _occupiedRegions;
 
+	bool					_isEncounterRush;
+
     int                     getIndex(BWAPI::Player player) const;
 
     void                    updateUnit(BWAPI::Unit unit);
@@ -32,6 +34,11 @@ class InformationManager
     void                    updateBaseLocationInfo();
     void                    updateOccupiedRegions(BWTA::Region * region,BWAPI::Player player);
     bool                    isValidUnit(BWAPI::Unit unit);
+	void					updateRush();
+
+	bool					beingMarineRushed();
+	bool					beingZerglingRushed();
+	bool					beingZealotRushed();
 
 public:
 
@@ -69,6 +76,8 @@ public:
     void                    drawUnitInformation(int x,int y);
     void                    drawMapInformation();
 	void					PrintInfo(int x, int y);
+
+	bool					isEncounterRush();
 
     const UnitData &        getUnitData(BWAPI::Player player) const;
 };

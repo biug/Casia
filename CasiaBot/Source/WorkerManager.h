@@ -45,10 +45,10 @@ public:
 
     void        finishedWithCombatWorkers();
 
-    void        drawResourceDebugInfo();
+    void        drawResourceDebugInfo(int x, int y);
     void        updateWorkerStatus();
 	void		updateResourceStatus();
-    void        drawWorkerInformation(int x,int y);
+    void        drawWorkerDebugInfo();
 
     int         getNumMineralWorkers();
     int         getNumGasWorkers();

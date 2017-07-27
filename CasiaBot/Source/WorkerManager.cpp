@@ -25,9 +25,6 @@ void WorkerManager::update()
 	handleMineralWorkers();
 	handleMoveWorkers();
 	handleCombatWorkers();
-
-	workerData.drawWorkerDebugInfo();
-	workerData.drawResourceDebugInfo(480, 20);
 }
 
 void WorkerManager::updateResourceStatus()
@@ -716,7 +713,7 @@ void WorkerManager::rebalanceMineralWorkers()
 			continue;
 		}
 
-		if (worker && workerData.isWorkerInOverloadMineralPatch(worker))
+		if (worker && workerData.isWorkerInOverloadMineral(worker))
 		{
 			workerData.setWorkerIdle(worker);
 		}
@@ -782,4 +779,20 @@ int WorkerManager::getNumIdleWorkers()
 int WorkerManager::getNumGasWorkers() 
 {
 	return workerData.getNumGasWorkers();
+}
+
+void WorkerManager::drawResourceDebugInfo(int x, int y)
+{
+	if (Config::Debug::DrawResourceInfo)
+	{
+		workerData.drawResourceDebugInfo(x, y);
+	}
+}
+
+void WorkerManager::drawWorkerDebugInfo()
+{
+	if (Config::Debug::DrawWorkerInfo)
+	{
+		workerData.drawWorkerDebugInfo();
+	}
 }

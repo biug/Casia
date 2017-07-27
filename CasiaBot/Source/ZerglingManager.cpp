@@ -8,6 +8,111 @@ ZerglingManager::ZerglingManager()
 
 }
 
+void ZerglingManager::execute(const SquadOrder & inputOrder)
+{
+	if (!InformationManager::Instance().isEncounterRush())
+	{
+		MicroManager::execute(inputOrder);
+	}
+	// if being rush, zergling guard
+	else
+	{
+		BWAPI::Broodwar->printf("being rushed");
+		// find a sunken
+		BWAPI::Unit sunken = nullptr;
+		for (const auto & unit : BWAPI::Broodwar->getAllUnits())
+		{
+			if (unit->getType() == BWAPI::UnitTypes::Zerg_Creep_Colony
+				|| unit->getType() == BWAPI::UnitTypes::Zerg_Sunken_Colony)
+			{
+				sunken = unit;
+				break;
+			}
+		}
+		if (sunken == nullptr) return;
+		// find sunken region
+		BWTA::Region * region = BWTA::getRegion(sunken->getPosition());
+		BWTA::BaseLocation * ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+		if (region == nullptr || ebase == nullptr) return;
+		int minD = -1;
+		// find best choke for sunken
+		BWAPI::Position bestChokeP(0, 0);
+		for (auto pChoke : region->getChokepoints())
+		{
+			if (pChoke == nullptr) continue;
+			int d = MapTools::Instance().getGroundDistance(pChoke->getCenter(), ebase->getPosition());
+			if (minD == -1 || d < minD)
+			{
+				minD = d;
+				bestChokeP = pChoke->getCenter();
+			}
+		}
+		int minDis = 100000;
+		BWAPI::Unit bestSunken = sunken;
+		// find nearest sunken away from choke
+		for (const auto & unit : BWAPI::Broodwar->getAllUnits())
+		{
+			if (unit->getType() == BWAPI::UnitTypes::Zerg_Creep_Colony
+				|| unit->getType() == BWAPI::UnitTypes::Zerg_Sunken_Colony)
+			{
+				if (unit->getDistance(bestChokeP) < minDis)
+				{
+					minDis = unit->getDistance(bestChokeP);
+					bestSunken = unit;
+				}
+			}
+		}
+		if (bestChokeP != BWAPI::Position(0, 0))
+		{
+			float radius = 64.0;
+			const BWAPI::Unitset & meleeUnits = getUnits();
+			BWAPI::Position bestSunkenP = bestSunken->getPosition();
+			int disX = bestChokeP.x - bestSunkenP.x;
+			int disY = bestChokeP.y - bestSunkenP.y;
+			// calculate regroup target
+			BWAPI::Position targetP(bestSunkenP);
+			if (disX == 0 && disY == 0)
+			{
+				targetP += BWAPI::Position(radius, radius);
+			}
+			if (disX == 0)
+			{
+				targetP += BWAPI::Position(0, disY > 0 ? radius : -radius);
+			}
+			else if (disY == 0)
+			{
+				targetP += BWAPI::Position(disX > 0 ? radius : -radius, 0);
+			}
+			else
+			{
+				float k = fabs((float)disY / (float)disX);
+				int offsetX = (int)(1.0 / sqrtf(k * k + 1) * radius);
+				int offsetY = (int)(k / sqrtf(k * k + 1) * radius);
+				targetP += BWAPI::Position(disX > 0 ? offsetX : -offsetX, disY > 0 ? offsetY : -offsetY);
+			}
+			BWAPI::Broodwar->drawLineMap(bestChokeP, bestSunkenP, BWAPI::Colors::Green);
+			BWAPI::Broodwar->drawCircleMap(targetP, 4, BWAPI::Colors::Red, true);
+			// get nearbyEnemies
+			BWAPI::Unitset nearbyEnemies;
+			MapGrid::Instance().GetUnits(nearbyEnemies, targetP, 160, false, true);
+			if (nearbyEnemies.empty())
+			{
+				for (auto & meleeUnit : meleeUnits)
+				{
+					Micro::SmartMove(meleeUnit, targetP);
+				}
+			}
+			else
+			{
+				for (auto & meleeUnit : meleeUnits)
+				{
+					Micro::SmartAttackMove(meleeUnit, nearbyEnemies.getPosition());
+				}
+			}
+		}
+	}
+}
+
 void ZerglingManager::executeMicro(const BWAPI::Unitset & targets)
 {
 	//assignTargetsOld(targets);

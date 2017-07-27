@@ -10,6 +10,7 @@ class ZerglingManager : public MicroManager
 public:
 
 	ZerglingManager();
+	void execute(const SquadOrder & inputOrder) override;
 	void executeMicro(const BWAPI::Unitset & targets);
 
 	BWAPI::Unit chooseTarget(BWAPI::Unit zerglingUnit, const BWAPI::Unitset & targets, std::map<BWAPI::Unit, int> & numTargeting);
