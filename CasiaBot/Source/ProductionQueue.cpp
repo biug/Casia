@@ -479,11 +479,13 @@ void ProductionQueue::printQueues(int x, int y){
 	}
 	if (i > 1)
 		x += 100;
+	y + 10;
 	for (unsigned int j = 0; j < _armyQueue.size() && j < 4 ; j++)
 		BWAPI::Broodwar->drawTextScreen(x - 100 + 80 * j, y, "\x01 %s ", _armyQueue.at(j)._unit.getName().c_str());
 	
 
 	i = 0;
+	y + 10;
 	BWAPI::Broodwar->drawTextScreen(x - 150, y + 20,  "\x02 _overlordQueue:	   %d", _overlordQueue.size());
 	//BWAPI::Broodwar->drawTextScreen(x - 100, y + 20, "\x02 overlord queue:");
 	for (std::map <std::string, int>::iterator Iter = overlordMap.begin(); Iter != overlordMap.end(); Iter++) {
