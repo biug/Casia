@@ -23,10 +23,10 @@ struct GroundThreat
 
 class MicroManager
 {
-	BWAPI::Unitset  _units;
 
 protected:
-	
+
+	BWAPI::Unitset		_units;
 	SquadOrder			order;
 
 	virtual void        executeMicro(const BWAPI::Unitset & targets) = 0;
@@ -45,7 +45,7 @@ public:
 	BWAPI::Position     calcCenter() const;
 
 	void				setUnits(const BWAPI::Unitset & u);
-	void				execute(const SquadOrder & order);
+	virtual void		execute(const SquadOrder & order);
 	void				regroup(const BWAPI::Position & regroupPosition) const;
 
 };

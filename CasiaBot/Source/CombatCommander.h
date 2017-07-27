@@ -36,10 +36,8 @@ class CombatCommander
     int             getNumAirDefendersInSquad(Squad & squad);
 
     void            updateDefenseSquadUnits(Squad & defenseSquad, const size_t & flyingDefendersNeeded, const size_t & groundDefendersNeeded);
-    int             defendWithWorkers();
 
-    int             numZerglingsInOurBase();
-    bool            beingBuildingRushed();
+    bool				beingBuildingRushed();
 
 public:
 

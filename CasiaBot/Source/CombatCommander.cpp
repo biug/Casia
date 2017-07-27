@@ -84,11 +84,6 @@ void CombatCommander::updateAttackSquads()
 
     for (auto & unit : _combatUnits)
     {
-        if (unit->getType() == BWAPI::UnitTypes::Zerg_Scourge && UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Hydralisk) < 30)
-        {
-            continue;
-        }
-
         // get every unit of a lower priority and put it into the attack squad
         if (!unit->getType().isWorker() && (unit->getType() != BWAPI::UnitTypes::Zerg_Overlord) && _squadData.canAssignUnitToSquad(unit, mainAttackSquad))
         {
@@ -192,7 +187,7 @@ void CombatCommander::updateScoutDefenseSquad()
     bool assignScoutDefender = enemyUnitsInRegion.size() == 1 && (*enemyUnitsInRegion.begin())->getType().isWorker();
 
     // if our current squad is empty and we should assign a worker, do it
-    if (scoutDefenseSquad.isEmpty() && assignScoutDefender && BWAPI::Broodwar->getFrameCount() < 7200)
+    if (scoutDefenseSquad.isEmpty() && assignScoutDefender && BWAPI::Broodwar->getFrameCount() < 3600)
     {
         // the enemy worker that is attacking us
         BWAPI::Unit enemyWorker = *enemyUnitsInRegion.begin();
@@ -412,11 +407,9 @@ void CombatCommander::updateDefenseSquadUnits(Squad & defenseSquad, const size_t
 
 BWAPI::Unit CombatCommander::findClosestDefender(const Squad & defenseSquad, BWAPI::Position pos, bool flyingDefender) 
 {
+	int frame = BWAPI::Broodwar->getFrameCount();
 	BWAPI::Unit closestDefender = nullptr;
 	double minDistance = std::numeric_limits<double>::max();
-
-    int zerglingsInOurBase = numZerglingsInOurBase();
-    bool zerglingRush = zerglingsInOurBase > 0 && BWAPI::Broodwar->getFrameCount() < 5000;
 
 	for (auto & unit : _combatUnits) 
 	{
@@ -431,7 +424,7 @@ BWAPI::Unit CombatCommander::findClosestDefender(const Squad & defenseSquad, BWA
         }
 
         // add workers to the defense squad if we are being rushed very quickly
-        if (!Config::Micro::WorkersDefendRush || (unit->getType().isWorker() && !zerglingRush && !beingBuildingRushed()))
+        if (!Config::Micro::WorkersDefendRush || (unit->getType().isWorker() && frame > 3600))
         {
             continue;
         }
@@ -551,59 +544,6 @@ BWAPI::Unit CombatCommander::findClosestWorkerToTarget(BWAPI::Unitset & unitsToA
 	}
 
     return closestMineralWorker;
-}
-
-// when do we want to defend with our workers?
-// this function can only be called if we have no fighters to defend with
-int CombatCommander::defendWithWorkers()
-{
-	// our home nexus position
-	BWAPI::Position homePosition = BWTA::getStartLocation(BWAPI::Broodwar->self())->getPosition();;
-
-	// enemy units near our workers
-	int enemyUnitsNearWorkers = 0;
-
-	// defense radius of nexus
-	int defenseRadius = 300;
-
-	// fill the set with the types of units we're concerned about
-	for (auto & unit : BWAPI::Broodwar->enemy()->getUnits())
-	{
-		// if it's a zergling or a worker we want to defend
-		if (unit->getType() == BWAPI::UnitTypes::Zerg_Zergling)
-		{
-			if (unit->getDistance(homePosition) < defenseRadius)
-			{
-				enemyUnitsNearWorkers++;
-			}
-		}
-	}
-
-	// if there are enemy units near our workers, we want to defend
-	return enemyUnitsNearWorkers;
-}
-
-int CombatCommander::numZerglingsInOurBase()
-{
-    int concernRadius = 600;
-    int zerglings = 0;
-    BWAPI::Position ourBasePosition = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
-    
-    // check to see if the enemy has zerglings as the only attackers in our base
-    for (auto & unit : BWAPI::Broodwar->enemy()->getUnits())
-    {
-        if (unit->getType() != BWAPI::UnitTypes::Zerg_Zergling)
-        {
-            continue;
-        }
-
-        if (unit->getDistance(ourBasePosition) < concernRadius)
-        {
-            zerglings++;
-        }
-    }
-
-    return zerglings;
 }
 
 bool CombatCommander::beingBuildingRushed()

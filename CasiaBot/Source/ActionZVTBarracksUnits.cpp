@@ -44,8 +44,8 @@ bool ActionZVTBarracksUnits::tick()
 
 void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 {
+	being_rushed = InformationManager::Instance().isEncounterRush();
 	// 当前帧数（累计）
-	beingRush();
 	int gas = BWAPI::Broodwar->self()->gas();
 	int minerals = BWAPI::Broodwar->self()->minerals();
 	int currentFrameCount = BWAPI::Broodwar->getFrameCount();
@@ -79,9 +79,9 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 	}
 
 	if (creep_colony_completed > 0 && spawning_pool_completed > 0 &&
-		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < (being_rushed ? 2 : 0))
+		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < creep_colony_completed)
 	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony), being_rushed);
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony));
 	}
 
 	bool isExtractorExist = extractor_being_built + extractor_count + extractor_in_queue > 0;
@@ -237,4 +237,5 @@ bool ActionZVTBarracksUnits::beingRush()
 
 void ActionZVTBarracksUnits::tryAddInQueue(ProductionQueue & queue, const ProductionItem & item, bool priority)
 {
+
 }
