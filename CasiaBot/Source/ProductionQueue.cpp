@@ -566,7 +566,7 @@ void ProductionQueue::printQueues(int x, int y){
 
 	y += 10;
 	info = "\x04";
-	BWAPI::Broodwar->drawTextScreen(x - 60, y, "\x04 tech:  %d", _buildingQueue.size());
+	BWAPI::Broodwar->drawTextScreen(x - 60, y, "\x04 build: %d", _buildingQueue.size());
 	for (std::map <std::string, int>::iterator Iter = buildingMap.begin(); Iter != buildingMap.end(); Iter++) {
 		info = info + " " + Iter->first + ": " + std::to_string(Iter->second) + " ||";
 	}
