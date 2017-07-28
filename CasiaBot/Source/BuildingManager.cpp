@@ -398,7 +398,11 @@ BWAPI::TilePosition BuildingManager::getBuildingLocation(const Building & b)
     int distance = Config::Macro::BuildingSpacing;
 
     // get a position within our region
-    return BuildingPlacer::Instance().getBuildLocationNear(b,distance,false);
+	BWAPI::TilePosition ret = BuildingPlacer::Instance().getBuildLocationNear(b, distance, false);
+	if (ret == BWAPI::TilePositions::None)
+		return BuildingPlacer::Instance().getBuildLocationNear(b, 0, false);
+	else
+		return ret;
 }
 
 void BuildingManager::removeBuildings(const std::vector<Building> & toRemove)
