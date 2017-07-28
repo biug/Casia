@@ -13,20 +13,11 @@ ProductionManager::ProductionManager()
 void ProductionManager::setOpenningBuildOrder(const BuildOrder & buildOrder)
 {
 	_queue.clear();
+	_openingQueue.clear();
 
 	for (size_t i(0); i<buildOrder.size(); ++i)
 	{
-		_queue.addOpenning(ProductionItem(buildOrder[i]));
-	}
-}
-
-void ProductionManager::setBuildOrder(const BuildOrder & buildOrder)
-{
-	_queue.clear();
-
-	for (size_t i(0); i<buildOrder.size(); ++i)
-	{
-		_queue.add(ProductionItem(buildOrder[i]), true);
+		_openingQueue.add(ProductionItem(buildOrder[i]));
 	}
 }
 
@@ -37,13 +28,23 @@ void ProductionManager::performBuildOrderSearch()
         return;
     }
 
-	StrategyManager::Instance().updateProductionQueue(_queue);
+	if (_openingQueue.empty())
+	{
+		StrategyManager::Instance().updateProductionQueue(_queue);
+	}
 }
 
 void ProductionManager::update() 
 {
-	// check the _queue for stuff we can build
-	manageBuildOrderQueue();
+	// check the queue for stuff we can build
+	if (_openingQueue.empty())
+	{
+		manageBuildOrderQueue(_queue);
+	}
+	else
+	{
+		manageBuildOrderQueue(_openingQueue);
+	}
     
 	// if nothing is currently building, get a new goal from the strategy manager
 	if ((BWAPI::Broodwar->getFrameCount() > 10))
@@ -90,11 +91,11 @@ void ProductionManager::onUnitDestroy(BWAPI::Unit unit)
 	}
 }
 
-void ProductionManager::manageBuildOrderQueue() 
+void ProductionManager::manageBuildOrderQueue(ProductionQueue & queue) 
 {
-	_queue.checkSupply();
-	_queue.popReserve();
-	ProductionItem item = _queue.popItem();
+	queue.checkSupply();
+	queue.popReserve();
+	ProductionItem item = queue.popItem();
 	if (item._unit.type() == MetaTypes::Default)
 	{
 		return;
@@ -106,66 +107,9 @@ void ProductionManager::manageBuildOrderQueue()
 	// check to see if we can make it right now
 	bool canMake = canMakeNow(producer, unit);
 
-	// if we should cancel
-	if (item._unit.getCond().isCancel())
+	if (checkConditionAndReturn(unit, canMake))
 	{
-		for (auto & unit : BWAPI::Broodwar->self()->getUnits())
-		{
-			if (item._unit.isUnit() && unit->getType() == item._unit.getUnitType() && unit->isConstructing())
-			{
-				if (unit->getType().isRefinery())
-				{
-					WorkerManager::Instance().addCanceledRefineryLocation(unit->getTilePosition());
-				}
-				unit->cancelConstruction();
-				return;
-			}
-		}
 		return;
-	}
-	else if (item._unit.getCond().isMineral())
-	{
-		int mineral = item._unit.getCond().getMineral();
-		std::string info = std::to_string(mineral) + "M";
-		CAB_ASSERT(false, info.c_str());
-		if (BWAPI::Broodwar->self()->minerals() < mineral)
-		{
-			canMake = false;
-		}
-	}
-	else if (item._unit.getCond().isGas())
-	{
-		int gas = item._unit.getCond().getGas();
-		std::string info = std::to_string(gas) + "G";
-		CAB_ASSERT(false, info.c_str());
-		if (BWAPI::Broodwar->self()->minerals() < gas)
-		{
-			canMake = false;
-		}
-	}
-	else if (item._unit.getCond().isPercent())
-	{
-		auto percent = item._unit.getCond().getPercent();
-		for (const auto & unit : BWAPI::Broodwar->self()->getUnits())
-		{
-			if (unit->getType() == percent.first)
-			{
-				float rate = (float)unit->getRemainingBuildTime() / (float)percent.first.buildTime();
-				if (rate > percent.second)
-				{
-					canMake = false;
-				}
-			}
-		}
-	}
-	else if (item._unit.getCond().isUnit())
-	{
-		auto unit = item._unit.getCond().getUnit();
-		int num = InformationManager::Instance().getNumUnits(unit.first, BWAPI::Broodwar->self());
-		if (num < unit.second)
-		{
-			canMake = false;
-		}
 	}
 
 	// if the next item in the list is a building and we can't yet make it
@@ -203,7 +147,7 @@ void ProductionManager::manageBuildOrderQueue()
 		{
 			return;
 		}
-		_queue.retreat();
+		queue.retreat();
 	}
 }
 
@@ -342,7 +286,7 @@ bool ProductionManager::canMakeNow(BWAPI::Unit producer, MetaType t)
 	return canMake;
 }
 
-// When the next item in the _queue is a building, this checks to see if we should move to it
+// When the next item in the queue is a building, this checks to see if we should move to it
 // This function is here as it needs to access prodction manager's reserved resources info
 void ProductionManager::predictWorkerMovement(const Building & b)
 {
@@ -565,7 +509,14 @@ void ProductionManager::queueGasSteal()
 }
 
 void ProductionManager::queuePrint(int x, int y){
-	_queue.printQueues(x, y);
+	if (_openingQueue.empty())
+	{
+		_queue.printQueues(x, y);
+	}
+	else
+	{
+		_openingQueue.printQueues(x, y);
+	}
 }
 
 // this will return true if any unit is on the first frame if it's training time remaining
@@ -588,4 +539,70 @@ bool ProductionManager::canPlanBuildOrderNow() const
     }
 
     return true;
+}
+
+bool ProductionManager::checkConditionAndReturn(MetaType & meta, bool & canMake)
+{
+	// if we should cancel
+	if (meta.getCond().isCancel())
+	{
+		for (auto & unit : BWAPI::Broodwar->self()->getUnits())
+		{
+			if (meta.isUnit() && unit->getType() == meta.getUnitType() && unit->isConstructing())
+			{
+				if (unit->getType().isRefinery())
+				{
+					WorkerManager::Instance().addCanceledRefineryLocation(unit->getTilePosition());
+				}
+				unit->cancelConstruction();
+				return true;
+			}
+		}
+		return true;
+	}
+	else if (meta.getCond().isMineral())
+	{
+		int mineral = meta.getCond().getMineral();
+		std::string info = std::to_string(mineral) + "M";
+		CAB_ASSERT(false, info.c_str());
+		if (BWAPI::Broodwar->self()->minerals() < mineral)
+		{
+			canMake = false;
+		}
+	}
+	else if (meta.getCond().isGas())
+	{
+		int gas = meta.getCond().getGas();
+		std::string info = std::to_string(gas) + "G";
+		CAB_ASSERT(false, info.c_str());
+		if (BWAPI::Broodwar->self()->minerals() < gas)
+		{
+			canMake = false;
+		}
+	}
+	else if (meta.getCond().isPercent())
+	{
+		auto percent = meta.getCond().getPercent();
+		for (const auto & unit : BWAPI::Broodwar->self()->getUnits())
+		{
+			if (unit->getType() == percent.first)
+			{
+				float rate = (float)unit->getRemainingBuildTime() / (float)percent.first.buildTime();
+				if (rate > percent.second)
+				{
+					canMake = false;
+				}
+			}
+		}
+	}
+	else if (meta.getCond().isUnit())
+	{
+		auto unit = meta.getCond().getUnit();
+		int num = InformationManager::Instance().getNumUnits(unit.first, BWAPI::Broodwar->self());
+		if (num < unit.second)
+		{
+			canMake = false;
+		}
+	}
+	return false;
 }

@@ -7,7 +7,7 @@ namespace CasiaBot
 {
 	class ProductionQueue
 	{
-		enum ProductionPriority { Openning, Priority, Normal };
+		enum ProductionPriority { Priority, Normal };
 		enum ProductionTypeID { BUILDING, ARMY, WORKER, TECH, TYPE_MAX };
 		int						_buildID;
 		// unit
@@ -19,7 +19,6 @@ namespace CasiaBot
 		std::deque<ProductionItem>	_techUpgradeQueue;
 		// priority queue
 		std::deque<ProductionItem>	_priorityQueue;
-		std::deque<ProductionItem>	_openningQueue;
 		// reserve for some frame
 		const int									_reserveFrame = 10;
 		std::deque<std::pair<ProductionItem, std::pair<int, ProductionPriority>>>	_reserveQueue;
@@ -38,7 +37,6 @@ namespace CasiaBot
 		ProductionQueue();
 
 		void checkSupply();
-		void addOpenning(const ProductionItem & item);
 		void add(const ProductionItem & item, bool priority = false);
 		void retreat();
 		void popReserve();

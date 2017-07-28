@@ -16,6 +16,7 @@ class ProductionManager
     ProductionManager();
     
     ProductionQueue     _queue;
+	ProductionQueue		_openingQueue;
     BWAPI::TilePosition _predictedTilePosition;
     bool                _enemyCloakedDetected;
     bool                _assignedWorkerForThisBuilding;
@@ -29,9 +30,8 @@ class ProductionManager
     bool                hasNumCompletedUnitType(BWAPI::UnitType type,int num);
     bool                meetsReservedResources(MetaType type);
 	void				setOpenningBuildOrder(const BuildOrder & buildOrder);
-    void                setBuildOrder(const BuildOrder & buildOrder);
 	void				create(BWAPI::Unit producer, ProductionItem & unit);
-    void                manageBuildOrderQueue();
+    void                manageBuildOrderQueue(ProductionQueue & queue);
     void                performCommand(BWAPI::UnitCommandType t);
     bool                canMakeNow(BWAPI::Unit producer,MetaType t);
     void                predictWorkerMovement(const Building & b);
@@ -39,6 +39,7 @@ class ProductionManager
     int                 getFreeMinerals();
     int                 getFreeGas();
     bool                canPlanBuildOrderNow() const;
+	bool				checkConditionAndReturn(MetaType & meta, bool & canMake);
 
 public:
 

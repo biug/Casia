@@ -75,17 +75,18 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 		creep_colony_count + creep_colony_being_built + creep_colony_in_queue +
 		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < (being_rushed ? 2 : 0))
 	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), being_rushed);
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
 	}
 
 	if (creep_colony_completed > 0 && spawning_pool_completed > 0 &&
-		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < creep_colony_completed)
+		sunken_colony_being_built + sunken_colony_in_queue == 0)
 	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony));
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony), true);
 	}
 
 	bool isExtractorExist = extractor_being_built + extractor_count + extractor_in_queue > 0;
-	if (!isExtractorExist && drone_count >= 10 && spawning_pool_count > 0)
+	if (!isExtractorExist && drone_count >= 12 && spawning_pool_count > 0)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Extractor));
 	}
@@ -93,7 +94,7 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 	bool isHydraliskDenExist = hydralisk_den_being_built + hydralisk_den_count + hydralisk_den_in_queue > 0;
 	if (!isHydraliskDenExist && gas >= 50 && lair_count > 0)
 	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk_Den), true);
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk_Den, "50%Lair"));
 	}
 
 	if (lair_count + lair_being_built + lair_in_queue == 0
@@ -127,7 +128,7 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 	{
 		queue.add(MetaType(BWAPI::UpgradeTypes::Metabolic_Boost));
 	}
-	if (hydralisk_den_completed > 0 && lair_completed > 0 && lurker_aspect_count == 0 && gas >= 125)
+	if (hydralisk_den_completed > 0 && lair_completed > 0 && lurker_aspect_count == 0)
 	{
 		queue.add(MetaType(BWAPI::TechTypes::Lurker_Aspect), true);
 	}
