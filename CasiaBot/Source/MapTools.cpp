@@ -1,4 +1,5 @@
 #include "MapTools.h"
+#include "InformationManager.h"
 
 using namespace CasiaBot;
 
@@ -233,8 +234,10 @@ void MapTools::drawHomeDistanceMap()
 
 BWAPI::TilePosition MapTools::getNextExpansion(BWAPI::Player player)
 {
-    BWTA::BaseLocation * closestBase = nullptr;
-    double minDistance = 100000;
+    BWTA::BaseLocation * closestMineBase = nullptr;
+	BWTA::BaseLocation * closestGasBase = nullptr;
+    double minMineDistance = 100000;
+	double minGasDistance = 100000;
 
     BWAPI::TilePosition homeTile = player->getStartLocation();
 
@@ -242,7 +245,7 @@ BWAPI::TilePosition MapTools::getNextExpansion(BWAPI::Player player)
     for (BWTA::BaseLocation * base : BWTA::getBaseLocations())
     {
         // if the base has gas
-        if (!base->isMineralOnly() && !(base == BWTA::getStartLocation(player)))
+        if (!(base == BWTA::getStartLocation(player)))
         {
             // get the tile position of the base
             BWAPI::TilePosition tile = base->getTilePosition();
@@ -281,19 +284,36 @@ BWAPI::TilePosition MapTools::getNextExpansion(BWAPI::Player player)
                 continue;
             }
 
-            if (!closestBase || distanceFromHome < minDistance)
-            {
-                closestBase = base;
-                minDistance = distanceFromHome;
-            }
+			if (!base->isMineralOnly())
+			{
+				if (!closestGasBase || distanceFromHome < minGasDistance)
+				{
+					closestGasBase = base;
+					minGasDistance = distanceFromHome;
+				}
+			}
+			else
+			{
+				if (!closestMineBase || distanceFromHome < minMineDistance)
+				{
+					closestMineBase = base;
+					minMineDistance = distanceFromHome;
+				}
+			}
         }
 
     }
 
-    if (closestBase)
+    if (closestGasBase
+		&& InformationManager::Instance().checkBuildingLocation(closestGasBase->getTilePosition()))
     {
-        return closestBase->getTilePosition();
+        return closestGasBase->getTilePosition();
     }
+	else if (closestMineBase
+		&& InformationManager::Instance().checkBuildingLocation(closestMineBase->getTilePosition()))
+	{
+		return closestMineBase->getTilePosition();
+	}
     else
     {
         return BWAPI::TilePositions::None;

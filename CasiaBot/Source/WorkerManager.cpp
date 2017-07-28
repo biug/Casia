@@ -488,8 +488,10 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 	// variables to hold the closest worker of each type to the building
 	BWAPI::Unit closestMovingWorker = nullptr;
 	BWAPI::Unit closestMiningWorker = nullptr;
+	BWAPI::Unit closestGasWorker = nullptr;
 	double closestMovingWorkerDistance = 0;
 	double closestMiningWorkerDistance = 0;
+	double closestGasWorkerDistance = 0;
 
 	// look through each worker that had moved there first
 	for (auto & worker : workerData.getWorkers())
@@ -518,6 +520,17 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 			}
 		}
 
+		if (worker->isCompleted() && (workerData.getWorkerJob(worker) == WorkerData::Gas))
+		{
+			// if it is a new closest distance, set the pointer
+			double distance = worker->getDistance(BWAPI::Position(b.finalPosition));
+			if (!closestGasWorker || distance < closestGasWorkerDistance)
+			{
+				closestGasWorker = worker;
+				closestGasWorkerDistance = distance;
+			}
+		}
+
 		// moving worker check
 		if (worker->isCompleted() && (workerData.getWorkerJob(worker) == WorkerData::Move))
 		{
@@ -532,7 +545,19 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 	}
 
 	// if we found a moving worker, use it, otherwise using a mining worker
-	BWAPI::Unit chosenWorker = closestMovingWorker ? closestMovingWorker : closestMiningWorker;
+	BWAPI::Unit chosenWorker = nullptr;
+	if (closestMovingWorker)
+	{
+		chosenWorker = closestMovingWorker;
+	}
+	else if (closestGasWorker)
+	{
+		chosenWorker = closestGasWorker;
+	}
+	else if (closestMiningWorker)
+	{
+		chosenWorker = closestMiningWorker;
+	}
 
 	// if the worker exists (one may not have been found in rare cases)
 	if (chosenWorker && setJobAsBuilder)
@@ -640,8 +665,8 @@ bool WorkerManager::willHaveResources(int mineralsRequired, int gasRequired, dou
 	double gasRate     = getNumGasWorkers() * 0.07;
 
 	// calculate if we will have enough by the time the worker gets there
-	if (mineralRate * framesToMove >= mineralsRequired + 50 &&
-		gasRate * framesToMove >= gasRequired + 24)
+	if (mineralRate * framesToMove >= mineralsRequired + 16 &&
+		gasRate * framesToMove >= gasRequired + 8)
 	{
 		return true;
 	}

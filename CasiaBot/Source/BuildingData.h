@@ -24,7 +24,6 @@ public:
     bool                    isGasSteal;
 	bool					nexpHatchery;
 	bool                    buildCommandGiven;
-	bool                    underConstruction;
 
 	Building() 
 		: desiredPosition   (BWAPI::TilePositions::None)
@@ -35,7 +34,6 @@ public:
         , lastOrderFrame    (0)
         , status            (BuildingStatus::Unassigned)
         , buildCommandGiven (false)
-        , underConstruction (false) 
         , isGasSteal        (false)
 		, nexpHatchery		(false)
     {} 
@@ -50,7 +48,6 @@ public:
         , lastOrderFrame    (0)
         , status            (BuildingStatus::Unassigned)
         , buildCommandGiven (false)
-        , underConstruction (false) 
         , isGasSteal        (false)
 		, nexpHatchery		(false)
     {}
