@@ -290,3 +290,7 @@ void ActionZVTFactoriesUnits::updateCurrentState(ProductionQueue &queue)
 	enemyTerranMechanizationRate = enemyTerranBarrackUnitsAmount == 0 ? 10 : (double)enemyTerranFactoryUnitsAmount / (double)enemyTerranBarrackUnitsAmount;
 	if (enemyTerranFactoryUnitsAmount == 0) enemyTerranMechanizationRate = 0;
 }
+
+void ActionZVTFactoriesUnits::tryAddInQueue(ProductionQueue & queue, const ProductionItem & item, bool priority)
+{
+}

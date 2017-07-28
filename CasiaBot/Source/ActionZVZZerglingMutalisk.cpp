@@ -277,3 +277,7 @@ void ActionZVZZerglingMutalisk::updateCurrentState(ProductionQueue &queue)
 {
 	ActionZergBase::updateCurrentState(queue);
 }
+
+void ActionZVZZerglingMutalisk::tryAddInQueue(ProductionQueue & queue, const ProductionItem & item, bool priority)
+{
+}
