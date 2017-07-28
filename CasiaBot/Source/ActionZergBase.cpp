@@ -217,6 +217,7 @@ void ActionZergBase::updateCurrentState(ProductionQueue &queue)
 	enemy_gas_count = 0;
 
 	//我方
+	resDepots.clear();
 	std::set<BWTA::BaseLocation *> base_set;
 
 	for (auto &unit : BWAPI::Broodwar->self()->getUnits()) {
@@ -233,6 +234,10 @@ void ActionZergBase::updateCurrentState(ProductionQueue &queue)
 		if (unit->getType() == BWAPI::UnitTypes::Zerg_Hatchery
 			|| unit->getType() == BWAPI::UnitTypes::Zerg_Lair
 			|| unit->getType() == BWAPI::UnitTypes::Zerg_Hive) {
+
+			if (unit->isCompleted())
+				resDepots.insert(unit);
+
 			BWTA::BaseLocation *nearest;
 			double dis = -1.0, curl;
 			for (auto &base : BWTA::getBaseLocations()) {
@@ -283,22 +288,6 @@ void ActionZergBase::updateCurrentState(ProductionQueue &queue)
 			++enemy_static_defence_count;
 		if (unit->getType() == BWAPI::UnitTypes::Zerg_Sunken_Colony)
 			++enemy_static_defence_count;
-
-		//if (!unit->getType().isRefinery()) {
-		//	std::pair<BWAPI::TilePosition, BWAPI::TilePosition> closest = getClosestOpponentBaseLocation();
-		//	double t_v = unitPathingDistance(BWAPI::UnitTypes::Terran_SCV, closest);
-		//	if (unitPathingDistance(BWAPI::UnitTypes::Terran_SCV, std::make_pair(closest.first, unit->getTilePosition())) < t_v) {
-		//		if (unit->getType().isBuilding())
-		//			++enemy_proxy_building_count;
-		//		else if (!unit->getType().isWorker())
-		//			enemy_attacking_army_supply += unit->getType().supplyRequired();
-		//		else
-		//			++enemy_attacking_worker_count;
-		//	}
-
-		//	if (unit->getType().isCloakable())
-		//		++enemy_cloaked_unit_count;
-		//}
 		if (unit->getType().isWorker())
 			++enemy_worker_count;
 		if (unit->getType().isRefinery() || unit->getType() == BWAPI::UnitTypes::Resource_Vespene_Geyser)
@@ -306,40 +295,64 @@ void ActionZergBase::updateCurrentState(ProductionQueue &queue)
 	}
 }
 
-std::pair<BWAPI::TilePosition, BWAPI::TilePosition> ActionZergBase::getClosestOpponentBaseLocation() {
-	std::vector<BWTA::BaseLocation *> selfBases, enemyBases;
-	for (BWTA::BaseLocation *location : BWTA::getBaseLocations()) {
-		std::set<BWTA::Region*> &selfRegions = InformationManager::Instance().getOccupiedRegions(BWAPI::Broodwar->self());
-		std::set<BWTA::Region*> &enemyRegions = InformationManager::Instance().getOccupiedRegions(BWAPI::Broodwar->enemy());
-		if (selfRegions.find(BWTA::getRegion(location->getTilePosition())) != selfRegions.end()) {
-			selfBases.push_back(location);
-		}
-		if (enemyRegions.find(BWTA::getRegion(location->getTilePosition())) != enemyRegions.end()) {
-			enemyBases.push_back(location);
-		}
-	}
-	BWTA::BaseLocation *selfClosest = BWTA::getStartLocation(BWAPI::Broodwar->self());
-	BWTA::BaseLocation *enemyClosest = BWTA::getStartLocation(BWAPI::Broodwar->enemy());
-	double dis = unitPathingDistance(BWAPI::UnitTypes::Terran_SCV, std::make_pair(selfClosest->getTilePosition(), enemyClosest->getTilePosition()));
-	for (auto sb : selfBases) {
-		for (auto eb : enemyBases) {
-			double curdis = unitPathingDistance(BWAPI::UnitTypes::Terran_SCV, std::make_pair(sb->getTilePosition(), eb->getTilePosition()));
-			if (curdis < dis) {
-				dis = curdis;
-				selfClosest = sb;
-				enemyClosest = eb;
+//获得该位置所在区域内距离对方主基地最近的路口，未找到则返回Position::None
+BWAPI::Position ActionZergBase::getDefenceChoke(BWAPI::TilePosition current)
+{
+	BWAPI::Position ret = BWAPI::Positions::None;
+	BWTA::Region * region = BWTA::getRegion(current);
+	BWTA::BaseLocation * ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+	if (region != nullptr && ebase != nullptr)
+	{
+		int minD = -1;
+		for (auto pChoke : region->getChokepoints())
+		{
+			int d = MapTools::Instance().getGroundDistance(pChoke->getCenter(), ebase->getPosition());
+			if (minD == -1 || d < minD)
+			{
+				minD = d;
+				ret = pChoke->getCenter();
 			}
 		}
 	}
-	return std::make_pair(selfClosest->getTilePosition(), enemyClosest->getTilePosition());
+	return ret;
 }
 
-double ActionZergBase::unitPathingDistance(BWAPI::UnitType type, std::pair<BWAPI::TilePosition, BWAPI::TilePosition> fromto) {
-	if (type.isFlyer())
-		return (fromto.first - fromto.second).getLength();
-	return BWTA::getGroundDistance(fromto.first, fromto.second);
+void ActionZergBase::generateMainPath()
+{
+	if (mainPath.size() > 0)
+		return;
+	BWTA::BaseLocation * base = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->self());
+	BWTA::BaseLocation * ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+	if (ebase != nullptr)
+	{
+		std::list<BWTA::Chokepoint *> cps = BWTA::getShortestPath2(base->getTilePosition(), ebase->getTilePosition());
+		for (auto cp : cps)
+		{
+			mainPath.insert(cp->getRegions().first);
+			mainPath.insert(cp->getRegions().second);
+		}
+	}
 }
- 
 
-
-                                                                           
+BWAPI::Unit ActionZergBase::furthestResDepotOnMainPath()
+{
+	generateMainPath();
+	BWTA::BaseLocation * ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+	BWAPI::Unit ret = resDepots.empty() ? nullptr : *resDepots.begin();
+	if (ebase != nullptr)
+	{
+		int minD = -1;
+		for (auto &u : resDepots)
+		{
+			if (mainPath.find(BWTA::getRegion(u->getPosition())) == mainPath.end())
+				continue;
+			int d = MapTools::Instance().getGroundDistance(u->getPosition(), ebase->getPosition());
+			if (minD == -1 || d < minD)
+			{
+				minD = d;
+				ret = u;
+			}
+		}
+	}
+	return ret;
+}

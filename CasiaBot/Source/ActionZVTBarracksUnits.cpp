@@ -58,7 +58,7 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 	//	}
 	//}
 
-	if (BWAPI::Broodwar->self()->minerals() > 500 && base_in_queue < 1
+	if (BWAPI::Broodwar->self()->minerals() > 500 && base_in_queue + base_being_built < 1
 		&& base_count + base_in_queue + base_being_built < 5)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hatchery));

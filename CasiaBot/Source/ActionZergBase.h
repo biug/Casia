@@ -17,9 +17,10 @@ namespace CasiaBot
 		virtual void updateCurrentState(CasiaBot::ProductionQueue &queue);
 
 	protected:
-		std::pair<BWAPI::TilePosition, BWAPI::TilePosition> getClosestOpponentBaseLocation();
-		double unitPathingDistance(BWAPI::UnitType type, std::pair<BWAPI::TilePosition, BWAPI::TilePosition> fromto);
 		virtual void tryAddInQueue(CasiaBot::ProductionQueue &queue, const CasiaBot::ProductionItem & item, bool priority = false) = 0;
+		BWAPI::Position getDefenceChoke(BWAPI::TilePosition current);
+		void generateMainPath();
+		BWAPI::Unit furthestResDepotOnMainPath();
 
 	protected:
 		//己方已生成单位
@@ -225,5 +226,7 @@ namespace CasiaBot
 		int lastFrameGasAmount = 0;
 		std::deque<int> mineralNetIncrease;
 		std::deque<int> gasNetIncrease;
+		std::set<BWTA::Region *> mainPath;
+		BWAPI::Unitset resDepots;
 	};
 }

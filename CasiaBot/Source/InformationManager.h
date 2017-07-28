@@ -69,6 +69,7 @@ public:
 
     std::set<BWTA::Region *> &  getOccupiedRegions(BWAPI::Player player);
     BWTA::BaseLocation *    getMainBaseLocation(BWAPI::Player player);
+	BWAPI::Position			getLastPosition(BWAPI::Unit unit, BWAPI::Player player) const;
 
     bool                    enemyHasCloakedUnits();
 
@@ -78,6 +79,7 @@ public:
 	void					PrintInfo(int x, int y);
 
 	bool					isEncounterRush();
+	bool					checkBuildingLocation(const BWAPI::TilePosition & tp);
 
     const UnitData &        getUnitData(BWAPI::Player player) const;
 };

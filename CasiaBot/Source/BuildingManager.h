@@ -27,7 +27,7 @@ class BuildingManager
     void            assignWorkersToUnassignedBuildings();	// STEP 2
     void            constructAssignedBuildings();			// STEP 3
     void            checkForStartedConstruction();			// STEP 4
-    void            checkForCompletedBuildings();			// STEP 5
+    void            checkForConstructingBuildings();			// STEP 5
 
     char            getBuildingWorkerCode(const Building & b) const;
     
