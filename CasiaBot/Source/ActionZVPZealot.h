@@ -24,8 +24,8 @@ namespace CasiaBot
 		const int droneLimit = 16;
 		const int zerglingLimit = 20;
 		const int mutaliskLimit = 15;
-		const int creepColonyLimit = 5;
-		const int sunkenColonyLimit = 5;
+		const int creepColonyLimit = 7;
+		const int sunkenColonyLimit = 7;
 		const int spawningPoolLimit = 1;
 		const int extractorLimit = 3;
 		const int spireLimit = 1;

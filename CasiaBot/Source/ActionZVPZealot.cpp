@@ -52,6 +52,7 @@ void ActionZVPZealot::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 	int currentFrameCount = BWAPI::Broodwar->getFrameCount();
 	int gas = BWAPI::Broodwar->self()->gas();
 	int minerals = BWAPI::Broodwar->self()->minerals();
+	being_rushed = InformationManager::Instance().isEncounterRush();
 
 	if (currentFrameCount % 200 == 0)
 	{
@@ -108,27 +109,44 @@ void ActionZVPZealot::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 		{
 			queue.clear();
 		}
+		if (zergling_count + zergling_in_queue > zerglingLimit)
+		{
+			queue.clear();
+		}
+		// 农民过少时
+		if (drone_count < 5 && drone_in_queue < 1)
+		{
+			queue.clear();
+			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+		}
 	}
 
 	//是否需要防御建筑
-	if (isCreepColonyExist)
+	if (creep_colony_count + creep_colony_being_built + creep_colony_in_queue +
+		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < 2)
 	{
-		if (sunken_colony_in_queue < creep_colony_completed)
-			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony), true);
-		if (creep_colony_total + sunken_colony_total < 2)
-		{
-			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
-			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone));
-		}
-		else if (creep_colony_total + sunken_colony_total < 5)
-		{
-			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony));
-			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone));
-		}
-	}
-	else if (!isCreepColonyExist && !isSunkenColonyExist) {
 		tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
-		tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone));
+		//tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+	}
+	else if (being_rushed && creep_colony_completed + sunken_colony_count >= 2 &&
+		creep_colony_count + creep_colony_being_built + creep_colony_in_queue +
+		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < 5)
+	{
+		tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
+		//tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+	}
+	else if (being_rushed && creep_colony_completed + sunken_colony_count >= 5 &&
+		creep_colony_count + creep_colony_being_built + creep_colony_in_queue +
+		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < 7)
+	{
+		tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
+		//tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+	}
+	if (sunken_colony_in_queue < creep_colony_completed)
+	{
+		tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony), true);
+		tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+		//tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Zergling), true);
 	}
 
 	// 判断前提建筑是否存在
@@ -152,7 +170,7 @@ void ActionZVPZealot::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 	{
 		if (base_count + base_in_queue + base_being_built <= 1)
 		{
-			if (zergling_count >= 4)
+			if ((lair_count > 0 || hive_count > 0) && zergling_count >= 4)
 			{
 				ProductionItem item = MetaType(BWAPI::UnitTypes::Zerg_Hatchery, "Main");
 				tryAddInQueue(queue, item);
@@ -193,7 +211,7 @@ void ActionZVPZealot::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 	if (real_base_count == 1)
 	{
 		if (drone_count + drone_in_queue < 9)
-			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone));
+			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
 		else if (zergling_count >= 6 && drone_count + drone_in_queue < 15)
 			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone));
 		notEnoughDrone = drone_count + drone_in_queue < 12;
@@ -221,14 +239,18 @@ void ActionZVPZealot::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 			if (mineralDequePositive && isExtractorExist && gasDequePositive && zergling_in_queue < 6)
 				need_zergling_count = 2;
 		}
-		else if (need_zergling_count > 4)
+		else if (need_zergling_count > 2)
 		{
-			need_zergling_count = 4;
+			need_zergling_count = 2;
 		}
 		// 小狗太多时停止造小狗
 		if (zergling_count + zergling_in_queue > zerglingLimit)
 		{
 			need_zergling_count = 0;
+		}
+		if (zergling_count + zergling_in_queue < 12)
+		{
+			need_zergling_count = 4;
 		}
 
 		//优先补农民
@@ -265,7 +287,7 @@ void ActionZVPZealot::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 			// 2个Zergling
 			if (spawning_pool_count > 0)
 			{
-				if (currentFrameCount < 4800 && zergling_count + zergling_in_queue < 8)
+				if (currentFrameCount < 7200 && zergling_count + zergling_in_queue < 12)
 					tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Zergling), true);
 				else
 					tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Zergling));
@@ -274,7 +296,7 @@ void ActionZVPZealot::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 		}
 		if (need_mutalisk_count > 0)
 		{
-			if (spire_count + greater_spire_count > 0)
+			if (spire_completed > 0)
 			{
 				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Mutalisk));
 			}
