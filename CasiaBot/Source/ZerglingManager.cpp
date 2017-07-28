@@ -20,7 +20,7 @@ void ZerglingManager::execute(const SquadOrder & inputOrder)
 		BWAPI::Broodwar->printf("being rushed");
 		// find a sunken
 		BWAPI::Unit sunken = nullptr;
-		for (const auto & unit : BWAPI::Broodwar->getAllUnits())
+		for (const auto & unit : BWAPI::Broodwar->self()->getUnits())
 		{
 			if (unit->getType() == BWAPI::UnitTypes::Zerg_Creep_Colony
 				|| unit->getType() == BWAPI::UnitTypes::Zerg_Sunken_Colony)
@@ -50,7 +50,7 @@ void ZerglingManager::execute(const SquadOrder & inputOrder)
 		int minDis = 100000;
 		BWAPI::Unit bestSunken = sunken;
 		// find nearest sunken away from choke
-		for (const auto & unit : BWAPI::Broodwar->getAllUnits())
+		for (const auto & unit : BWAPI::Broodwar->self()->getUnits())
 		{
 			if (unit->getType() == BWAPI::UnitTypes::Zerg_Creep_Colony
 				|| unit->getType() == BWAPI::UnitTypes::Zerg_Sunken_Colony)

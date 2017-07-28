@@ -16,7 +16,6 @@ public:
       
 	BWAPI::TilePosition     desiredPosition;
 	BWAPI::TilePosition     finalPosition;
-	BWAPI::Position         position;
 	BWAPI::UnitType         type;
 	BWAPI::Unit             buildingUnit;
 	BWAPI::Unit             builderUnit;
@@ -28,9 +27,8 @@ public:
 	bool                    underConstruction;
 
 	Building() 
-		: desiredPosition   (0,0)
+		: desiredPosition   (BWAPI::TilePositions::None)
         , finalPosition     (BWAPI::TilePositions::None)
-        , position          (0,0)
         , type              (BWAPI::UnitTypes::Unknown)
         , buildingUnit      (nullptr)
         , builderUnit       (nullptr)
@@ -45,8 +43,7 @@ public:
 	// constructor we use most often
 	Building(BWAPI::UnitType t, BWAPI::TilePosition desired)
 		: desiredPosition   (desired)
-        , finalPosition     (0,0)
-        , position          (0,0)
+        , finalPosition     (BWAPI::TilePositions::None)
         , type              (t)
         , buildingUnit      (nullptr)
         , builderUnit       (nullptr)

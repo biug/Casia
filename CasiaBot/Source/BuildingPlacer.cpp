@@ -172,15 +172,22 @@ BWAPI::TilePosition BuildingPlacer::getBuildLocationNear(const Building & b, int
 		return BWAPI::TilePositions::None;
 	}
 
-	// desire toward
-	BWTA::Region *region = BWTA::getRegion(b.desiredPosition);
-	BWTA::BaseLocation *ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
-	if (ebase == nullptr)
-		ebase = (*BWTA::getStartLocations().begin());
-	BWAPI::Position toward = ebase->getPosition();
-	std::list<BWTA::Chokepoint *> cpp = BWTA::getShortestPath2(b.desiredPosition, ebase->getTilePosition());
-	if (!cpp.empty())
-		toward = BWTA::getRegion(cpp.front()->getSides().first) == region ? cpp.front()->getSides().first : cpp.front()->getSides().second;
+	BWAPI::Position toward = BWAPI::Position(b.desiredPosition);
+	BWTA::Region * region = BWTA::getRegion(b.desiredPosition);
+	BWTA::BaseLocation * ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+	if (region != nullptr && ebase != nullptr)
+	{
+		int minD = -1;
+		for (auto pChoke : region->getChokepoints())
+		{
+			int d = MapTools::Instance().getGroundDistance(pChoke->getCenter(), ebase->getPosition());
+			if (minD == -1 || d < minD)
+			{
+				minD = d;
+				toward = pChoke->getCenter();
+			}
+		}
+	}
 
 	// iterate through the list until we've found a suitable location
 	for (size_t i(0); i < closestToBuilding.size(); ++i)
@@ -190,11 +197,11 @@ BWAPI::TilePosition BuildingPlacer::getBuildLocationNear(const Building & b, int
 			double ms = t.getElapsedTimeInMilliSec();
 			//BWAPI::Broodwar->printf("Building Placer Took %d iterations, lasting %lf ms @ %lf iterations/ms, %lf setup ms", i, ms, (i / ms), ms1);
 
-			if (b.type == BWAPI::UnitTypes::Zerg_Creep_Colony)
+			if (b.type == BWAPI::UnitTypes::Zerg_Creep_Colony && ebase != nullptr)
 			{
-				int d1 = MapTools::Instance().getGroundDistance(BWAPI::Position(closestToBuilding[i]), toward),
-					d2 = MapTools::Instance().getGroundDistance(BWAPI::Position(b.desiredPosition), toward);
-				if (d1 + 9 > d2)
+				int d1 = MapTools::Instance().getGroundDistance(BWAPI::Position(closestToBuilding[i]), enemyBaseLocation->getPosition()),
+					d2 = MapTools::Instance().getGroundDistance(BWAPI::Position(b.desiredPosition), enemyBaseLocation->getPosition());
+				if (d2 != 0 && d1 > d2 && d1 > 10)
 					continue;
 			}
             return closestToBuilding[i];
