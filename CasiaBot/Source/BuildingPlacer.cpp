@@ -386,7 +386,11 @@ BWAPI::TilePosition BuildingPlacer::getRefineryPosition()
 			}
 		}
 	}
-    return closestGeyser;
+	if (InformationManager::Instance().checkBuildingLocation(closestGeyser))
+	{
+		return closestGeyser;
+	}
+	return BWAPI::TilePositions::None;
 }
 
 bool BuildingPlacer::isReserved(int x, int y) const

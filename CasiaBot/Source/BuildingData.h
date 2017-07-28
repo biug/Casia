@@ -25,7 +25,6 @@ public:
     bool                    isGasSteal;
 	bool					nexpHatchery;
 	bool                    buildCommandGiven;
-	bool                    underConstruction;
 
 	Building() 
 		: desiredPosition   (0,0)
@@ -37,7 +36,6 @@ public:
         , lastOrderFrame    (0)
         , status            (BuildingStatus::Unassigned)
         , buildCommandGiven (false)
-        , underConstruction (false) 
         , isGasSteal        (false)
 		, nexpHatchery		(false)
     {} 
@@ -53,7 +51,6 @@ public:
         , lastOrderFrame    (0)
         , status            (BuildingStatus::Unassigned)
         , buildCommandGiven (false)
-        , underConstruction (false) 
         , isGasSteal        (false)
 		, nexpHatchery		(false)
     {}

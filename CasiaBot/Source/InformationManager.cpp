@@ -228,6 +228,14 @@ BWTA::BaseLocation * InformationManager::getMainBaseLocation(BWAPI::Player playe
 	return _mainBaseLocations[player];
 }
 
+BWAPI::Position InformationManager::getLastPosition(BWAPI::Unit unit, BWAPI::Player player) const
+{
+	const auto & units = getUnitData(player).getUnits();
+	if (units.find(unit) == units.end()) return BWAPI::Positions::None;
+	const auto & uinfo = units.at(unit);
+	return uinfo.lastPosition;
+}
+
 void InformationManager::drawExtendedInterface()
 {
     if (!Config::Debug::DrawUnitHealthBars)
@@ -661,4 +669,19 @@ void InformationManager::PrintInfo(int x, int y) {
 bool InformationManager::isEncounterRush()
 {
 	return _isEncounterRush;
+}
+
+bool InformationManager::checkBuildingLocation(const BWAPI::TilePosition & tp)
+{
+	for (const auto & b : BWAPI::Broodwar->enemy()->getUnits())
+	{
+		if (b && b->exists() && b->getHitPoints() > 0 && b->getType().isBuilding())
+		{
+			auto lastP = getLastPosition(b, BWAPI::Broodwar->enemy());
+			if (!lastP.isValid()) continue;
+			auto lastTP = BWAPI::TilePosition(lastP);
+			if (lastTP.getDistance(tp) < 10) return false;
+		}
+	}
+	return true;
 }

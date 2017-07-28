@@ -26,7 +26,7 @@ void BuildingManager::update()
     assignWorkersToUnassignedBuildings();   // assign workers to the unassigned buildings and label them 'planned'    
     constructAssignedBuildings();           // for each planned building, if the worker isn't constructing, send the command    
     checkForStartedConstruction();          // check to see if any buildings have started construction and update data structures     
-    checkForCompletedBuildings();           // check to see if any buildings have completed and update data structures
+	checkForConstructingBuildings();           // check to see if any buildings have completed and update data structures
 }
 
 int	BuildingManager::numBeingBuilt(BWAPI::UnitType type)
@@ -79,9 +79,7 @@ void BuildingManager::assignWorkersToUnassignedBuildings()
         BWAPI::Unit workerToAssign = WorkerManager::Instance().getBuilder(b);
 
         if (workerToAssign)
-        {
-            //BWAPI::Broodwar->printf("VALID WORKER BEING ASSIGNED: %d", workerToAssign->getID());
-			
+        {			
             b.builderUnit = workerToAssign;
 
             b.finalPosition = testLocation;
@@ -142,7 +140,9 @@ void BuildingManager::constructAssignedBuildings()
 				}
 				else
 				{
-					std::string falg = "false";
+					std::string flag = "build " + b.type.getName() + " failed";
+					CAB_ASSERT(false, flag.c_str());
+					BWAPI::Broodwar->drawLineMap(b.builderUnit->getPosition(), BWAPI::Position(b.finalPosition), BWAPI::Colors::Orange);
 				}
             }
         }
@@ -177,7 +177,6 @@ void BuildingManager::checkForStartedConstruction()
                 _reservedGas      -= buildingStarted->getType().gasPrice();
 
                 // flag it as started and set the buildingUnit
-                b.underConstruction = true;
                 b.buildingUnit = buildingStarted;
 
                 // if we are zerg, the buildingUnit now becomes nullptr since it's destroyed
@@ -197,7 +196,7 @@ void BuildingManager::checkForStartedConstruction()
 }
 
 // STEP 5: CHECK FOR COMPLETED BUILDINGS
-void BuildingManager::checkForCompletedBuildings()
+void BuildingManager::checkForConstructingBuildings()
 {
     std::vector<Building> toRemove;
 
@@ -210,7 +209,7 @@ void BuildingManager::checkForCompletedBuildings()
         }
 
         // if the unit has completed
-        if (b.buildingUnit->isCompleted())
+        if (b.buildingUnit->isBeingConstructed())
         {
             // remove this unit from the under construction vector
             toRemove.push_back(b);
