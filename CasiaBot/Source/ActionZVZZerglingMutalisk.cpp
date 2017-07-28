@@ -51,7 +51,7 @@ void ActionZVZZerglingMutalisk::getBuildOrderList(CasiaBot::ProductionQueue & qu
 	// 当前帧数（累计）
 	int currentFrameCount = BWAPI::Broodwar->getFrameCount();
 	
-	if (currentFrameCount % 200 == 0)
+	if (currentFrameCount % 100 == 0)
 	{
 		int currentFrameMineralAmount = BWAPI::Broodwar->self()->minerals();
 		int currentFrameGasAmount = BWAPI::Broodwar->self()->gas();
@@ -86,7 +86,7 @@ void ActionZVZZerglingMutalisk::getBuildOrderList(CasiaBot::ProductionQueue & qu
 	}
 
 	bool isSpireExist = spire_count + spire_being_built + spire_in_queue > 0;
-	if (!isSpireExist && isHiveExist && currentFrameCount > 6000)	// 若飞龙塔不存在
+	if (!isSpireExist && isLairExist && currentFrameCount > 6000)	// 若飞龙塔不存在
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Spire));
 	}
@@ -108,7 +108,7 @@ void ActionZVZZerglingMutalisk::getBuildOrderList(CasiaBot::ProductionQueue & qu
 	}
 
 	// 判断是否需要增加母巢
-	if (currentFrameCount % 200 == 0 && base_count + base_in_queue + base_being_built <= 5 && currentFrameCount > 10) {
+	if (currentFrameCount % 100 == 0 && base_count + base_in_queue + base_being_built <= 5 && currentFrameCount > 10) {
 		if (base_count + base_in_queue + base_being_built <= 1)
 		{
 			if (zergling_count >= 4)
@@ -163,7 +163,7 @@ void ActionZVZZerglingMutalisk::getBuildOrderList(CasiaBot::ProductionQueue & qu
 	if (isSpawningPoolExist)
 	{
 		//首先根据敌方单位数量判断
-		need_zergling_count = std::max(need_zergling_count, (int)(enemy_zergling_count * 1.5) - zergling_count - zergling_in_queue);
+		need_zergling_count = std::max(need_zergling_count, (int)(enemy_zergling_count * 1.1) - zergling_count - zergling_in_queue);
 		if (need_zergling_count < 2) {
 			//保证数量
 			if (zergling_count + zergling_in_queue < 30)
