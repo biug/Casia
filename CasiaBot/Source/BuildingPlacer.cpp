@@ -199,8 +199,8 @@ BWAPI::TilePosition BuildingPlacer::getBuildLocationNear(const Building & b, int
 
 			if (b.type == BWAPI::UnitTypes::Zerg_Creep_Colony && ebase != nullptr)
 			{
-				int d1 = MapTools::Instance().getGroundDistance(BWAPI::Position(closestToBuilding[i]), enemyBaseLocation->getPosition()),
-					d2 = MapTools::Instance().getGroundDistance(BWAPI::Position(b.desiredPosition), enemyBaseLocation->getPosition());
+				int d1 = MapTools::Instance().getGroundDistance(BWAPI::Position(closestToBuilding[i]), ebase->getPosition()),
+					d2 = MapTools::Instance().getGroundDistance(BWAPI::Position(b.desiredPosition), ebase->getPosition());
 				if (d2 != 0 && d1 > d2 && d1 > 10)
 					continue;
 			}
