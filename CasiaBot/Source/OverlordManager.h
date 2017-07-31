@@ -8,8 +8,9 @@ namespace CasiaBot
 class OverlordManager : public MicroManager
 {
 protected:
-	int flag = 1;
-
+	bool detect[3];
+	bool initializeFlag = false;
+	BWTA::BaseLocation *startBase[3];//0 最近的，1最远的，2剩下那个
 public:
 
 	OverlordManager();
