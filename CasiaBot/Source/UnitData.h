@@ -64,6 +64,9 @@ class UnitData
     int										mineralsLost;
     int										gasLost;
 
+	void	updateSelfZerg(BWAPI::Unit unit);
+	void	updateEnemy(BWAPI::Unit unit);
+
 public:
 
     UnitData();

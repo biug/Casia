@@ -18,6 +18,92 @@ UnitData::UnitData()
 	numConstructingUnits	= std::vector<int>(maxTypeID + 1, 0);
 }
 
+void UnitData::updateSelfZerg(BWAPI::Unit unit)
+{
+	auto lastType = unitMap[unit].type;
+	if (lastType != unit->getType())
+	{
+		if (lastType != BWAPI::UnitTypes::Zerg_Egg
+			&& lastType != BWAPI::UnitTypes::Zerg_Lurker_Egg
+			&& lastType != BWAPI::UnitTypes::Zerg_Cocoon
+			&& !(lastType.isBuilding() && !unit->getType().isBuilding()))
+		{
+			--numConstructedUnits[lastType.getID()];
+		}
+		// morphing complete
+		else if (lastType == BWAPI::UnitTypes::Zerg_Egg)
+		{
+			--numConstructingUnits[unit->getType().getID()];
+			if (unit->getType() == BWAPI::UnitTypes::Zerg_Zergling
+				|| unit->getType() == BWAPI::UnitTypes::Zerg_Scourge)
+			{
+				--numConstructingUnits[unit->getType().getID()];
+			}
+
+			++numConstructedUnits[unit->getType().getID()];
+		}
+		// morphing lurker complete
+		else if (lastType == BWAPI::UnitTypes::Zerg_Lurker_Egg)
+		{
+			--numConstructingUnits[BWAPI::UnitTypes::Zerg_Lurker.getID()];
+			++numConstructedUnits[BWAPI::UnitTypes::Zerg_Lurker.getID()];
+		}
+		// morphing from mutalisk
+		else if (lastType == BWAPI::UnitTypes::Zerg_Cocoon)
+		{
+			--numConstructingUnits[unit->getType().getID()];
+			++numConstructedUnits[unit->getType().getID()];
+		}
+		// cancel building
+		else if (lastType.isBuilding())
+		{
+			--numConstructingUnits[lastType.getID()];
+			++numConstructedUnits[unit->getType().getID()];
+		}
+
+		// start morphing
+		if (unit->getType() == BWAPI::UnitTypes::Zerg_Egg)
+		{
+			++numConstructingUnits[unit->getBuildType().getID()];
+			if (unit->getBuildType() == BWAPI::UnitTypes::Zerg_Zergling
+				|| unit->getBuildType() == BWAPI::UnitTypes::Zerg_Scourge)
+			{
+				++numConstructingUnits[unit->getBuildType().getID()];
+			}
+		}
+		// start morphing lurker
+		else if (unit->getType() == BWAPI::UnitTypes::Zerg_Lurker_Egg)
+		{
+			++numConstructingUnits[BWAPI::UnitTypes::Zerg_Lurker.getID()];
+		}
+		else if (unit->getType() == BWAPI::UnitTypes::Zerg_Cocoon)
+		{
+			++numConstructingUnits[unit->getBuildType().getID()];
+		}
+		// constructing building
+		else if (unit->getType().isBuilding())
+		{
+			++numConstructingUnits[unit->getType().getID()];
+		}
+	}
+	// when building upgrade complete
+	if (unit->getType().isBuilding() && !unitMap[unit].completed && unit->isCompleted())
+	{
+		--numConstructingUnits[unit->getType().getID()];
+		++numConstructedUnits[unit->getType().getID()];
+	}
+}
+
+void UnitData::updateEnemy(BWAPI::Unit unit)
+{
+	auto lastType = unitMap[unit].type;
+	if (lastType != unit->getType())
+	{
+		--numConstructedUnits[lastType.getID()];
+		++numConstructedUnits[unit->getType().getID()];
+	}
+}
+
 void UnitData::updateUnit(BWAPI::Unit unit)
 {
 	if (!unit) { return; }
@@ -32,53 +118,13 @@ void UnitData::updateUnit(BWAPI::Unit unit)
 	// unit changed, maybe morph
 	else
 	{
-		auto lastType = unitMap[unit].type;
-		if (lastType != unit->getType())
+		if (unit->getPlayer() == BWAPI::Broodwar->self())
 		{
-			if (lastType != BWAPI::UnitTypes::Zerg_Egg && lastType != BWAPI::UnitTypes::Zerg_Lurker_Egg)
-			{
-				numConstructedUnits[lastType.getID()]--;
-			}
-			// morphing complete
-			if (lastType == BWAPI::UnitTypes::Zerg_Egg)
-			{
-				numConstructingUnits[unit->getType().getID()] -= 1;
-				numConstructedUnits[unit->getType().getID()] += 1;
-			}
-			// morphing lurker complete
-			if (lastType == BWAPI::UnitTypes::Zerg_Lurker_Egg)
-			{
-				numConstructingUnits[BWAPI::UnitTypes::Zerg_Lurker.getID()] -= 1;
-				numConstructedUnits[BWAPI::UnitTypes::Zerg_Lurker.getID()] += 1;
-			}
-
-			// start morphing
-			if (unit->getType() == BWAPI::UnitTypes::Zerg_Egg)
-			{
-				numConstructingUnits[unit->getBuildType().getID()] += 1;
-				if (unit->getType() == BWAPI::UnitTypes::Zerg_Zergling
-					|| unit->getType() == BWAPI::UnitTypes::Zerg_Scourge)
-				{
-					numConstructingUnits[unit->getBuildType().getID()] += 1;
-				}
-			}
-			// start morphing lurker
-			if (unit->getType() == BWAPI::UnitTypes::Zerg_Lurker_Egg)
-			{
-				numConstructingUnits[BWAPI::UnitTypes::Zerg_Lurker.getID()] += 1;
-			}
-
-			// constructing building
-			if (unit->getType().isBuilding())
-			{
-				numConstructingUnits[unit->getType().getID()] += 1;
-			}
+			updateSelfZerg(unit);
 		}
-		// when building complete
-		if (unit->getType().isBuilding() && !unitMap[unit].completed && unit->isCompleted())
+		else
 		{
-			numConstructingUnits[unit->getType().getID()] -= 1;
-			numConstructedUnits[unit->getType().getID()] += 1;
+			updateEnemy(unit);
 		}
 	}
     
@@ -94,7 +140,14 @@ void UnitData::updateUnit(BWAPI::Unit unit)
 
     if (firstSeen)
     {
-        numConstructedUnits[unit->getType().getID()]++;
+		if (unit->getType().isRefinery() && unit->getPlayer() == BWAPI::Broodwar->self())
+		{
+			++numConstructingUnits[unit->getType().getID()];
+		}
+		else
+		{
+			++numConstructedUnits[unit->getType().getID()];
+		}
     }
 }
 
@@ -104,8 +157,26 @@ void UnitData::removeUnit(BWAPI::Unit unit)
 
 	mineralsLost += unit->getType().mineralPrice();
 	gasLost += unit->getType().gasPrice();
-	numConstructedUnits[unit->getType().getID()]--;
-	numDeadUnits[unit->getType().getID()]++;
+	auto type = unit->getType();
+	if (unit->getPlayer() == BWAPI::Broodwar->self()
+		&& (type == BWAPI::UnitTypes::Zerg_Egg
+		|| type == BWAPI::UnitTypes::Zerg_Lurker_Egg
+		|| type == BWAPI::UnitTypes::Zerg_Cocoon
+		|| (type.isBuilding() && unit->isBeingConstructed())))
+	{
+		type = unit->getBuildType();
+		--numConstructingUnits[type.getID()];
+		if (type == BWAPI::UnitTypes::Zerg_Zergling
+			|| type == BWAPI::UnitTypes::Zerg_Scourge)
+		{
+			--numConstructingUnits[type.getID()];
+		}
+	}
+	else
+	{
+		--numConstructedUnits[type.getID()];
+		++numDeadUnits[type.getID()];
+	}
 		
 	unitMap.erase(unit);
 }
@@ -160,12 +231,21 @@ int UnitData::getMineralsLost() const
 
 int UnitData::getNumUnits(BWAPI::UnitType t) const 
 { 
-	return numConstructedUnits[t.getID()] + numConstructingUnits[t.getID()];
+	return getNumConstructedUnits(t) + getNumConstructingUnits(t);
 }
 
 int UnitData::getNumConstructedUnits(BWAPI::UnitType t) const
 {
-	return numConstructedUnits[t.getID()];
+	if (t == BWAPI::UnitTypes::Terran_Siege_Tank_Tank_Mode
+		|| t == BWAPI::UnitTypes::Terran_Siege_Tank_Siege_Mode)
+	{
+		return numConstructedUnits[BWAPI::UnitTypes::Terran_Siege_Tank_Tank_Mode.getID()]
+			+ numConstructedUnits[BWAPI::UnitTypes::Terran_Siege_Tank_Siege_Mode.getID()];
+	}
+	else
+	{
+		return numConstructedUnits[t.getID()];
+	}
 }
 
 int UnitData::getNumConstructingUnits(BWAPI::UnitType t) const

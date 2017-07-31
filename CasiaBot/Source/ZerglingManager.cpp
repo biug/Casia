@@ -17,7 +17,7 @@ void ZerglingManager::execute(const SquadOrder & inputOrder)
 	// if being rush, zergling guard
 	else
 	{
-		BWAPI::Broodwar->printf("being rushed");
+		//BWAPI::Broodwar->printf("being rushed");
 		// find a sunken
 		BWAPI::Unit sunken = nullptr;
 		for (const auto & unit : BWAPI::Broodwar->self()->getUnits())

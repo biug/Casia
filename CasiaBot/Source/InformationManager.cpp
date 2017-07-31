@@ -640,26 +640,66 @@ bool InformationManager::enemyHasCloakedUnits()
 	return false;
 }
 
+std::string InformationManager::formatSelfInfo(BWAPI::UnitType type)
+{
+	int constructed = getNumConstructedUnits(type, _self);
+	int constructing = getNumConstructingUnits(type, _self);
+	int total = getNumUnits(type, _self);
+	if (constructed != 0 || constructing != 0 || total != 0) {
+		int needSpace = 20 - type.getName().length();
+		if (needSpace <= 0) needSpace = 1;
+		std::string info = "\x03" + type.getName() + std::string(needSpace, ' ');
+		if (constructed >= 0 && constructed < 10) info += " ";
+		info += std::to_string(constructed);
+		info += " ";
+		if (constructing >= 0 && constructing < 10) info += " ";
+		info += std::to_string(constructing);
+		info += " ";
+		if (total >= 0 && total < 10) info += " ";
+		info += std::to_string(total);
+		return info;
+	}
+	else
+	{
+		return "";
+	}
+}
+
+std::string InformationManager::formatEnemyInfo(BWAPI::UnitType type)
+{
+	int total = getNumUnits(type, _enemy);
+	if (total != 0) {
+		int needSpace = 20 - type.getName().length();
+		if (needSpace <= 0) needSpace = 1;
+		std::string info = "\x04" + type.getName() + std::string(needSpace, ' ');
+		if (total >= 0 && total < 10) info += " ";
+		info += std::to_string(total);
+		return info;
+	}
+	else
+	{
+		return "";
+	}
+}
+
 void InformationManager::PrintInfo(int x, int y) {
-	int UnitNum;
 	int i = 0;
-	BWAPI::UnitType t;
 	BWAPI::Broodwar->drawTextScreen(x, y - 10, "\x3 self_count");
-	BWAPI::Broodwar->drawTextScreen(x + 130, y - 10, "\x4 enemy_count");
+	BWAPI::Broodwar->drawTextScreen(x + 180, y - 10, "\x4 enemy_count");
 	for (auto & type : BWAPI::UnitTypes::allUnitTypes()) {
-		UnitNum = getNumUnits(type, _self);
-		if (UnitNum) {
-			std::string info = "\x03" + type.getName() + " " + std::to_string(UnitNum);
+		std::string info = formatSelfInfo(type);
+		if (!info.empty())
+		{
 			BWAPI::Broodwar->drawTextScreen(x, y + i, info.c_str());
 			i = i + 10;
 		}
 	}
 	i = 0;
 	for (auto & type : BWAPI::UnitTypes::allUnitTypes()) {
-		UnitNum = getNumUnits(type, _enemy);
-		if (UnitNum) {
-			std::string info = "\x04" + type.getName() + " " + std::to_string(UnitNum);
-			BWAPI::Broodwar->drawTextScreen(x + 130, y + i, info.c_str());
+		std::string info = formatEnemyInfo(type);
+		if (!info.empty())
+		{
+			BWAPI::Broodwar->drawTextScreen(x + 180, y + i, info.c_str());
 			i = i + 10;
 		}
 	}

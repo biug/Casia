@@ -40,6 +40,9 @@ class InformationManager
 	bool					beingZerglingRushed();
 	bool					beingZealotRushed();
 
+	std::string				formatSelfInfo(BWAPI::UnitType type);
+	std::string				formatEnemyInfo(BWAPI::UnitType type);
+
 public:
 
     // yay for singletons!
