@@ -242,9 +242,6 @@ void CombatCommander::updateScoutDefenseSquad()
             {
                 WorkerManager::Instance().finishedWithWorker(unit);
             }
-			else{
-
-			}
         }
 
         scoutDefenseSquad.clear();
