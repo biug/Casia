@@ -187,7 +187,7 @@ void CombatCommander::updateScoutDefenseSquad()
     bool assignScoutDefender = enemyUnitsInRegion.size() == 1 && (*enemyUnitsInRegion.begin())->getType().isWorker();
 
     // if our current squad is empty and we should assign a worker, do it
-    if (scoutDefenseSquad.isEmpty() && assignScoutDefender && BWAPI::Broodwar->getFrameCount() < 3600)
+    if (assignScoutDefender && scoutDefenseSquad.isEmpty() && BWAPI::Broodwar->getFrameCount() < 3600)
     {
         // the enemy worker that is attacking us
         BWAPI::Unit enemyWorker = *enemyUnitsInRegion.begin();
@@ -205,6 +205,33 @@ void CombatCommander::updateScoutDefenseSquad()
             }
 		}
     }
+	else if (scoutDefenseSquad.isEmpty() && assignScoutDefender &&  BWAPI::Broodwar->getFrameCount() >= 3600){
+		BWAPI::Unit enemyWorker = *enemyUnitsInRegion.begin();
+		if (!_combatUnits.empty()){
+			for (auto & unit : _combatUnits)
+			{
+				if ((unit->getType() == BWAPI::UnitTypes::Zerg_Zergling) && _squadData.canAssignUnitToSquad(unit, scoutDefenseSquad))
+				{
+					unit->attack(enemyWorker);
+					_squadData.assignUnitToSquad(unit, scoutDefenseSquad);
+					break;
+				}
+			}
+		}
+		else{
+			// get our worker unit that is mining that is closest to it
+			BWAPI::Unit workerDefender = findClosestWorkerToTarget(_combatUnits, enemyWorker);
+			if (enemyWorker && workerDefender)
+			{
+				// grab it from the worker manager and put it in the squad
+				if (_squadData.canAssignUnitToSquad(workerDefender, scoutDefenseSquad))
+				{
+					WorkerManager::Instance().setWorkerCombating(workerDefender);
+					_squadData.assignUnitToSquad(workerDefender, scoutDefenseSquad);
+				}
+			}
+		}
+	}
     // if our squad is not empty and we shouldn't have a worker chasing then take him out of the squad
     else if (!scoutDefenseSquad.isEmpty() && !assignScoutDefender)
     {
@@ -215,6 +242,9 @@ void CombatCommander::updateScoutDefenseSquad()
             {
                 WorkerManager::Instance().finishedWithWorker(unit);
             }
+			else{
+
+			}
         }
 
         scoutDefenseSquad.clear();
