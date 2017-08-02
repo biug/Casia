@@ -24,14 +24,34 @@ MapPath::MapPath()
 	_paths.clear();
 }
 
-void MapPath::calcPath(TileRect rect)
+void MapPath::calcPath(PosRect rect)
 {
+	BWEM::Map::Instance().GetPath(BWAPI::Position(rect.first), BWAPI::Position(rect.second));
 	_mutex.lock();
 	if (_paths.find(rect) == _paths.end())
 	{
 		//clock_t start = clock();
 		_paths[rect] = TilePath(BWAPI::Broodwar->getFrameCount());
-		_paths[rect]._positions = BWTA::getShortestPath(rect.first, rect.second);
+		auto & chokes = BWEM::Map::Instance().GetPath(rect.first, rect.second);
+		auto & positions = _paths[rect]._positions;
+		if (!chokes.empty())
+		{
+			auto path = BWTA::getShortestPath(BWAPI::TilePosition(rect.first), BWAPI::TilePosition(chokes[0]->Center()));
+			for (const auto & node : path) { positions.emplace_back(node); }
+			int i = 0;
+			while (i < chokes.size() - 1)
+			{
+				path = BWTA::getShortestPath(BWAPI::TilePosition(chokes[i]->Center()), BWAPI::TilePosition(chokes[i + 1]->Center()));
+				for (const auto & node : path) { positions.emplace_back(node); }
+				++i;
+			}
+			path = BWTA::getShortestPath(BWAPI::TilePosition(chokes[i]->Center()), BWAPI::TilePosition(rect.second));
+			for (const auto & node : path) { positions.emplace_back(node); }
+		}
+		else
+		{
+			positions = BWTA::getShortestPath(BWAPI::TilePosition(rect.first), BWAPI::TilePosition(rect.second));
+		}
 		//clock_t end = clock();
 		//std::string info = "calculate use " + std::to_string(end - start) + "ms";
 		//BWAPI::Broodwar->printf(info.c_str());
@@ -65,12 +85,12 @@ void MapPath::update()
 	}
 }
 
-void MapPath::insert(TileRect rect)
+void MapPath::insert(PosRect rect)
 {
 	ThreadManager::Instance().enqueue(std::mem_fn(&MapPath::calcPath), this, rect);
 }
 
-std::vector<BWAPI::TilePosition> MapPath::getPath(TileRect rect)
+std::vector<BWAPI::TilePosition> MapPath::getPath(PosRect rect)
 {
 	std::vector<BWAPI::TilePosition> result;
 	result.clear();

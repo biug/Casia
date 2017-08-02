@@ -60,6 +60,24 @@ void CasiaBotModule::onStart()
             StrategyManager::Instance().setLearnedOpening();
         }
 	}
+
+	try
+	{
+		BWEM::Map & theMap = BWEM::Map::Instance();
+		theMap.Initialize();
+		theMap.Initialize();
+		theMap.EnableAutomaticPathAnalysis();
+		bool startingLocationsOK = theMap.FindBasesForStartingLocations();
+		assert(startingLocationsOK);
+
+		BWEM::utils::MapPrinter::Initialize(&theMap);
+		BWEM::utils::printMap(theMap);      // will print the map into the file <StarCraftFolder>bwapi-data/map.bmp
+		BWEM::utils::pathExample(theMap);   // add to the printed map a path between two starting locations
+	}
+	catch (const std::exception & e)
+	{
+		BWAPI::Broodwar->printf("Exception %s", e.what());
+	}
 }
 
 void CasiaBotModule::onEnd(bool isWinner) 

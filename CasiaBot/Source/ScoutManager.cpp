@@ -200,8 +200,8 @@ void ScoutManager::followPerimeter()
 	
 	if (BWAPI::Broodwar->getFrameCount() % 15 == 0)
 	{
-		BWAPI::TilePosition t1 = _workerScout->getTilePosition();
-		BWAPI::TilePosition t2(fleeTo);
+		BWAPI::Position t1 = _workerScout->getPosition();
+		BWAPI::Position t2 = fleeTo;
 		if (t1 != t2)
 		{
 			auto path = MapPath::Instance().getPath({ t1, t2 });
