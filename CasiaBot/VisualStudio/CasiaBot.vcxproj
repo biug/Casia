@@ -144,6 +144,7 @@
     <ClCompile Include="..\Source\Logger.cpp" />
     <ClCompile Include="..\Source\LurkerManager.cpp" />
     <ClCompile Include="..\Source\MapGrid.cpp" />
+    <ClCompile Include="..\Source\MapPath.cpp" />
     <ClCompile Include="..\Source\MapTools.cpp" />
     <ClCompile Include="..\Source\MedicManager.cpp" />
     <ClCompile Include="..\source\MeleeManager.cpp" />
@@ -163,6 +164,7 @@
     <ClCompile Include="..\Source\SquadData.cpp" />
     <ClCompile Include="..\Source\StrategyManager.cpp" />
     <ClCompile Include="..\Source\TankManager.cpp" />
+    <ClCompile Include="..\Source\ThreadManager.cpp" />
     <ClCompile Include="..\source\TimerManager.cpp" />
     <ClCompile Include="..\source\TransportManager.cpp" />
     <ClCompile Include="..\Source\CABAssert.cpp" />
@@ -203,6 +205,7 @@
     <ClInclude Include="..\Source\Logger.h" />
     <ClInclude Include="..\Source\LurkerManager.h" />
     <ClInclude Include="..\Source\MapGrid.h" />
+    <ClInclude Include="..\Source\MapPath.h" />
     <ClInclude Include="..\Source\MapTools.h" />
     <ClInclude Include="..\Source\MedicManager.h" />
     <ClInclude Include="..\source\MeleeManager.h" />
@@ -223,6 +226,7 @@
     <ClInclude Include="..\Source\SquadOrder.h" />
     <ClInclude Include="..\Source\StrategyManager.h" />
     <ClInclude Include="..\Source\TankManager.h" />
+    <ClInclude Include="..\Source\ThreadManager.h" />
     <ClInclude Include="..\source\TimerManager.h" />
     <ClInclude Include="..\source\TransportManager.h" />
     <ClInclude Include="..\Source\CABAssert.h" />

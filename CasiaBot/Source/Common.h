@@ -24,6 +24,7 @@
 
 #include "Config.h"
 #include "CABAssert.h"
+#include "ThreadManager.h"
 
 BWAPI::AIModule * __NewAIModule();
 

@@ -207,6 +207,12 @@
     <ClCompile Include="..\Source\ActionZVPZerglingRush.cpp">
       <Filter>game\action</Filter>
     </ClCompile>
+    <ClCompile Include="..\Source\MapPath.cpp">
+      <Filter>game\util\map</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\ThreadManager.cpp">
+      <Filter>game\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\CombatCommander.h">
@@ -382,6 +388,12 @@
     </ClInclude>
     <ClInclude Include="..\Source\ActionZVPZerglingRush.h">
       <Filter>game\action</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\MapPath.h">
+      <Filter>game\util\map</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ThreadManager.h">
+      <Filter>game\util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
