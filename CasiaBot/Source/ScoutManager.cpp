@@ -1,5 +1,6 @@
 #include "ScoutManager.h"
 #include "ProductionManager.h"
+#include "MapPath.h"
 
 using namespace CasiaBot;
 
@@ -177,7 +178,7 @@ void ScoutManager::moveScouts()
 			if (!BWAPI::Broodwar->isExplored(startLocation->getTilePosition())) 
 			{
 				// assign a zergling to go scout it
-				Micro::SmartMove(_workerScout, BWAPI::Position(startLocation->getTilePosition()));			
+				Micro::SmartMove(_workerScout, BWAPI::Position(startLocation->getTilePosition()));
 				return;
 			}
 		}
@@ -196,6 +197,20 @@ void ScoutManager::followPerimeter()
     }
 
 	Micro::SmartMove(_workerScout, fleeTo);
+	
+	if (BWAPI::Broodwar->getFrameCount() % 15 == 0)
+	{
+		BWAPI::Position t1 = _workerScout->getPosition();
+		BWAPI::Position t2 = fleeTo;
+		if (t1 != t2)
+		{
+			auto path = MapPath::Instance().getPath({ t1, t2 });
+			if (path.empty())
+			{
+				MapPath::Instance().insert({ t1,t2 });
+			}
+		}
+	}
 }
 
 void ScoutManager::gasSteal()

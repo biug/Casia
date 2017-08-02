@@ -129,6 +129,23 @@
     <ClCompile Include="..\source\BuildingPlacer.cpp" />
     <ClCompile Include="..\source\BuildOrder.cpp" />
     <ClCompile Include="..\source\BuildOrderQueue.cpp" />
+    <ClCompile Include="..\Source\bwem\EasyBMP_1.06\EasyBMP.cpp" />
+    <ClCompile Include="..\Source\bwem\src\area.cpp" />
+    <ClCompile Include="..\Source\bwem\src\base.cpp" />
+    <ClCompile Include="..\Source\bwem\src\bwapiExt.cpp" />
+    <ClCompile Include="..\Source\bwem\src\bwem.cpp" />
+    <ClCompile Include="..\Source\bwem\src\cp.cpp" />
+    <ClCompile Include="..\Source\bwem\src\examples.cpp" />
+    <ClCompile Include="..\Source\bwem\src\graph.cpp" />
+    <ClCompile Include="..\Source\bwem\src\gridMap.cpp" />
+    <ClCompile Include="..\Source\bwem\src\map.cpp" />
+    <ClCompile Include="..\Source\bwem\src\mapDrawer.cpp" />
+    <ClCompile Include="..\Source\bwem\src\mapImpl.cpp" />
+    <ClCompile Include="..\Source\bwem\src\mapPrinter.cpp" />
+    <ClCompile Include="..\Source\bwem\src\neutral.cpp" />
+    <ClCompile Include="..\Source\bwem\src\tiles.cpp" />
+    <ClCompile Include="..\Source\bwem\src\utils.cpp" />
+    <ClCompile Include="..\Source\bwem\src\winutils.cpp" />
     <ClCompile Include="..\Source\CasiaBotModule.cpp" />
     <ClCompile Include="..\Source\CombatSimulation.cpp" />
     <ClCompile Include="..\Source\CombatCommander.cpp" />
@@ -144,6 +161,7 @@
     <ClCompile Include="..\Source\Logger.cpp" />
     <ClCompile Include="..\Source\LurkerManager.cpp" />
     <ClCompile Include="..\Source\MapGrid.cpp" />
+    <ClCompile Include="..\Source\MapPath.cpp" />
     <ClCompile Include="..\Source\MapTools.cpp" />
     <ClCompile Include="..\Source\MedicManager.cpp" />
     <ClCompile Include="..\source\MeleeManager.cpp" />
@@ -163,6 +181,7 @@
     <ClCompile Include="..\Source\SquadData.cpp" />
     <ClCompile Include="..\Source\StrategyManager.cpp" />
     <ClCompile Include="..\Source\TankManager.cpp" />
+    <ClCompile Include="..\Source\ThreadManager.cpp" />
     <ClCompile Include="..\source\TimerManager.cpp" />
     <ClCompile Include="..\source\TransportManager.cpp" />
     <ClCompile Include="..\Source\CABAssert.cpp" />
@@ -187,6 +206,27 @@
     <ClInclude Include="..\source\BuildingPlacer.h" />
     <ClInclude Include="..\source\BuildOrder.h" />
     <ClInclude Include="..\source\BuildOrderQueue.h" />
+    <ClInclude Include="..\Source\bwem\EasyBMP_1.06\EasyBMP.h" />
+    <ClInclude Include="..\Source\bwem\EasyBMP_1.06\EasyBMP_BMP.h" />
+    <ClInclude Include="..\Source\bwem\EasyBMP_1.06\EasyBMP_DataStructures.h" />
+    <ClInclude Include="..\Source\bwem\EasyBMP_1.06\EasyBMP_VariousBMPutilities.h" />
+    <ClInclude Include="..\Source\bwem\src\area.h" />
+    <ClInclude Include="..\Source\bwem\src\base.h" />
+    <ClInclude Include="..\Source\bwem\src\bwapiExt.h" />
+    <ClInclude Include="..\Source\bwem\src\bwem.h" />
+    <ClInclude Include="..\Source\bwem\src\cp.h" />
+    <ClInclude Include="..\Source\bwem\src\defs.h" />
+    <ClInclude Include="..\Source\bwem\src\examples.h" />
+    <ClInclude Include="..\Source\bwem\src\graph.h" />
+    <ClInclude Include="..\Source\bwem\src\gridMap.h" />
+    <ClInclude Include="..\Source\bwem\src\map.h" />
+    <ClInclude Include="..\Source\bwem\src\mapDrawer.h" />
+    <ClInclude Include="..\Source\bwem\src\mapImpl.h" />
+    <ClInclude Include="..\Source\bwem\src\mapPrinter.h" />
+    <ClInclude Include="..\Source\bwem\src\neutral.h" />
+    <ClInclude Include="..\Source\bwem\src\tiles.h" />
+    <ClInclude Include="..\Source\bwem\src\utils.h" />
+    <ClInclude Include="..\Source\bwem\src\winutils.h" />
     <ClInclude Include="..\Source\CasiaBotModule.h" />
     <ClInclude Include="..\Source\CombatSimulation.h" />
     <ClInclude Include="..\Source\CombatCommander.h" />
@@ -203,6 +243,7 @@
     <ClInclude Include="..\Source\Logger.h" />
     <ClInclude Include="..\Source\LurkerManager.h" />
     <ClInclude Include="..\Source\MapGrid.h" />
+    <ClInclude Include="..\Source\MapPath.h" />
     <ClInclude Include="..\Source\MapTools.h" />
     <ClInclude Include="..\Source\MedicManager.h" />
     <ClInclude Include="..\source\MeleeManager.h" />
@@ -223,6 +264,7 @@
     <ClInclude Include="..\Source\SquadOrder.h" />
     <ClInclude Include="..\Source\StrategyManager.h" />
     <ClInclude Include="..\Source\TankManager.h" />
+    <ClInclude Include="..\Source\ThreadManager.h" />
     <ClInclude Include="..\source\TimerManager.h" />
     <ClInclude Include="..\source\TransportManager.h" />
     <ClInclude Include="..\Source\CABAssert.h" />
@@ -231,6 +273,12 @@
     <ClInclude Include="..\source\WorkerData.h" />
     <ClInclude Include="..\source\WorkerManager.h" />
     <ClInclude Include="..\Source\ZerglingManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Source\bwem\src\area.h.bak" />
+    <None Include="..\Source\bwem\src\cp.h.bak" />
+    <None Include="..\Source\bwem\src\tiles.h.bak" />
+    <None Include="..\Source\bwem\src\utils.h.bak" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
