@@ -10,6 +10,7 @@ class HydraliskManager : public MicroManager
 public:
 
 	HydraliskManager();
+	void execute(const SquadOrder & inputOrder) override;
 	void executeMicro(const BWAPI::Unitset & targets);
 
 	BWAPI::Unit chooseTarget(BWAPI::Unit rangedUnit, const BWAPI::Unitset & targets, std::map<BWAPI::Unit, int> & numTargeting);
