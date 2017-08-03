@@ -104,6 +104,11 @@ void UnitData::updateEnemy(BWAPI::Unit unit)
 	}
 }
 
+void UnitData::clearUnits()
+{
+	units.clear();
+}
+
 void UnitData::updateUnit(BWAPI::Unit unit)
 {
 	if (!unit) { return; }
@@ -126,6 +131,10 @@ void UnitData::updateUnit(BWAPI::Unit unit)
 		{
 			updateEnemy(unit);
 		}
+	}
+	if (unit->getPlayer() == BWAPI::Broodwar->self())
+	{
+		units[unit->getType().getName()].insert(unit);
 	}
     
 	UnitInfo & ui   = unitMap[unit];
@@ -261,4 +270,9 @@ int UnitData::getNumDeadUnits(BWAPI::UnitType t) const
 const std::map<BWAPI::Unit,UnitInfo> & UnitData::getUnits() const 
 { 
     return unitMap; 
+}
+
+const std::set<BWAPI::Unit> & UnitData::getUnitset(const std::string & name)
+{
+	return units[name];
 }

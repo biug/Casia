@@ -85,5 +85,6 @@ public:
 	bool					checkBuildingLocation(const BWAPI::TilePosition & tp);
 
     const UnitData &        getUnitData(BWAPI::Player player) const;
+	const std::set<BWAPI::Unit> & getUnitset(const std::string & name);
 };
 }
