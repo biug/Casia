@@ -21,7 +21,7 @@ namespace CasiaBot
 
 	private:
 		double enemyDragoonOverZealotRate = 0;
-		const int droneLimit = 16;
+		int droneLimit = 16;
 		const int zerglingLimit = 20;
 		const int mutaliskLimit = 15;
 		const int creepColonyLimit = 7;

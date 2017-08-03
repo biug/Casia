@@ -196,14 +196,6 @@ BWAPI::TilePosition BuildingPlacer::getBuildLocationNear(const Building & b, int
 		{
 			double ms = t.getElapsedTimeInMilliSec();
 			//BWAPI::Broodwar->printf("Building Placer Took %d iterations, lasting %lf ms @ %lf iterations/ms, %lf setup ms", i, ms, (i / ms), ms1);
-
-			if (b.type == BWAPI::UnitTypes::Zerg_Creep_Colony && ebase != nullptr)
-			{
-				int d1 = MapTools::Instance().getGroundDistance(BWAPI::Position(closestToBuilding[i]), ebase->getPosition()),
-					d2 = MapTools::Instance().getGroundDistance(BWAPI::Position(b.desiredPosition), ebase->getPosition());
-				if (d2 != 0 && d1 > d2 && d1 > 10)
-					continue;
-			}
             return closestToBuilding[i];
         }
     }

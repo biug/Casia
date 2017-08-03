@@ -3,6 +3,7 @@
 #include "Common.h"
 #include <vector>
 #include "BWAPI.h"
+#include "MapPath.h"
 #include "DistanceMap.hpp"
 
 namespace CasiaBot
@@ -44,6 +45,7 @@ public:
     BWAPI::Position         getEnemyBaseMoveTo(BWAPI::Position p);
     BWAPI::TilePosition     getNextExpansion();
     BWAPI::TilePosition     getNextExpansion(BWAPI::Player player);
+	BWAPI::TilePosition		getNextCreep();
     void                    drawHomeDistanceMap();
 
     const std::vector<BWAPI::TilePosition> & getClosestTilesTo(BWAPI::Position pos);

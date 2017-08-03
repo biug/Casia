@@ -19,95 +19,45 @@ void ZerglingManager::execute(const SquadOrder & inputOrder)
 	{
 		//BWAPI::Broodwar->printf("being rushed");
 		// find a sunken
-		BWAPI::Unit sunken = nullptr;
-		for (const auto & unit : BWAPI::Broodwar->self()->getUnits())
-		{
-			if (unit->getType() == BWAPI::UnitTypes::Zerg_Creep_Colony
-				|| unit->getType() == BWAPI::UnitTypes::Zerg_Sunken_Colony)
-			{
-				sunken = unit;
-				break;
-			}
-		}
-		if (sunken == nullptr) return;
+		const auto & sunkens = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Sunken_Colony);
+		if (sunkens.empty()) return;
+		auto center = sunkens.getPosition();
 		// find sunken region
-		BWTA::Region * region = BWTA::getRegion(sunken->getPosition());
 		BWTA::BaseLocation * ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
-		if (region == nullptr || ebase == nullptr) return;
-		int minD = -1;
-		// find best choke for sunken
-		BWAPI::Position bestChokeP(0, 0);
-		for (auto pChoke : region->getChokepoints())
+		if (!center.isValid() || ebase == nullptr) return;
+		auto path = MapPath::Instance().getPath({ BWAPI::Position(center), ebase->getPosition() });
+		if (path.empty())
 		{
-			if (pChoke == nullptr) continue;
-			int d = MapTools::Instance().getGroundDistance(pChoke->getCenter(), ebase->getPosition());
-			if (minD == -1 || d < minD)
-			{
-				minD = d;
-				bestChokeP = pChoke->getCenter();
-			}
+			MapPath::Instance().insert({ BWAPI::Position(center), ebase->getPosition() });
+			return;
 		}
-		int minDis = 100000;
-		BWAPI::Unit bestSunken = sunken;
-		// find nearest sunken away from choke
-		for (const auto & unit : BWAPI::Broodwar->self()->getUnits())
+		for (int i = 2; i < path.size(); ++i)
 		{
-			if (unit->getType() == BWAPI::UnitTypes::Zerg_Creep_Colony
-				|| unit->getType() == BWAPI::UnitTypes::Zerg_Sunken_Colony)
+			int dist = std::pow(path[i].x - center.x, 2) + std::pow(path[i].y - center.x, 2);
+			if (dist >= 9)
 			{
-				if (unit->getDistance(bestChokeP) < minDis)
+				auto targetP = BWAPI::Position(path[i]);
+				BWAPI::Broodwar->drawLineMap(BWAPI::Position(center), targetP, BWAPI::Colors::Green);
+				BWAPI::Broodwar->drawCircleMap(targetP, 4, BWAPI::Colors::Red, true);
+
+				BWAPI::Unitset nearbyEnemies;
+				const BWAPI::Unitset & meleeUnits = getUnits();
+				MapGrid::Instance().GetUnits(nearbyEnemies, targetP, 128, false, true);
+				if (nearbyEnemies.empty())
 				{
-					minDis = unit->getDistance(bestChokeP);
-					bestSunken = unit;
+					for (auto & meleeUnit : meleeUnits)
+					{
+						Micro::SmartMove(meleeUnit, targetP);
+					}
 				}
-			}
-		}
-		if (bestChokeP != BWAPI::Position(0, 0))
-		{
-			float radius = 64.0;
-			const BWAPI::Unitset & meleeUnits = getUnits();
-			BWAPI::Position bestSunkenP = bestSunken->getPosition();
-			int disX = bestChokeP.x - bestSunkenP.x;
-			int disY = bestChokeP.y - bestSunkenP.y;
-			// calculate regroup target
-			BWAPI::Position targetP(bestSunkenP);
-			if (disX == 0 && disY == 0)
-			{
-				targetP += BWAPI::Position(radius, radius);
-			}
-			if (disX == 0)
-			{
-				targetP += BWAPI::Position(0, disY > 0 ? radius : -radius);
-			}
-			else if (disY == 0)
-			{
-				targetP += BWAPI::Position(disX > 0 ? radius : -radius, 0);
-			}
-			else
-			{
-				float k = fabs((float)disY / (float)disX);
-				int offsetX = (int)(1.0 / sqrtf(k * k + 1) * radius);
-				int offsetY = (int)(k / sqrtf(k * k + 1) * radius);
-				targetP += BWAPI::Position(disX > 0 ? offsetX : -offsetX, disY > 0 ? offsetY : -offsetY);
-			}
-			BWAPI::Broodwar->drawLineMap(bestChokeP, bestSunkenP, BWAPI::Colors::Green);
-			BWAPI::Broodwar->drawCircleMap(targetP, 4, BWAPI::Colors::Red, true);
-			// get nearbyEnemies
-			BWAPI::Unitset nearbyEnemies;
-			MapGrid::Instance().GetUnits(nearbyEnemies, targetP, 160, false, true);
-			if (nearbyEnemies.empty())
-			{
-				for (auto & meleeUnit : meleeUnits)
+				else
 				{
-					Micro::SmartMove(meleeUnit, targetP);
+					for (auto & meleeUnit : meleeUnits)
+					{
+						Micro::SmartAttackMove(meleeUnit, nearbyEnemies.getPosition());
+					}
 				}
-			}
-			else
-			{
-				for (auto & meleeUnit : meleeUnits)
-				{
-					Micro::SmartAttackMove(meleeUnit, nearbyEnemies.getPosition());
-				}
+				return;
 			}
 		}
 	}
