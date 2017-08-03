@@ -65,7 +65,6 @@ void CasiaBotModule::onStart()
 	{
 		BWEM::Map & theMap = BWEM::Map::Instance();
 		theMap.Initialize();
-		theMap.Initialize();
 		theMap.EnableAutomaticPathAnalysis();
 		bool startingLocationsOK = theMap.FindBasesForStartingLocations();
 		assert(startingLocationsOK);

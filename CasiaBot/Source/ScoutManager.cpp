@@ -197,20 +197,6 @@ void ScoutManager::followPerimeter()
     }
 
 	Micro::SmartMove(_workerScout, fleeTo);
-	
-	if (BWAPI::Broodwar->getFrameCount() % 15 == 0)
-	{
-		BWAPI::Position t1 = _workerScout->getPosition();
-		BWAPI::Position t2 = fleeTo;
-		if (t1 != t2)
-		{
-			auto path = MapPath::Instance().getPath({ t1, t2 });
-			if (path.empty())
-			{
-				MapPath::Instance().insert({ t1,t2 });
-			}
-		}
-	}
 }
 
 void ScoutManager::gasSteal()

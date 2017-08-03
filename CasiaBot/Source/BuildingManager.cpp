@@ -380,18 +380,24 @@ BWAPI::TilePosition BuildingManager::getBuildingLocation(const Building & b)
         }
     }
 
-    if (b.type.isRefinery())
+    else if (b.type.isRefinery())
     {
         return BuildingPlacer::Instance().getRefineryPosition();
     }
 
-    if (b.type.isResourceDepot() && !b.nexpHatchery)
+    else if (b.type.isResourceDepot() && !b.nexpHatchery)
     {
         // get the location 
         BWAPI::TilePosition tile = MapTools::Instance().getNextExpansion();
 
         return tile;
     }
+
+	else if (b.type == BWAPI::UnitTypes::Zerg_Creep_Colony)
+	{
+		BWAPI::TilePosition tile = MapTools::Instance().getNextCreep();
+		return tile;
+	}
 
     // set the building padding specifically
     int distance = Config::Macro::BuildingSpacing;

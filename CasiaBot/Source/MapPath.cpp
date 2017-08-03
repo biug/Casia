@@ -32,26 +32,7 @@ void MapPath::calcPath(PosRect rect)
 	{
 		//clock_t start = clock();
 		_paths[rect] = TilePath(BWAPI::Broodwar->getFrameCount());
-		auto & chokes = BWEM::Map::Instance().GetPath(rect.first, rect.second);
-		auto & positions = _paths[rect]._positions;
-		if (!chokes.empty())
-		{
-			auto path = BWTA::getShortestPath(BWAPI::TilePosition(rect.first), BWAPI::TilePosition(chokes[0]->Center()));
-			for (const auto & node : path) { positions.emplace_back(node); }
-			int i = 0;
-			while (i < chokes.size() - 1)
-			{
-				path = BWTA::getShortestPath(BWAPI::TilePosition(chokes[i]->Center()), BWAPI::TilePosition(chokes[i + 1]->Center()));
-				for (const auto & node : path) { positions.emplace_back(node); }
-				++i;
-			}
-			path = BWTA::getShortestPath(BWAPI::TilePosition(chokes[i]->Center()), BWAPI::TilePosition(rect.second));
-			for (const auto & node : path) { positions.emplace_back(node); }
-		}
-		else
-		{
-			positions = BWTA::getShortestPath(BWAPI::TilePosition(rect.first), BWAPI::TilePosition(rect.second));
-		}
+		_paths[rect]._positions = BWTA::getShortestPath(BWAPI::TilePosition(rect.first), BWAPI::TilePosition(rect.second));
 		//clock_t end = clock();
 		//std::string info = "calculate use " + std::to_string(end - start) + "ms";
 		//BWAPI::Broodwar->printf(info.c_str());
