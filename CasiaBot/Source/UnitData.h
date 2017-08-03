@@ -59,8 +59,8 @@ class UnitData
     std::vector<int>						numDeadUnits;
     std::vector<int>						numConstructedUnits;
 	std::vector<int>						numConstructingUnits;
+	std::vector<BWAPI::Unitset>				unitsets;
 	std::map<BWAPI::Unit, std::set<BWAPI::Unit>>	baseLarva;
-	std::map<std::string, std::set<BWAPI::Unit>>	units;
 
     int										mineralsLost;
     int										gasLost;
@@ -72,7 +72,7 @@ public:
 
     UnitData();
 
-	void	clearUnits();
+	void	clearUnitsets();
     void	updateUnit(BWAPI::Unit unit);
     void	removeUnit(BWAPI::Unit unit);
     void	removeBadUnits();
@@ -84,6 +84,6 @@ public:
 	int		getNumConstructedUnits(BWAPI::UnitType t)	const;
     int		getNumDeadUnits(BWAPI::UnitType t)          const;
     const	std::map<BWAPI::Unit,UnitInfo> & getUnits() const;
-	const	std::set<BWAPI::Unit> & getUnitset(const std::string & name);
+	const	BWAPI::Unitset & getUnitset(BWAPI::UnitType t);
 };
 }
