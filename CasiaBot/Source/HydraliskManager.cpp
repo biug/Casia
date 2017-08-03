@@ -9,7 +9,7 @@ HydraliskManager::HydraliskManager()
 
 void HydraliskManager::execute(const SquadOrder & inputOrder)
 {
-	if (!InformationManager::Instance().isEncounterRush || /*   速度提升判断    */)
+	if ((!InformationManager::Instance().isEncounterRush()) || BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Muscular_Augments) == 0)
 	{
 		MicroManager::execute(inputOrder);
 	}
