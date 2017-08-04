@@ -567,7 +567,12 @@ void ProductionManager::queueGasSteal()
 }
 
 void ProductionManager::queuePrint(int x, int y){
-	BWAPI::Broodwar->drawTextScreen(x , y - 10, "\x04 opening:  %d", _openingQueue.size());
+	BWAPI::Broodwar->drawTextScreen(x , y - 20, "\x04 opening:  %d", _openingQueue.size());
+	std::string info = "\x04 ";
+	for (unsigned int j = 0; j < _openingQueue.size() && j < 5; j++) {
+		info = info + " " + _openingQueue.at(j)._unit.getName() + " ||";
+	}
+	BWAPI::Broodwar->drawTextScreen(x - 60 , y - 10, "%s", info.c_str());
 	_queue.printQueues(x, y);
 }
 
