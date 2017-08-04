@@ -8,13 +8,14 @@ namespace CasiaBot
 class OverlordManager : public MicroManager
 {
 protected:
-	int flag = 1;
-
+	bool needDetect[3];
+	bool initializeFlag;
+	BWTA::BaseLocation *startBase[3];
 public:
 
 	OverlordManager();
 	void executeMicro(const BWAPI::Unitset & targets);
-	
+	void initEnemyBase();
 	void executeMove(const SquadOrder & inputOrder);
 };
 }

@@ -20,10 +20,12 @@
 
 #include <BWAPI.h>
 #include <BWTA.h>
+#include "bwem/src/bwem.h"
 #include "Logger.h"
 
 #include "Config.h"
 #include "CABAssert.h"
+#include "ThreadManager.h"
 
 BWAPI::AIModule * __NewAIModule();
 
