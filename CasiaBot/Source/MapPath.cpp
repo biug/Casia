@@ -26,30 +26,45 @@ MapPath::MapPath()
 
 void MapPath::calcPath(PosRect rect)
 {
-	BWEM::Map::Instance().GetPath(BWAPI::Position(rect.first), BWAPI::Position(rect.second));
-	_mutex.lock();
-	if (_paths.find(rect) == _paths.end())
+	// find in queue
+	_betapathmtx.lock();
+	for (const auto & betap : _betaPaths)
 	{
-		//clock_t start = clock();
-		_paths[rect] = TilePath(BWAPI::Broodwar->getFrameCount());
-		_paths[rect]._positions = BWTA::getShortestPath(BWAPI::TilePosition(rect.first), BWAPI::TilePosition(rect.second));
-		//clock_t end = clock();
-		//std::string info = "calculate use " + std::to_string(end - start) + "ms";
-		//BWAPI::Broodwar->printf(info.c_str());
+		if (betap.first == rect)
+		{
+			_betapathmtx.unlock();
+			return;
+		}
 	}
-	_mutex.unlock();
+	_betapathmtx.unlock();
+
+	// find in path
+	_pathmtx.lock();
+	if (_paths.find(rect) != _paths.end())
+	{
+		_pathmtx.unlock();
+		return;
+	}
+	_pathmtx.unlock();
+
+	// calculate
+	auto path = BWTA::getShortestPath(BWAPI::TilePosition(rect.first), BWAPI::TilePosition(rect.second));
+	_betapathmtx.lock();
+	_betaPaths.push_back({ rect, path });
+	_betapathmtx.unlock();
 }
 
 void MapPath::update()
 {
 	// delete most unused paths
-	if (_mutex.try_lock())
+	if (_pathmtx.try_lock())
 	{
+		// clear every 4 second
 		auto iter = _paths.begin();
+		int frame = BWAPI::Broodwar->getFrameCount();
 		while (iter != _paths.end())
 		{
-			// clear every 4 second
-			if (BWAPI::Broodwar->getFrameCount() - iter->second._lastVisit > 60)
+			if (frame - iter->second._lastVisit > 60)
 			{
 				iter = _paths.erase(iter);
 			}
@@ -62,7 +77,17 @@ void MapPath::update()
 				++iter;
 			}
 		}
-		_mutex.unlock();
+		if (_betapathmtx.try_lock())
+		{
+			for (const auto & bpath : _betaPaths)
+			{
+				_paths[bpath.first]._lastVisit = frame;
+				_paths[bpath.first]._positions = bpath.second;
+			}
+			_betaPaths.clear();
+			_betapathmtx.unlock();
+		}
+		_pathmtx.unlock();
 	}
 }
 
@@ -75,7 +100,7 @@ std::vector<BWAPI::TilePosition> MapPath::getPath(PosRect rect)
 {
 	std::vector<BWAPI::TilePosition> result;
 	result.clear();
-	if (_mutex.try_lock())
+	if (_pathmtx.try_lock())
 	{
 		auto iter = _paths.find(rect);
 		if (iter != _paths.end())
@@ -83,7 +108,7 @@ std::vector<BWAPI::TilePosition> MapPath::getPath(PosRect rect)
 			iter->second._lastVisit = BWAPI::Broodwar->getFrameCount();
 			result = iter->second._positions;
 		}
-		_mutex.unlock();
+		_pathmtx.unlock();
 	}
 	return result;
 }
