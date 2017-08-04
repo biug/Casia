@@ -22,8 +22,10 @@ namespace CasiaBot
 	class MapPath
 	{
 		MapPath();
-		std::mutex						_mutex;
-		std::map<PosRect, TilePath>		_paths;
+		std::mutex															_pathmtx;
+		std::mutex															_betapathmtx;
+		std::map<PosRect, TilePath>											_paths;
+		std::vector<std::pair<PosRect, std::vector<BWAPI::TilePosition>>>	_betaPaths;
 
 		void					calcPath(PosRect rect);
 

@@ -20,46 +20,42 @@ void ZerglingManager::execute(const SquadOrder & inputOrder)
 		//BWAPI::Broodwar->printf("being rushed");
 		// find a sunken
 		const auto & sunkens = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Sunken_Colony);
-		if (sunkens.empty()) return;
-		auto center = sunkens.getPosition();
+		const auto & creeps = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Creep_Colony);
+		BWAPI::Unitset creepsunken;
+		creepsunken.insert(sunkens.begin(), sunkens.end());
+		creepsunken.insert(creeps.begin(), creeps.end());
+		if (creepsunken.empty()) return;
+		auto center = creepsunken.getPosition();
 		// find sunken region
+		auto base = BWAPI::Broodwar->self()->getStartLocation();
 		BWTA::BaseLocation * ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
 		if (!center.isValid() || ebase == nullptr) return;
-		auto path = MapPath::Instance().getPath({ BWAPI::Position(center), ebase->getPosition() });
+		auto path = MapPath::Instance().getPath({ BWAPI::Position(base), ebase->getPosition() });
 		if (path.empty())
 		{
-			MapPath::Instance().insert({ BWAPI::Position(center), ebase->getPosition() });
+			MapPath::Instance().insert({ BWAPI::Position(base), ebase->getPosition() });
 			return;
 		}
-		for (int i = 2; i < path.size(); ++i)
-		{
-			int dist = std::pow(path[i].x - center.x, 2) + std::pow(path[i].y - center.y, 2);
-			if (dist >= 9)
-			{
-				auto targetP = BWAPI::Position(path[i]);
-				BWAPI::Broodwar->drawLineMap(BWAPI::Position(center), targetP, BWAPI::Colors::Green);
-				BWAPI::Broodwar->drawCircleMap(targetP, 4, BWAPI::Colors::Red, true);
+		auto groupP = path.size() > 2 ? path[2] : base;
 
-				BWAPI::Unitset nearbyEnemies;
-				const BWAPI::Unitset & meleeUnits = getUnits();
-				MapGrid::Instance().GetUnits(nearbyEnemies, targetP, 128, false, true);
-				if (nearbyEnemies.empty())
-				{
-					for (auto & meleeUnit : meleeUnits)
-					{
-						Micro::SmartMove(meleeUnit, targetP);
-					}
-				}
-				else
-				{
-					for (auto & meleeUnit : meleeUnits)
-					{
-						Micro::SmartAttackMove(meleeUnit, nearbyEnemies.getPosition());
-					}
-				}
-				return;
+		BWAPI::Unitset nearbyEnemies;
+		const BWAPI::Unitset & meleeUnits = getUnits();
+		MapGrid::Instance().GetUnits(nearbyEnemies, center, 200, false, true);
+		if (nearbyEnemies.empty())
+		{
+			for (auto & meleeUnit : meleeUnits)
+			{
+				Micro::SmartMove(meleeUnit, BWAPI::Position(groupP));
 			}
 		}
+		else
+		{
+			for (auto & meleeUnit : meleeUnits)
+			{
+				Micro::SmartAttackMove(meleeUnit, nearbyEnemies.getPosition());
+			}
+		}
+		return;
 	}
 }
 
