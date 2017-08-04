@@ -3,6 +3,7 @@
 #include "Common.h"
 #include "MicroManager.h"
 #include "InformationManager.h"
+#include <math.h>
 
 namespace CasiaBot
 {

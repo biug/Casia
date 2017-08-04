@@ -171,7 +171,48 @@ void ScoutManager::moveScouts()
 	{
         _scoutStatus = "Enemy base unknown, exploring";
 
-		for (BWTA::BaseLocation * startLocation : BWTA::getStartLocations()) 
+		//逆时针探路
+		auto bs = BWTA::getStartLocations();
+		std::vector<BWTA::BaseLocation *> bv(bs.begin(), bs.end());
+		auto cmp = [](const BWTA::BaseLocation *pb1, const BWTA::BaseLocation *pb2) {
+			BWAPI::Position center(BWAPI::Broodwar->mapWidth() / 2, BWAPI::Broodwar->mapHeight() / 2);
+			int dx1 = pb1->getPosition().x - center.x, dy1 = pb1->getPosition().y - center.y;
+			int dx2 = pb2->getPosition().x - center.x, dy2 = pb2->getPosition().y - center.y;
+			double theta1, theta2;
+			if (dx1 == 0)
+			{
+				if (dy1 > 0)
+					theta1 = M_PI / 2;
+				else
+					theta1 = M_PI * 3 / 2;
+			}
+			else
+			{
+				theta1 = std::atan2(dy1, dx1);
+			}
+
+			if (dx2 == 0)
+			{
+				if (dy2 > 0)
+					theta2 = M_PI / 2;
+				else
+					theta2 = M_PI * 3 / 2;
+			}
+			else
+			{
+				theta2 = std::atan2(dy2, dx2);
+			}
+			//降序列->逆时针
+			return theta1 > theta2;
+		};
+
+		std::sort(bv.begin(), bv.end(), cmp);
+		auto iter = std::find(bv.begin(), bv.end(), BWTA::getStartLocation(BWAPI::Broodwar->self()));
+		std::reverse(bv.begin(), iter);
+		std::reverse(iter, bv.end());
+		std::reverse(bv.begin(), bv.end());
+
+		for (BWTA::BaseLocation * startLocation : bv) 
 		{
 			// if we haven't explored it yet
 			if (!BWAPI::Broodwar->isExplored(startLocation->getTilePosition())) 
