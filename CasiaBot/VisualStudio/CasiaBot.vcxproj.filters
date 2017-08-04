@@ -37,6 +37,9 @@
     <Filter Include="game\action">
       <UniqueIdentifier>{c440a495-96b9-4971-aa6a-729056cea498}</UniqueIdentifier>
     </Filter>
+    <Filter Include="bwem">
+      <UniqueIdentifier>{b5ce07b1-eee6-430b-973e-094e945bf024}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\CombatCommander.cpp">
@@ -206,6 +209,63 @@
     </ClCompile>
     <ClCompile Include="..\Source\ActionZVPZerglingRush.cpp">
       <Filter>game\action</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\MapPath.cpp">
+      <Filter>game\util\map</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\ThreadManager.cpp">
+      <Filter>game\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\area.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\base.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\bwapiExt.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\bwem.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\cp.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\examples.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\graph.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\gridMap.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\map.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\mapDrawer.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\mapImpl.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\mapPrinter.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\neutral.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\tiles.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\utils.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\src\winutils.cpp">
+      <Filter>bwem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\bwem\EasyBMP_1.06\EasyBMP.cpp">
+      <Filter>bwem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -383,5 +443,88 @@
     <ClInclude Include="..\Source\ActionZVPZerglingRush.h">
       <Filter>game\action</Filter>
     </ClInclude>
+    <ClInclude Include="..\Source\MapPath.h">
+      <Filter>game\util\map</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ThreadManager.h">
+      <Filter>game\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\area.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\base.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\bwapiExt.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\bwem.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\cp.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\defs.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\examples.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\graph.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\gridMap.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\map.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\mapDrawer.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\mapImpl.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\mapPrinter.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\neutral.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\tiles.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\utils.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\src\winutils.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\EasyBMP_1.06\EasyBMP.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\EasyBMP_1.06\EasyBMP_BMP.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\EasyBMP_1.06\EasyBMP_DataStructures.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\bwem\EasyBMP_1.06\EasyBMP_VariousBMPutilities.h">
+      <Filter>bwem</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Source\bwem\src\area.h.bak">
+      <Filter>bwem</Filter>
+    </None>
+    <None Include="..\Source\bwem\src\cp.h.bak">
+      <Filter>bwem</Filter>
+    </None>
+    <None Include="..\Source\bwem\src\tiles.h.bak">
+      <Filter>bwem</Filter>
+    </None>
+    <None Include="..\Source\bwem\src\utils.h.bak">
+      <Filter>bwem</Filter>
+    </None>
   </ItemGroup>
 </Project>

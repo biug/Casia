@@ -139,7 +139,7 @@
 
             "ZVZ_5D" : { "OpeningBuildOrder" : ["Drone", "Spawning_Pool", "Drone", "Drone", "Zergling", "Zergling", "Zergling"] },
 
-            "ZVZ_9D" : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Spawning_Pool", "Drone", "Extractor", "Overlord", "Drone", "Zergling", "Zergling", "Zergling"] },
+            "ZVZ_9D"  : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Spawning_Pool", "Drone", "Extractor", "Drone", "Extractor@Cancel", "Overlord", "Zergling", "Zergling", "Zergling", "Hatchery", "Zergling"] },
 
             "ZVZ_Overpool" : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Overlord", "Spawning_Pool", "Drone", "Extractor", "Drone", "Drone", "Zergling", "Zergling", "Zergling"] },
 

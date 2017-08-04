@@ -1,4 +1,5 @@
 #include "MapTools.h"
+#include "MapPath.h"
 #include "InformationManager.h"
 
 using namespace CasiaBot;
@@ -318,6 +319,89 @@ BWAPI::TilePosition MapTools::getNextExpansion(BWAPI::Player player)
     {
         return BWAPI::TilePositions::None;
     }
+}
+
+
+BWAPI::TilePosition MapTools::getNextCreep()
+{
+	int numColony = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Creep_Colony, BWAPI::Broodwar->self());
+	auto selfP = BWAPI::Broodwar->self()->getStartLocation();
+	auto enemyL = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+	auto enemyP = BWAPI::TilePositions::None;
+	if (enemyL)
+	{
+		enemyP = enemyL->getTilePosition();
+	}
+	if (numColony == 0)
+	{
+		if (selfP.isValid() && enemyP.isValid())
+		{
+			PosRect rect = { BWAPI::Position(selfP), BWAPI::Position(enemyP) };
+			auto path = MapPath::Instance().getPath(rect);
+			if (path.empty())
+			{
+				MapPath::Instance().insert(rect);
+			}
+			else
+			{
+				int i = std::max(path.size() - 20, 20u);
+				for (; i >= 0; --i)
+				{
+					if (BWAPI::Broodwar->isVisible(path[i]) && BWAPI::Broodwar->hasCreep(path[i])
+						&& BWAPI::Broodwar->canBuildHere(path[i], BWAPI::UnitTypes::Zerg_Creep_Colony))
+					{
+						break;
+					}
+				}
+				if (i >= 0)
+				{
+					return path[i];
+				}
+			}
+		}
+		else
+		{
+			if (!selfP.isValid()) BWAPI::Broodwar->printf("bad self location");
+			if (!enemyP.isValid()) BWAPI::Broodwar->printf("bad enemy location");
+		}
+		return BWAPI::TilePositions::None;
+	}
+	else
+	{
+		auto & creepSet = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Creep_Colony.getName());
+		auto & sunkenSet = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Sunken_Colony.getName());
+		std::set<BWAPI::Unit> creeps;
+		creeps.insert(creepSet.begin(), creepSet.end());
+		creeps.insert(sunkenSet.begin(), sunkenSet.end());
+		int x1 = 100000, y1 = 100000, x2 = 0, y2 = 0;
+		for (auto & creep : creeps)
+		{
+			if (creep->getTilePosition().x < x1) x1 = creep->getTilePosition().x;
+			if (creep->getTilePosition().x > x2) x2 = creep->getTilePosition().x;
+			if (creep->getTilePosition().y < y1) y1 = creep->getTilePosition().y;
+			if (creep->getTilePosition().y > y2) y2 = creep->getTilePosition().y;
+		}
+		int x0 = (x1 + x2) / 2, y0 = (y1 + y2) / 2;
+		int bestDist = 100000;
+		BWAPI::TilePosition bestTile = BWAPI::TilePositions::None;
+		for (int x = x0 - 2; x <= x0 + 2; ++x)
+		{
+			for (int y = y0 - 2; y <= y0 + 2; ++y)
+			{
+				BWAPI::TilePosition tile(x, y);
+				if (BWAPI::Broodwar->hasCreep(tile)
+					&& BWAPI::Broodwar->canBuildHere(tile, BWAPI::UnitTypes::Zerg_Creep_Colony))
+				{
+					if (!bestTile.isValid() || bestDist > tile.getDistance(enemyP))
+					{
+						bestTile = tile;
+						bestDist = tile.getDistance(enemyP);
+					}
+				}
+			}
+		}
+		return bestTile;
+	}
 }
 
 void MapTools::parseMap()
