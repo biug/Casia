@@ -36,7 +36,7 @@ void ZerglingManager::execute(const SquadOrder & inputOrder)
 			MapPath::Instance().insert({ BWAPI::Position(base), ebase->getPosition() });
 			return;
 		}
-		auto groupP = path.size() > 2 ? path[2] : base;
+		auto groupP = path.size() > 5 ? path[5] : base;
 
 		BWAPI::Unitset nearbyEnemies;
 		const BWAPI::Unitset & meleeUnits = getUnits();

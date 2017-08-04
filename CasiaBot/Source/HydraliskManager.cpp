@@ -9,106 +9,64 @@ HydraliskManager::HydraliskManager()
 
 void HydraliskManager::execute(const SquadOrder & inputOrder)
 {
-	if ((!InformationManager::Instance().isEncounterRush() ) || 
-		BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Muscular_Augments) == 0 )
+	if ((!InformationManager::Instance().isEncounterRush() ) ||
+		BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Muscular_Augments) > 0 )
 	{
 		MicroManager::execute(inputOrder);
 	}
-	//being rushed 
-	//updage the grooved_Spines have not completed
+	// if being rush, zergling guard
 	else
 	{
-		BWAPI::Unit sunken = nullptr;
-		for (const auto & unit : BWAPI::Broodwar->self()->getUnits())
+		//BWAPI::Broodwar->printf("being rushed");
+		// find a sunken
+		auto base = BWAPI::Broodwar->self()->getStartLocation();
+		const auto & sunkens = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Sunken_Colony);
+		const auto & creeps = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Creep_Colony);
+		BWAPI::Unitset creepsunken;
+		creepsunken.insert(sunkens.begin(), sunkens.end());
+		creepsunken.insert(creeps.begin(), creeps.end());
+		if (creepsunken.empty())
 		{
-			if (unit->getType() == BWAPI::UnitTypes::Zerg_Creep_Colony
-				|| unit->getType() == BWAPI::UnitTypes::Zerg_Sunken_Colony)
+			for (auto & meleeUnit : getUnits())
 			{
-				sunken = unit;
-				break;
+				Micro::SmartMove(meleeUnit, BWAPI::Position(base));
 			}
+			return;
 		}
-		if (sunken == nullptr) return;
+		auto center = creepsunken.getPosition();
 		// find sunken region
-		BWTA::Region * region = BWTA::getRegion(sunken->getPosition());
 		BWTA::BaseLocation * ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
-		if (region == nullptr || ebase == nullptr) return;
-		int minD = -1;
-		// find best choke for sunken
-		BWAPI::Position bestChokeP(0, 0);
-		for (auto pChoke : region->getChokepoints())
+		if (!center.isValid() || ebase == nullptr) return;
+		auto path = MapPath::Instance().getPath({ center, ebase->getPosition() });
+		if (path.empty())
 		{
-			if (pChoke == nullptr) continue;
-			int d = MapTools::Instance().getGroundDistance(pChoke->getCenter(), ebase->getPosition());
-			if (minD == -1 || d < minD)
+			MapPath::Instance().insert({ center, ebase->getPosition() });
+			for (auto & meleeUnit : getUnits())
 			{
-				minD = d;
-				bestChokeP = pChoke->getCenter();
+				Micro::SmartMove(meleeUnit, BWAPI::Position(base));
+			}
+			return;
+		}
+		auto groupP = path.size() > 3 ? path[3] : BWAPI::TilePosition(center);
+
+		BWAPI::Unitset nearbyEnemies;
+		const BWAPI::Unitset & meleeUnits = getUnits();
+		MapGrid::Instance().GetUnits(nearbyEnemies, center, 200, false, true);
+		if (nearbyEnemies.empty())
+		{
+			for (auto & meleeUnit : meleeUnits)
+			{
+				Micro::SmartMove(meleeUnit, BWAPI::Position(groupP));
 			}
 		}
-		int minDis = 100000;
-		BWAPI::Unit bestSunken = sunken;
-		// find nearest sunken away from choke
-		for (const auto & unit : BWAPI::Broodwar->self()->getUnits())
+		else
 		{
-			if (unit->getType() == BWAPI::UnitTypes::Zerg_Creep_Colony
-				|| unit->getType() == BWAPI::UnitTypes::Zerg_Sunken_Colony)
+			for (auto & meleeUnit : meleeUnits)
 			{
-				if (unit->getDistance(bestChokeP) < minDis)
-				{
-					minDis = unit->getDistance(bestChokeP);
-					bestSunken = unit;
-				}
+				Micro::SmartAttackMove(meleeUnit, nearbyEnemies.getPosition());
 			}
 		}
-		if (bestChokeP != BWAPI::Position(0, 0))
-		{
-			float radius = 64.0;
-			const BWAPI::Unitset & meleeUnits = getUnits();
-			BWAPI::Position bestSunkenP = bestSunken->getPosition();
-			int disX = bestChokeP.x - bestSunkenP.x;
-			int disY = bestChokeP.y - bestSunkenP.y;
-			// calculate regroup target
-			BWAPI::Position targetP(bestSunkenP);
-			if (disX == 0 && disY == 0)
-			{
-				targetP += BWAPI::Position(radius, radius);
-			}
-			if (disX == 0)
-			{
-				targetP += BWAPI::Position(0, disY > 0 ? radius : -radius);
-			}
-			else if (disY == 0)
-			{
-				targetP += BWAPI::Position(disX > 0 ? radius : -radius, 0);
-			}
-			else
-			{
-				float k = fabs((float)disY / (float)disX);
-				int offsetX = (int)(1.0 / sqrtf(k * k + 1) * radius);
-				int offsetY = (int)(k / sqrtf(k * k + 1) * radius);
-				targetP += BWAPI::Position(disX > 0 ? offsetX : -offsetX, disY > 0 ? offsetY : -offsetY);
-			}
-			BWAPI::Broodwar->drawLineMap(bestChokeP, bestSunkenP, BWAPI::Colors::Green);
-			BWAPI::Broodwar->drawCircleMap(targetP, 4, BWAPI::Colors::Red, true);
-			// get nearbyEnemies
-			BWAPI::Unitset nearbyEnemies;
-			MapGrid::Instance().GetUnits(nearbyEnemies, targetP, 160, false, true);
-			if (nearbyEnemies.empty())
-			{
-				for (auto & meleeUnit : meleeUnits)
-				{
-					Micro::SmartMove(meleeUnit, targetP);
-				}
-			}
-			else
-			{
-				for (auto & meleeUnit : meleeUnits)
-				{
-					Micro::SmartAttackMove(meleeUnit, nearbyEnemies.getPosition());
-				}
-			}
-		}
+		return;
 	}
 }
 
