@@ -71,17 +71,18 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Spawning_Pool), true);
 	}
 
-	if (spawning_pool_count > 0 &&
-		creep_colony_count + creep_colony_being_built + creep_colony_in_queue +
-		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < (being_rushed ? 2 : 0))
+	int creep_need = std::min(5, std::max(2, enemy_marine_count / 6));
+	if (spawning_pool_count > 0 && creep_colony_being_built + creep_colony_in_queue == 0
+		&& creep_colony_count + creep_colony_being_built + creep_colony_in_queue +
+		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < (being_rushed ? creep_need : 0))
 	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), being_rushed);
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
 	}
 
 	if (creep_colony_completed > 0 && spawning_pool_completed > 0 &&
-		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < creep_colony_completed)
+		sunken_colony_being_built + sunken_colony_in_queue < creep_colony_completed)
 	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony));
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony), true);
 	}
 
 	bool isExtractorExist = extractor_being_built + extractor_count + extractor_in_queue > 0;

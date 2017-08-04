@@ -107,17 +107,6 @@ void ProductionQueue::checkSupply()
 	}
 }
 
-void ProductionQueue::addOpenning(const ProductionItem & item)
-{
-	const MetaType & unit = item._unit;
-	updateCount(unit, 1);
-
-	
-	CAB_ASSERT(_openningQueue.size() < 1000, "openning queue overflow");
-
-	_openningQueue.push_back(item);
-}
-
 void ProductionQueue::add(const ProductionItem & item, bool priority)
 {
 	const MetaType & unit = item._unit;
@@ -165,11 +154,7 @@ void ProductionQueue::retreat()
 	const MetaType & unit = item._unit;
 	_reserveQueue.pop_back();
 
-	if (ptype == Openning)
-	{
-		_openningQueue.push_front(item);
-	}
-	else if (unit.getUnitType() == BWAPI::UnitTypes::Zerg_Overlord)
+	if (unit.getUnitType() == BWAPI::UnitTypes::Zerg_Overlord)
 	{
 		_overlordQueue.push_front(item);
 	}
@@ -215,13 +200,7 @@ ProductionItem ProductionQueue::popItem()
 	ProductionItem retItem(meta);
 	ProductionPriority ptype = Normal;
 	int larva_count = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Larva, BWAPI::Broodwar->self());
-	if (!_openningQueue.empty())
-	{
-		retItem = _openningQueue.front();
-		_openningQueue.pop_front();
-		ptype = Openning;
-	}
-	else if (!_overlordQueue.empty())
+	if (!_overlordQueue.empty())
 	{
 		retItem = _overlordQueue.front();
 		_overlordQueue.pop_front();
@@ -350,7 +329,6 @@ void ProductionQueue::clear()
 	_overlordQueue.clear();
 	_techUpgradeQueue.clear();
 	_priorityQueue.clear();
-	_openningQueue.clear();
 	_straightArmyCount = 0;
 	_straightWorkerCount = 0;
 	_straightCheckOverlord = 0;
@@ -407,9 +385,9 @@ bool ProductionQueue::empty()
 		&& _armyQueue.empty()
 		&& _overlordQueue.empty()
 		&& _priorityQueue.empty()
-		&& _openningQueue.empty()
 		&& _workerQueue.empty()
-		&& _techUpgradeQueue.empty();
+		&& _techUpgradeQueue.empty()
+		&& _reserveQueue.empty();
 }
 
 void ProductionQueue::printQueues(int x, int y){
@@ -440,13 +418,6 @@ void ProductionQueue::printQueues(int x, int y){
 			priorityMap[_priorityQueue.at(i)._unit.getName()] = 1;
 		else
 			priorityMap[_priorityQueue.at(i)._unit.getName()] += 1;
-	}
-	
-	for (unsigned int i = 0; i < _openningQueue.size(); i++){
-		if (openningMap.find(_openningQueue.at(i)._unit.getName()) == openningMap.end())
-			openningMap[_openningQueue.at(i)._unit.getName()] = 1;
-		else
-			openningMap[_openningQueue.at(i)._unit.getName()] += 1;
 	}
 	
 	for (unsigned int i = 0; i < _workerQueue.size(); i++){
@@ -516,25 +487,8 @@ void ProductionQueue::printQueues(int x, int y){
 	}
 	BWAPI::Broodwar->drawTextScreen(x, y, "%s", info.c_str());
 
-
 	y += 10;
 	info = "\x04";
-	BWAPI::Broodwar->drawTextScreen(x - 60, y, "\x04 opng:  %d", _openningQueue.size());
-	for (std::map <std::string, int>::iterator Iter = openningMap.begin(); Iter != openningMap.end(); Iter++) {
-		info = info + " " + Iter->first + ": " + std::to_string(Iter->second) + " ||";
-	}
-	BWAPI::Broodwar->drawTextScreen(x, y, "%s", info.c_str());
-
-	y += 10;
-	info = "\x04 ";
-	for (unsigned int j = 0; j < _openningQueue.size() && j < 4; j++) {
-		info = info + " " + _openningQueue.at(j)._unit.getName() + " ||";
-	}
-	BWAPI::Broodwar->drawTextScreen(x, y, "%s", info.c_str());
-
-
-	y += 10;
-	info = "\x03";
 	BWAPI::Broodwar->drawTextScreen(x - 60, y, "\x03 drone: %d", _workerQueue.size());
 	for (std::map <std::string, int>::iterator Iter = workerMap.begin(); Iter != workerMap.end(); Iter++){
 		info = info + " " + Iter->first + ": " + std::to_string(Iter->second) + " ||";
@@ -542,7 +496,7 @@ void ProductionQueue::printQueues(int x, int y){
 	BWAPI::Broodwar->drawTextScreen(x, y, "%s", info.c_str());
 
 	y += 10;
-	info = "\x03 ";
+	info = "\x04 ";
 	for (unsigned int j = 0; j < _workerQueue.size() && j < 4; j++) {
 		info = info + " " + _workerQueue.at(j)._unit.getName() + " ||";
 	}

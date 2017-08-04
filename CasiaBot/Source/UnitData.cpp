@@ -16,6 +16,7 @@ UnitData::UnitData()
 	numDeadUnits			= std::vector<int>(maxTypeID + 1, 0);
 	numConstructedUnits		= std::vector<int>(maxTypeID + 1, 0);
 	numConstructingUnits	= std::vector<int>(maxTypeID + 1, 0);
+	unitsets				= std::vector<BWAPI::Unitset>(maxTypeID);
 }
 
 void UnitData::updateSelfZerg(BWAPI::Unit unit)
@@ -104,9 +105,12 @@ void UnitData::updateEnemy(BWAPI::Unit unit)
 	}
 }
 
-void UnitData::clearUnits()
+void UnitData::clearUnitsets()
 {
-	units.clear();
+	for (auto & unitset : unitsets)
+	{
+		unitset.clear();
+	}
 }
 
 void UnitData::updateUnit(BWAPI::Unit unit)
@@ -134,7 +138,7 @@ void UnitData::updateUnit(BWAPI::Unit unit)
 	}
 	if (unit->getPlayer() == BWAPI::Broodwar->self())
 	{
-		units[unit->getType().getName()].insert(unit);
+		unitsets[unit->getType().getID()].insert(unit);
 	}
     
 	UnitInfo & ui   = unitMap[unit];
@@ -272,7 +276,7 @@ const std::map<BWAPI::Unit,UnitInfo> & UnitData::getUnits() const
     return unitMap; 
 }
 
-const std::set<BWAPI::Unit> & UnitData::getUnitset(const std::string & name)
+const BWAPI::Unitset & UnitData::getUnitset(BWAPI::UnitType t)
 {
-	return units[name];
+	return unitsets[t.getID()];
 }

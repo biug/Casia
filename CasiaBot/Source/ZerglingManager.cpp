@@ -19,269 +19,49 @@ void ZerglingManager::execute(const SquadOrder & inputOrder)
 	{
 		//BWAPI::Broodwar->printf("being rushed");
 		// find a sunken
-		BWAPI::Unit sunken = nullptr;
-		for (const auto & unit : BWAPI::Broodwar->self()->getUnits())
-		{
-			if (unit->getType() == BWAPI::UnitTypes::Zerg_Creep_Colony
-				|| unit->getType() == BWAPI::UnitTypes::Zerg_Sunken_Colony)
-			{
-				sunken = unit;
-				break;
-			}
-		}
-		if (sunken == nullptr) return;
+		const auto & sunkens = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Sunken_Colony);
+		const auto & creeps = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Creep_Colony);
+		BWAPI::Unitset creepsunken;
+		creepsunken.insert(sunkens.begin(), sunkens.end());
+		creepsunken.insert(creeps.begin(), creeps.end());
+		if (creepsunken.empty()) return;
+		auto center = creepsunken.getPosition();
 		// find sunken region
-		BWTA::Region * region = BWTA::getRegion(sunken->getPosition());
+		auto base = BWAPI::Broodwar->self()->getStartLocation();
 		BWTA::BaseLocation * ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
-		if (region == nullptr || ebase == nullptr) return;
-		int minD = -1;
-		// find best choke for sunken
-		BWAPI::Position bestChokeP(0, 0);
-		for (auto pChoke : region->getChokepoints())
+		if (!center.isValid() || ebase == nullptr) return;
+		auto path = MapPath::Instance().getPath({ BWAPI::Position(base), ebase->getPosition() });
+		if (path.empty())
 		{
-			if (pChoke == nullptr) continue;
-			int d = MapTools::Instance().getGroundDistance(pChoke->getCenter(), ebase->getPosition());
-			if (minD == -1 || d < minD)
+			MapPath::Instance().insert({ BWAPI::Position(base), ebase->getPosition() });
+			return;
+		}
+		auto groupP = path.size() > 5 ? path[5] : base;
+
+		BWAPI::Unitset nearbyEnemies;
+		const BWAPI::Unitset & meleeUnits = getUnits();
+		MapGrid::Instance().GetUnits(nearbyEnemies, center, 200, false, true);
+		if (nearbyEnemies.empty())
+		{
+			for (auto & meleeUnit : meleeUnits)
 			{
-				minD = d;
-				bestChokeP = pChoke->getCenter();
+				Micro::SmartMove(meleeUnit, BWAPI::Position(groupP));
 			}
 		}
-		int minDis = 100000;
-		BWAPI::Unit bestSunken = sunken;
-		// find nearest sunken away from choke
-		for (const auto & unit : BWAPI::Broodwar->self()->getUnits())
+		else
 		{
-			if (unit->getType() == BWAPI::UnitTypes::Zerg_Creep_Colony
-				|| unit->getType() == BWAPI::UnitTypes::Zerg_Sunken_Colony)
+			for (auto & meleeUnit : meleeUnits)
 			{
-				if (unit->getDistance(bestChokeP) < minDis)
-				{
-					minDis = unit->getDistance(bestChokeP);
-					bestSunken = unit;
-				}
+				Micro::SmartAttackMove(meleeUnit, nearbyEnemies.getPosition());
 			}
 		}
-		if (bestChokeP != BWAPI::Position(0, 0))
-		{
-			float radius = 64.0;
-			const BWAPI::Unitset & meleeUnits = getUnits();
-			BWAPI::Position bestSunkenP = bestSunken->getPosition();
-			int disX = bestChokeP.x - bestSunkenP.x;
-			int disY = bestChokeP.y - bestSunkenP.y;
-			// calculate regroup target
-			BWAPI::Position targetP(bestSunkenP);
-			if (disX == 0 && disY == 0)
-			{
-				targetP += BWAPI::Position(radius, radius);
-			}
-			if (disX == 0)
-			{
-				targetP += BWAPI::Position(0, disY > 0 ? radius : -radius);
-			}
-			else if (disY == 0)
-			{
-				targetP += BWAPI::Position(disX > 0 ? radius : -radius, 0);
-			}
-			else
-			{
-				float k = fabs((float)disY / (float)disX);
-				int offsetX = (int)(1.0 / sqrtf(k * k + 1) * radius);
-				int offsetY = (int)(k / sqrtf(k * k + 1) * radius);
-				targetP += BWAPI::Position(disX > 0 ? offsetX : -offsetX, disY > 0 ? offsetY : -offsetY);
-			}
-			BWAPI::Broodwar->drawLineMap(bestChokeP, bestSunkenP, BWAPI::Colors::Green);
-			BWAPI::Broodwar->drawCircleMap(targetP, 4, BWAPI::Colors::Red, true);
-			// get nearbyEnemies
-			BWAPI::Unitset nearbyEnemies;
-			MapGrid::Instance().GetUnits(nearbyEnemies, targetP, 160, false, true);
-			if (nearbyEnemies.empty())
-			{
-				for (auto & meleeUnit : meleeUnits)
-				{
-					Micro::SmartMove(meleeUnit, targetP);
-				}
-			}
-			else
-			{
-				for (auto & meleeUnit : meleeUnits)
-				{
-					Micro::SmartAttackMove(meleeUnit, nearbyEnemies.getPosition());
-				}
-			}
-		}
+		return;
 	}
 }
 
 void ZerglingManager::executeMicro(const BWAPI::Unitset & targets)
 {
-	//assignTargetsOld(targets);
-	const BWAPI::Unitset & meleeUnits = getUnits();
-	BWAPI::Unitset meleeUnitTargets;
-	for (auto & target : targets)
-	{
-		// conditions for targeting
-		if (!(target->getType().isFlyer()) &&
-			!(target->isLifted()) &&
-			!(target->getType() == BWAPI::UnitTypes::Zerg_Larva) &&
-			!(target->getType() == BWAPI::UnitTypes::Zerg_Egg) &&
-			target->isVisible())
-		{
-			meleeUnitTargets.insert(target);
-		}
-	}
-	if (meleeUnitTargets.empty())
-	{
-		for (auto & meleeUnit : meleeUnits)
-		{
-			if (meleeUnit->getDistance(order.getPosition()) > 100)
-			{
-				// move to it
-				Micro::SmartMove(meleeUnit, order.getPosition());
-			}
-		}
-
-		return;
-	}
-
-
-	std::vector<int> hpRemainings;
-
-	for (auto & target : meleeUnitTargets)
-	{
-		hpRemainings.push_back(target->getHitPoints());
-	}
-
-
-
-	for (auto & meleeUnit : meleeUnits)
-	{
-		// if the order is to attack or defend
-		if (order.getType() == SquadOrderTypes::Attack || order.getType() == SquadOrderTypes::Defend)
-		{
-
-			int currentCooldown = meleeUnit->isStartingAttack() ? meleeUnit->getType().groundWeapon().damageCooldown() : meleeUnit->getGroundWeaponCooldown();
-			bool coolDown = currentCooldown == 0 ? true : false;
-			// run away if we meet the retreat critereon
-			if (zerglingUnitShouldRetreat(meleeUnit, targets))
-			{
-				BWAPI::Position fleeTo(BWAPI::Broodwar->self()->getStartLocation());
-
-				Micro::SmartMove(meleeUnit, fleeTo);
-			}
-			// if there are targets
-			else if (!meleeUnitTargets.empty())
-			{
-				int highPriority = -1;
-				double closestDist = std::numeric_limits<double>::infinity();
-				BWAPI::Unit closestTarget = nullptr, attackTarget = nullptr, moveTarget = nullptr;
-				double maxDpsHPValue = -1;
-				//int range = meleeUnit->getType().groundWeapon().maxRange();
-				int idx = 0;
-				int choose_idx = 0;
-				bool is_attack = false;
-				for (auto & unit : meleeUnitTargets)
-				{
-					if (hpRemainings[idx] <= 0 || !UnitUtil::CanAttack(meleeUnit, unit))
-					{
-						idx++;
-						continue;
-					}
-					//unit->get
-					int range = UnitUtil::GetAttackRange(meleeUnit, unit);
-					int priority = getAttackPriority(meleeUnit, unit);
-					int distance = meleeUnit->getDistance(unit);
-					int attack_distance = (meleeUnit->getPosition().x - unit->getPosition().x)*(meleeUnit->getPosition().x - unit->getPosition().x) +
-						(meleeUnit->getPosition().y - unit->getPosition().y)*(meleeUnit->getPosition().y - unit->getPosition().y);
-
-					float damage = BWAPI::UnitTypes::Protoss_Zealot ? 2 * UnitUtil::GetWeapon(unit, meleeUnit).damageAmount()
-						: UnitUtil::GetWeapon(unit, meleeUnit).damageAmount();
-					//unit->getType() == BWAPI::UnitTypes::Protoss_Zealot ? 2 * unit->getType().groundWeapon().damageAmount() :
-					//unit->getType().groundWeapon().damageAmount();
-
-
-					float dpsHPValue = (float)std::max(0.001f, (float)damage / ((float)unit->getType().groundWeapon().damageCooldown() + 1.0f));
-					dpsHPValue = dpsHPValue / (float)unit->getHitPoints();
-
-					// if it's a higher priority, or it's closer, set it
-					if (!closestTarget || (priority > highPriority))
-					{
-						closestDist = distance;
-						highPriority = priority;
-						closestTarget = unit;
-						maxDpsHPValue = -1;
-
-						if (coolDown && attack_distance <= (range)*(range))
-						{
-							attackTarget = unit;
-							choose_idx = idx;
-						}
-
-
-					}
-					else if (priority == highPriority && coolDown && attack_distance <= (range)*(range))
-					{
-						is_attack = true;
-						if (dpsHPValue >= maxDpsHPValue)
-						{
-							closestDist = distance;
-							highPriority = priority;
-							closestTarget = unit;
-							maxDpsHPValue = dpsHPValue;
-							attackTarget = unit;
-							choose_idx = idx;
-						}
-
-
-					}
-					else if (priority == highPriority && attack_distance >(range)*(range) && closestDist>distance)
-					{
-						closestDist = distance;
-						highPriority = priority;
-						closestTarget = unit;
-						maxDpsHPValue = dpsHPValue;
-						moveTarget = unit;
-
-					}
-					idx++;
-				}
-				if (attackTarget)
-				{
-					Micro::SmartAttackUnit(meleeUnit, attackTarget);
-					hpRemainings[choose_idx] -= UnitUtil::GetWeapon(meleeUnit, attackTarget).damageAmount() - meleeUnit->getShields();
-
-					//GetWeapon(BWAPI::Unit attacker, BWAPI::Unit target);
-
-				}
-				else
-					Micro::SmartAttackUnit(meleeUnit, closestTarget);
-
-				// find the best target for this meleeUnit
-				//BWAPI::Unit target = getTarget(meleeUnit, meleeUnitTargets);
-
-				// attack it
-				//Micro::SmartAttackUnit(meleeUnit, target);
-			}
-			// if there are no targets
-			else
-			{
-				// if we're not near the order position
-				if (meleeUnit->getDistance(order.getPosition()) > 100)
-				{
-					// move to it
-					Micro::SmartMove(meleeUnit, order.getPosition());
-				}
-			}
-		}
-
-		if (Config::Debug::DrawUnitTargetInfo)
-		{
-			BWAPI::Broodwar->drawLineMap(meleeUnit->getPosition().x, meleeUnit->getPosition().y,
-				meleeUnit->getTargetPosition().x, meleeUnit->getTargetPosition().y, Config::Debug::ColorLineTarget);
-		}
-	}
-
-
+	assignTargetsOld(targets);
 }
 
 void ZerglingManager::assignTargetsOld(const BWAPI::Unitset & targets)

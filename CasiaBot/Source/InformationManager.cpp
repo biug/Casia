@@ -19,7 +19,7 @@ InformationManager & InformationManager::Instance()
 
 void InformationManager::update() 
 {
-	_unitData.find(BWAPI::Broodwar->self())->second.clearUnits();
+	_unitData.find(BWAPI::Broodwar->self())->second.clearUnitsets();
 	updateUnitInfo();
 	updateBaseLocationInfo();
 	updateRush();
@@ -615,9 +615,9 @@ const UnitData & InformationManager::getUnitData(BWAPI::Player player) const
     return _unitData.find(player)->second;
 }
 
-const std::set<BWAPI::Unit> & InformationManager::getUnitset(const std::string & name)
+const BWAPI::Unitset & InformationManager::getUnitset(BWAPI::UnitType t)
 {
-	return _unitData.find(BWAPI::Broodwar->self())->second.getUnitset(name);
+	return _unitData.find(BWAPI::Broodwar->self())->second.getUnitset(t);
 }
 
 bool InformationManager::enemyHasCloakedUnits()

@@ -507,7 +507,26 @@ BWAPI::Unit WorkerData::getLarvaDepot() const
 		if (remain > maxRemain)
 		{
 			maxRemain = remain;
-			bestMineralBase = mineralBase;
+			int maxLarva = 0;
+			for (const auto & base : BWAPI::Broodwar->self()->getUnits())
+			{
+				if (base->getType() == BWAPI::UnitTypes::Zerg_Hatchery ||
+					base->getType() == BWAPI::UnitTypes::Zerg_Hive ||
+					base->getType() == BWAPI::UnitTypes::Zerg_Lair) 
+				{
+					//BWAPI::Broodwar->drawTextScreen(200, 200, "\x04 distance:  %d", base->getDistance(mineralBase));
+					if (base == mineralBase || base->getDistance(mineralBase) < 300)
+					{
+						int larvas = base->getLarva().size();
+						//BWAPI::Broodwar->drawTextScreen(200, 210, "\x04 size:  %d", mineralBases.size());
+						if (larvas > maxLarva)
+						{
+							maxLarva = larvas;
+							bestMineralBase = base;
+						}
+					}
+				}
+			}
 		}
 	}
 	return bestMineralBase;

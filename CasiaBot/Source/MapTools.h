@@ -3,6 +3,7 @@
 #include "Common.h"
 #include <vector>
 #include "BWAPI.h"
+#include "MapPath.h"
 #include "DistanceMap.hpp"
 
 namespace CasiaBot

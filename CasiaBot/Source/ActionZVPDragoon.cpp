@@ -125,33 +125,54 @@ void ActionZVPDragoon::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 		}
 	}
 
-	//是否需要防御建筑	
-	if (creep_colony_count + creep_colony_being_built + creep_colony_in_queue +
-		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < 2)
+	//是否需要防御建筑
+	if (!isCreepColonyExist && !isSunkenColonyExist)
 	{
 		tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
-		//tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+		tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
 	}
-	else if (being_rushed && creep_colony_completed + sunken_colony_count >= 2 &&
-		creep_colony_count + creep_colony_being_built + creep_colony_in_queue +
-		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < 5)
+	else
 	{
-		tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
-		//tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+		if (!isCreepColonyExist && isSunkenColonyExist)
+		{
+			if (sunken_colony_total < (being_rushed ? 7 : 3))
+			{
+				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), being_rushed);
+				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), being_rushed);
+			}
+		}
 	}
-	else if (being_rushed && creep_colony_completed + sunken_colony_count >= 5 &&
-		creep_colony_count + creep_colony_being_built + creep_colony_in_queue +
-		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < 7)
-	{
-		tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
-		//tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
-	}
-	if (sunken_colony_in_queue < creep_colony_completed)
+	if (sunken_colony_in_queue + sunken_colony_being_built < creep_colony_completed)
 	{
 		tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony), true);
-		tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
-		//tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Zergling), true);
 	}
+
+	//if (creep_colony_count + creep_colony_being_built + creep_colony_in_queue +
+	//	sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < 2)
+	//{
+	//	tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
+	//	//tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+	//}
+	//else if (being_rushed && creep_colony_completed + sunken_colony_count >= 2 &&
+	//	creep_colony_count + creep_colony_being_built + creep_colony_in_queue +
+	//	sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < 5)
+	//{
+	//	tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
+	//	//tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+	//}
+	//else if (being_rushed && creep_colony_completed + sunken_colony_count >= 5 &&
+	//	creep_colony_count + creep_colony_being_built + creep_colony_in_queue +
+	//	sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < 7)
+	//{
+	//	tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
+	//	//tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+	//}
+	//if (sunken_colony_in_queue < creep_colony_completed)
+	//{
+	//	tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony), true);
+	//	tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+	//	//tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Zergling), true);
+	//}
 
 	// 判断前提建筑是否存在
 	if (!isSpawningPoolExist)
@@ -380,6 +401,7 @@ void ActionZVPDragoon::updateCurrentState(ProductionQueue &queue)
 
 	enemyDragoonOverZealotRate = enemy_zealot_count == 0 ? 10 : (double)enemy_dragoon_count / (double)enemy_zealot_count;
 	if (enemy_dragoon_count == 0) enemyDragoonOverZealotRate = 0;
+	droneLimit = real_base_count == 1 ? 16 : real_base_count * 10;
 }
 
 void ActionZVPDragoon::tryAddInQueue(ProductionQueue & queue, const ProductionItem & item, bool priority)

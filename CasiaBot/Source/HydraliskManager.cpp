@@ -7,7 +7,70 @@ HydraliskManager::HydraliskManager()
 { 
 }
 
-void HydraliskManager::executeMicro(const BWAPI::Unitset & targets) 
+void HydraliskManager::execute(const SquadOrder & inputOrder)
+{
+	if ((!InformationManager::Instance().isEncounterRush() ) ||
+		BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Muscular_Augments) > 0 )
+	{
+		MicroManager::execute(inputOrder);
+	}
+	// if being rush, zergling guard
+	else
+	{
+		//BWAPI::Broodwar->printf("being rushed");
+		// find a sunken
+		auto base = BWAPI::Broodwar->self()->getStartLocation();
+		const auto & sunkens = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Sunken_Colony);
+		const auto & creeps = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Creep_Colony);
+		BWAPI::Unitset creepsunken;
+		creepsunken.insert(sunkens.begin(), sunkens.end());
+		creepsunken.insert(creeps.begin(), creeps.end());
+		if (creepsunken.empty())
+		{
+			for (auto & meleeUnit : getUnits())
+			{
+				Micro::SmartMove(meleeUnit, BWAPI::Position(base));
+			}
+			return;
+		}
+		auto center = creepsunken.getPosition();
+		// find sunken region
+		BWTA::BaseLocation * ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+		if (!center.isValid() || ebase == nullptr) return;
+		auto path = MapPath::Instance().getPath({ center, ebase->getPosition() });
+		if (path.empty())
+		{
+			MapPath::Instance().insert({ center, ebase->getPosition() });
+			for (auto & meleeUnit : getUnits())
+			{
+				Micro::SmartMove(meleeUnit, BWAPI::Position(base));
+			}
+			return;
+		}
+		auto groupP = path.size() > 3 ? path[3] : BWAPI::TilePosition(center);
+
+		BWAPI::Unitset nearbyEnemies;
+		const BWAPI::Unitset & meleeUnits = getUnits();
+		MapGrid::Instance().GetUnits(nearbyEnemies, center, 200, false, true);
+		if (nearbyEnemies.empty())
+		{
+			for (auto & meleeUnit : meleeUnits)
+			{
+				Micro::SmartMove(meleeUnit, BWAPI::Position(groupP));
+			}
+		}
+		else
+		{
+			for (auto & meleeUnit : meleeUnits)
+			{
+				Micro::SmartAttackMove(meleeUnit, nearbyEnemies.getPosition());
+			}
+		}
+		return;
+	}
+}
+
+void HydraliskManager::executeMicro(const BWAPI::Unitset & targets)
 {
 	assignTargetsOld(targets);
 }
@@ -15,48 +78,54 @@ void HydraliskManager::executeMicro(const BWAPI::Unitset & targets)
 
 void HydraliskManager::assignTargetsOld(const BWAPI::Unitset & targets)
 {
-    const BWAPI::Unitset & hydraliskUnits = getUnits();
+	const BWAPI::Unitset & HydraliskUnits = getUnits();
 
 	// figure out targets
-	BWAPI::Unitset hydraliskUnitTargets;
-    std::copy_if(targets.begin(), targets.end(), std::inserter(hydraliskUnitTargets, hydraliskUnitTargets.end()),
-     [](BWAPI::Unit u){ return u->isVisible(); });
+	BWAPI::Unitset HydraliskUnitTargets;
+	std::copy_if(targets.begin(), targets.end(), std::inserter(HydraliskUnitTargets, HydraliskUnitTargets.end()), [](BWAPI::Unit u){ return u->isVisible(); });
 
-    for (auto & hydraliskUnit : hydraliskUnits)
+	for (auto & HydraliskUnit : HydraliskUnits)
 	{
 		// if the order is to attack or defend
-		if (order.getType() == SquadOrderTypes::Attack || order.getType() == SquadOrderTypes::Defend) 
-        {
-            BWAPI::Position ourBasePosition = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
-			// if there are targets
-			if (!hydraliskUnitTargets.empty() && hydraliskUnit->getDistance(ourBasePosition) < 500)
+		if (order.getType() == SquadOrderTypes::Attack || order.getType() == SquadOrderTypes::Defend)
+		{
+			// if there are targets 
+			if (!HydraliskUnitTargets.empty())
 			{
 				// find the best target for this zealot
-				BWAPI::Unit target = getTarget(hydraliskUnit, hydraliskUnitTargets);
-                
-                if (target && Config::Debug::DrawUnitTargetInfo) 
-	            {
-		            BWAPI::Broodwar->drawLineMap(hydraliskUnit->getPosition(), hydraliskUnit->getTargetPosition(), BWAPI::Colors::Purple);
-	            }
+				BWAPI::Unit target = getTarget(HydraliskUnit, HydraliskUnitTargets);
+
+				if (target && Config::Debug::DrawUnitTargetInfo)
+				{
+					BWAPI::Broodwar->drawLineMap(HydraliskUnit->getPosition(), HydraliskUnit->getTargetPosition(), BWAPI::Colors::Purple);
+				}
+
 
 				// attack it
-                if (Config::Micro::KiteWithRangedUnits)
-                {
-                    Micro::SmartKiteTarget(hydraliskUnit, target);
-                }
-                else
-                {
-                    Micro::SmartAttackUnit(hydraliskUnit, target);
-                }
+				if (Config::Micro::KiteWithRangedUnits)
+				{
+					if (HydraliskUnit->getType() == BWAPI::UnitTypes::Zerg_Mutalisk)
+					{
+						Micro::MutaDanceTarget(HydraliskUnit, target);
+					}
+					else
+					{
+						Micro::SmartKiteTarget(HydraliskUnit, target);
+					}
+				}
+				else
+				{
+					Micro::SmartAttackUnit(HydraliskUnit, target);
+				}
 			}
 			// if there are no targets
 			else
 			{
 				// if we're not near the order position
-				if (hydraliskUnit->getDistance(ourBasePosition) > 500)
+				if (HydraliskUnit->getDistance(order.getPosition()) > 100)
 				{
 					// move to it
-					Micro::SmartAttackMove(hydraliskUnit, ourBasePosition);
+					Micro::SmartAttackMove(HydraliskUnit, order.getPosition());
 				}
 			}
 		}
