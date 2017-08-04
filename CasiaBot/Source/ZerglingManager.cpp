@@ -33,7 +33,7 @@ void ZerglingManager::execute(const SquadOrder & inputOrder)
 		}
 		for (int i = 2; i < path.size(); ++i)
 		{
-			int dist = std::pow(path[i].x - center.x, 2) + std::pow(path[i].y - center.x, 2);
+			int dist = std::pow(path[i].x - center.x, 2) + std::pow(path[i].y - center.y, 2);
 			if (dist >= 9)
 			{
 				auto targetP = BWAPI::Position(path[i]);
