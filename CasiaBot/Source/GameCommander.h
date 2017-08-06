@@ -10,6 +10,7 @@
 #include "ScoutManager.h"
 #include "StrategyManager.h"
 #include "TimerManager.h"
+#include "MapPath.h"
 
 namespace CasiaBot
 {

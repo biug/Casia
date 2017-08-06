@@ -15,7 +15,8 @@ class ProductionManager
 {
     ProductionManager();
     
-    ProductionQueue     _queue;
+    ProductionQueue				_queue;
+	std::deque<ProductionItem>	_openingQueue;
     BWAPI::TilePosition _predictedTilePosition;
     bool                _enemyCloakedDetected;
     bool                _assignedWorkerForThisBuilding;
@@ -29,7 +30,6 @@ class ProductionManager
     bool                hasNumCompletedUnitType(BWAPI::UnitType type,int num);
     bool                meetsReservedResources(MetaType type);
 	void				setOpenningBuildOrder(const BuildOrder & buildOrder);
-    void                setBuildOrder(const BuildOrder & buildOrder);
 	void				create(BWAPI::Unit producer, ProductionItem & unit);
     void                manageBuildOrderQueue();
     void                performCommand(BWAPI::UnitCommandType t);

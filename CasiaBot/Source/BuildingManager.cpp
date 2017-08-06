@@ -304,10 +304,10 @@ void BuildingManager::drawBuildingInformation(int x,int y)
         return;
     }
 
-    for (auto & unit : BWAPI::Broodwar->self()->getUnits())
-    {
-        BWAPI::Broodwar->drawTextMap(unit->getPosition().x,unit->getPosition().y+5,"\x07%d",unit->getID());
-    }
+    //for (auto & unit : BWAPI::Broodwar->self()->getUnits())
+    //{
+    //    BWAPI::Broodwar->drawTextMap(unit->getPosition().x,unit->getPosition().y+5,"\x07%d",unit->getID());
+    //}
 
     BWAPI::Broodwar->drawTextScreen(x,y,"\x04 Building Information:");
     BWAPI::Broodwar->drawTextScreen(x,y+20,"\x04 Name");
@@ -326,7 +326,7 @@ void BuildingManager::drawBuildingInformation(int x,int y)
         {
             BWAPI::Broodwar->drawTextScreen(x,y+40+((yspace)*10),"\x03 %s %d",b.type.getName().c_str(),b.builderUnit->getID());
             BWAPI::Broodwar->drawTextScreen(x+150,y+40+((yspace++)*10),"\x03 A %c (%d,%d)",getBuildingWorkerCode(b),b.finalPosition.x,b.finalPosition.y);
-
+			/*
             int x1 = b.finalPosition.x*32;
             int y1 = b.finalPosition.y*32;
             int x2 = (b.finalPosition.x + b.type.tileWidth())*32;
@@ -334,6 +334,7 @@ void BuildingManager::drawBuildingInformation(int x,int y)
 
             BWAPI::Broodwar->drawLineMap(b.builderUnit->getPosition().x,b.builderUnit->getPosition().y,(x1+x2)/2,(y1+y2)/2,BWAPI::Colors::Orange);
             BWAPI::Broodwar->drawBoxMap(x1,y1,x2,y2,BWAPI::Colors::Red,false);
+			*/
         }
         else if (b.status == BuildingStatus::UnderConstruction)
         {
@@ -380,18 +381,24 @@ BWAPI::TilePosition BuildingManager::getBuildingLocation(const Building & b)
         }
     }
 
-    if (b.type.isRefinery())
+    else if (b.type.isRefinery())
     {
         return BuildingPlacer::Instance().getRefineryPosition();
     }
 
-    if (b.type.isResourceDepot() && !b.nexpHatchery)
+    else if (b.type.isResourceDepot() && !b.nexpHatchery)
     {
         // get the location 
         BWAPI::TilePosition tile = MapTools::Instance().getNextExpansion();
 
         return tile;
     }
+
+	else if (b.type == BWAPI::UnitTypes::Zerg_Creep_Colony)
+	{
+		BWAPI::TilePosition tile = MapTools::Instance().getNextCreep();
+		return tile;
+	}
 
     // set the building padding specifically
     int distance = Config::Macro::BuildingSpacing;

@@ -13,20 +13,11 @@ ProductionManager::ProductionManager()
 void ProductionManager::setOpenningBuildOrder(const BuildOrder & buildOrder)
 {
 	_queue.clear();
+	_openingQueue.clear();
 
 	for (size_t i(0); i<buildOrder.size(); ++i)
 	{
-		_queue.addOpenning(ProductionItem(buildOrder[i]));
-	}
-}
-
-void ProductionManager::setBuildOrder(const BuildOrder & buildOrder)
-{
-	_queue.clear();
-
-	for (size_t i(0); i<buildOrder.size(); ++i)
-	{
-		_queue.add(ProductionItem(buildOrder[i]), true);
+		_openingQueue.emplace_back(ProductionItem(buildOrder[i]));
 	}
 }
 
@@ -52,8 +43,10 @@ void ProductionManager::update()
         {
 		    BWAPI::Broodwar->drawTextScreen(150, 10, "Nothing left to build, new search!");
         }
-
-		performBuildOrderSearch();
+		if (_openingQueue.empty())
+		{
+			performBuildOrderSearch();
+		}
 	}
 
 	// if they have cloaked units get a new goal asap
@@ -92,9 +85,11 @@ void ProductionManager::onUnitDestroy(BWAPI::Unit unit)
 
 void ProductionManager::manageBuildOrderQueue() 
 {
+	bool useQueue = _openingQueue.empty();
 	_queue.checkSupply();
 	_queue.popReserve();
-	ProductionItem item = _queue.popItem();
+	ProductionItem item = useQueue ? _queue.popItem() : _openingQueue.front();
+	if (!useQueue) _openingQueue.pop_front();
 	if (item._unit.type() == MetaTypes::Default)
 	{
 		return;
@@ -203,7 +198,14 @@ void ProductionManager::manageBuildOrderQueue()
 		{
 			return;
 		}
-		_queue.retreat();
+		if (useQueue)
+		{
+			_queue.retreat();
+		}
+		else
+		{
+			_openingQueue.emplace_front(item);
+		}
 	}
 }
 
@@ -342,7 +344,7 @@ bool ProductionManager::canMakeNow(BWAPI::Unit producer, MetaType t)
 	return canMake;
 }
 
-// When the next item in the _queue is a building, this checks to see if we should move to it
+// When the next item in the queue is a building, this checks to see if we should move to it
 // This function is here as it needs to access prodction manager's reserved resources info
 void ProductionManager::predictWorkerMovement(const Building & b)
 {
@@ -534,7 +536,7 @@ void ProductionManager::drawProductionInformation(int x, int y)
 	y += 30;
 	int yy = y;
 
-	// for each unit in the _queue
+	// for each unit in the queue
 	for (auto & unit : prod) 
     {
 		std::string prefix = "\x07";
@@ -565,6 +567,12 @@ void ProductionManager::queueGasSteal()
 }
 
 void ProductionManager::queuePrint(int x, int y){
+	BWAPI::Broodwar->drawTextScreen(x , y - 20, "\x04 opening:  %d", _openingQueue.size());
+	std::string info = "\x04 ";
+	for (unsigned int j = 0; j < _openingQueue.size() && j < 5; j++) {
+		info = info + " " + _openingQueue.at(j)._unit.getName() + " ||";
+	}
+	BWAPI::Broodwar->drawTextScreen(x - 60 , y - 10, "%s", info.c_str());
 	_queue.printQueues(x, y);
 }
 

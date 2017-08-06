@@ -26,9 +26,9 @@ void GameCommander::update()
 	MapGrid::Instance().update();
 	_timerManager.stopTimer(TimerManager::MapGrid);
 
-	_timerManager.startTimer(TimerManager::MapTools);
-	//MapTools::Instance().update();
-	_timerManager.stopTimer(TimerManager::MapTools);
+	_timerManager.startTimer(TimerManager::MapPath);
+	MapPath::Instance().update();
+	_timerManager.stopTimer(TimerManager::MapPath);
 
 	// economy and base managers
 	_timerManager.startTimer(TimerManager::Worker);
@@ -62,10 +62,10 @@ void GameCommander::drawDebugInterface()
 	InformationManager::Instance().drawExtendedInterface();
 	InformationManager::Instance().drawUnitInformation(425,30);
 	InformationManager::Instance().drawMapInformation();
-	BuildingManager::Instance().drawBuildingInformation(200,50);
+	BuildingManager::Instance().drawBuildingInformation(190,150);
 	BuildingPlacer::Instance().drawReservedTiles();
 	ProductionManager::Instance().drawProductionInformation(30, 50);
-	InformationManager::Instance().PrintInfo(10, 180);
+	//InformationManager::Instance().PrintInfo(10, 180);
 	ProductionManager::Instance().queuePrint(250, 20);
 	WorkerManager::Instance().drawResourceDebugInfo(480, 20);
 	WorkerManager::Instance().drawWorkerDebugInfo();

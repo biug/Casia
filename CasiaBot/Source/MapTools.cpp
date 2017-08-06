@@ -320,6 +320,109 @@ BWAPI::TilePosition MapTools::getNextExpansion(BWAPI::Player player)
     }
 }
 
+BWAPI::TilePosition MapTools::getNextCreep()
+{
+	int numColony = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Creep_Colony, BWAPI::Broodwar->self());
+	auto enemyL = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+	auto enemyP = BWAPI::TilePositions::None;
+	if (enemyL)
+	{
+		enemyP = enemyL->getTilePosition();
+	}
+	else
+	{
+		return BWAPI::TilePositions::None;
+	}
+	if (numColony == 0)
+	{
+		if (enemyP.isValid())
+		{
+			const auto & bases = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Hatchery);
+			std::set<BWAPI::TilePosition> validNodes;
+			for (const auto & base : bases)
+			{
+				auto path = MapPath::Instance().getPath({ base->getPosition(), BWAPI::Position(enemyP) });
+				if (path.empty())
+				{
+					MapPath::Instance().insert({ base->getPosition(), BWAPI::Position(enemyP) });
+					return BWAPI::TilePositions::None;
+				}
+				else
+				{
+					bool badPath = false;
+					for (const auto & node : path)
+					{
+						for (const auto & b : bases)
+						{
+							if (b != base && node.getDistance(b->getTilePosition()) < 10)
+							{
+								badPath = true;
+							}
+						}
+					}
+					if (badPath) continue;
+					for (const auto & node : path)
+					{
+						if (node.getDistance(base->getTilePosition()) < 25
+							&& node.getDistance(base->getTilePosition()) > 7
+							&& BWAPI::Broodwar->hasCreep(node)
+							&& BWAPI::Broodwar->canBuildHere(node, BWAPI::UnitTypes::Zerg_Creep_Colony))
+						{
+							validNodes.insert(node);
+						}
+					}
+				}
+			}
+			if (validNodes.empty()) return BWAPI::TilePositions::None;
+			BWAPI::TilePosition bestNode = BWAPI::TilePositions::None;
+			for (const auto & node : validNodes)
+			{
+				if (node.getDistance(BWAPI::Broodwar->self()->getStartLocation()) < 25)
+				{
+					bestNode = node;
+					break;
+				}
+			}
+			if (!bestNode.isValid()) bestNode = *validNodes.begin();
+			return bestNode;
+		}
+		else
+		{
+			if (!enemyP.isValid()) BWAPI::Broodwar->printf("bad enemy location");
+		}
+		return BWAPI::TilePositions::None;
+	}
+	else
+	{
+		auto & creepSet = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Creep_Colony);
+		auto & sunkenSet = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Sunken_Colony);
+		BWAPI::Unitset creeps;
+		creeps.insert(creepSet.begin(), creepSet.end());
+		creeps.insert(sunkenSet.begin(), sunkenSet.end());
+		auto center = creeps.getPosition();
+		int radius = 2;
+		int bestDist = 100000;
+		BWAPI::TilePosition bestTile = BWAPI::TilePositions::None;
+		for (int x = center.x - radius; x <= center.x + radius; ++x)
+		{
+			for (int y = center.y - radius; y <= center.y + radius; ++y)
+			{
+				BWAPI::TilePosition tile(x, y);
+				if (BWAPI::Broodwar->hasCreep(tile)
+					&& BWAPI::Broodwar->canBuildHere(tile, BWAPI::UnitTypes::Zerg_Creep_Colony))
+				{
+					if (!bestTile.isValid() || bestDist > tile.getDistance(enemyP))
+					{
+						bestTile = tile;
+						bestDist = tile.getDistance(enemyP);
+					}
+				}
+			}
+		}
+		return bestTile;
+	}
+}
+
 void MapTools::parseMap()
 {
     BWAPI::Broodwar->printf("Parsing Map Information");
