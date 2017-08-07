@@ -361,15 +361,16 @@ BWAPI::TilePosition MapTools::getNextCreep()
 						}
 					}
 					if (badPath) continue;
+					auto lastNode = path[0];
 					for (const auto & node : path)
 					{
-						if (node.getDistance(base->getTilePosition()) < 25
-							&& node.getDistance(base->getTilePosition()) > 7
-							&& BWAPI::Broodwar->hasCreep(node)
-							&& BWAPI::Broodwar->canBuildHere(node, BWAPI::UnitTypes::Zerg_Creep_Colony))
+						if (!BWAPI::Broodwar->hasCreep(node)
+							|| !BWAPI::Broodwar->canBuildHere(node, BWAPI::UnitTypes::Zerg_Creep_Colony))
 						{
-							validNodes.insert(node);
+							validNodes.insert(lastNode);
+							break;
 						}
+						lastNode = node;
 					}
 				}
 			}
@@ -377,7 +378,7 @@ BWAPI::TilePosition MapTools::getNextCreep()
 			BWAPI::TilePosition bestNode = BWAPI::TilePositions::None;
 			for (const auto & node : validNodes)
 			{
-				if (node.getDistance(BWAPI::Broodwar->self()->getStartLocation()) < 25)
+				if (node.getDistance(BWAPI::Broodwar->self()->getStartLocation()) < 15)
 				{
 					bestNode = node;
 					break;
