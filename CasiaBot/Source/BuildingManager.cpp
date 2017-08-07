@@ -383,7 +383,15 @@ BWAPI::TilePosition BuildingManager::getBuildingLocation(const Building & b)
 
 	else if (b.type == BWAPI::UnitTypes::Zerg_Creep_Colony)
 	{
-		BWAPI::TilePosition tile = MapTools::Instance().getNextCreep();
+		int numCreep = 0;
+		for (const auto & b : _buildings)
+		{
+			if (b.buildingUnit && b.buildingUnit->getType() == BWAPI::UnitTypes::Zerg_Creep_Colony)
+			{
+				++numCreep;
+			}
+		}
+		BWAPI::TilePosition tile = BuildingPlacer::Instance().getCreepPosition(numCreep);
 		return tile;
 	}
 

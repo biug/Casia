@@ -537,6 +537,18 @@ const BWAPI::Unitset & WorkerData::getRefineries() const
 	return refineries;
 }
 
+const BWAPI::Unitset & WorkerData::getMineralPatches(BWAPI::Unit base) const
+{
+	if (mineralBaseMineralPatchMap.find(base) != mineralBaseMineralPatchMap.end())
+	{
+		return mineralBaseMineralPatchMap.at(base);
+	}
+	else
+	{
+		return emptyset;
+	}
+}
+
 const std::set<BWAPI::TilePosition> & WorkerData::getCanceledRefineryLocations() const
 {
 	return canceledRefineryLocations;
