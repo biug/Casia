@@ -35,12 +35,13 @@ void HydraliskManager::execute(const SquadOrder & inputOrder)
 		}
 		auto center = creepsunken.getPosition();
 		// find sunken region
-		BWTA::BaseLocation * ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
-		if (!center.isValid() || ebase == nullptr) return;
-		auto path = MapPath::Instance().getPath({ center, ebase->getPosition() });
+		const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
+		if (!center.isValid() || ebases.empty()) return;
+		auto ebaseP = ebases.front().lastPosition;
+		auto path = MapPath::Instance().getPath({ center, ebaseP });
 		if (path.empty())
 		{
-			MapPath::Instance().insert({ center, ebase->getPosition() });
+			MapPath::Instance().insert({ center, ebaseP });
 			for (auto & meleeUnit : getUnits())
 			{
 				Micro::SmartMove(meleeUnit, BWAPI::Position(base));

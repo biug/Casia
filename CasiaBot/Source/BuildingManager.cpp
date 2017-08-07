@@ -368,20 +368,7 @@ std::vector<BWAPI::UnitType> BuildingManager::buildingsQueued()
 
 BWAPI::TilePosition BuildingManager::getBuildingLocation(const Building & b)
 {
-    if (b.isGasSteal)
-    {
-        BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
-        CAB_ASSERT(enemyBaseLocation,"Should have enemy base location before attempting gas steal");
-        CAB_ASSERT(enemyBaseLocation->getGeysers().size() > 0,"Should have spotted an enemy geyser");
-
-        for (auto & unit : enemyBaseLocation->getGeysers())
-        {
-            BWAPI::TilePosition tp(unit->getInitialTilePosition());
-            return tp;
-        }
-    }
-
-    else if (b.type.isRefinery())
+    if (b.type.isRefinery())
     {
         return BuildingPlacer::Instance().getRefineryPosition();
     }

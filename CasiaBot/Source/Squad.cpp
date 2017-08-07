@@ -115,9 +115,6 @@ void Squad::update()
 		_hydraliskManager.execute(_order);
 		_zerglingManager.execute(_order);
 		_mutaliskManager.execute(_order);
-
-		_detectorManager.setUnitClosestToEnemy(unitClosestToEnemy());
-		_detectorManager.execute(_order);
 	}
 	_overlordManager.executeMove(_order);
 	/*if (_numHarassZergling > 5)
@@ -223,7 +220,8 @@ void Squad::setAllUnits()
 			goodUnits.insert(unit);
 		}
 	}
-	_units = goodUnits;
+	_units.clear();
+	_units.insert(goodUnits.begin(), goodUnits.end());
 }
 
 void Squad::setNearEnemyUnits()
@@ -255,7 +253,6 @@ void Squad::addUnitsToMicroManagers()
 {
 	BWAPI::Unitset meleeUnits;
 	BWAPI::Unitset rangedUnits;
-	BWAPI::Unitset detectorUnits;
 	BWAPI::Unitset lurkerUnits;
 	BWAPI::Unitset hydraliskUnits;
 	BWAPI::Unitset zerglingUnits;
@@ -302,10 +299,6 @@ void Squad::addUnitsToMicroManagers()
 			{
 				overlordUnits.insert(unit);
 			}
-			else if (unit->getType().isDetector() && !unit->getType().isBuilding())
-			{
-				detectorUnits.insert(unit);
-			}
 			// select ranged _units
 			else if ((unit->getType().groundWeapon().maxRange() > 32) || (unit->getType() == BWAPI::UnitTypes::Zerg_Scourge))
 			{
@@ -320,7 +313,6 @@ void Squad::addUnitsToMicroManagers()
 	}
 	_meleeManager.setUnits(meleeUnits);
 	_rangedManager.setUnits(rangedUnits);
-	_detectorManager.setUnits(detectorUnits);
 	_lurkerManager.setUnits(lurkerUnits);
 	_hydraliskManager.setUnits(hydraliskUnits);
 	_zerglingManager.setUnits(zerglingUnits);

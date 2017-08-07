@@ -174,13 +174,13 @@ BWAPI::TilePosition BuildingPlacer::getBuildLocationNear(const Building & b, int
 
 	BWAPI::Position toward = BWAPI::Position(b.desiredPosition);
 	BWTA::Region * region = BWTA::getRegion(b.desiredPosition);
-	BWTA::BaseLocation * ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
-	if (region != nullptr && ebase != nullptr)
+	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
+	if (region != nullptr && !ebases.empty())
 	{
 		int minD = -1;
 		for (auto pChoke : region->getChokepoints())
 		{
-			int d = MapTools::Instance().getGroundDistance(pChoke->getCenter(), ebase->getPosition());
+			int d = MapTools::Instance().getGroundDistance(pChoke->getCenter(), ebases.front().lastPosition);
 			if (minD == -1 || d < minD)
 			{
 				minD = d;

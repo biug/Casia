@@ -50,7 +50,8 @@ void CombatCommander::update(const BWAPI::Unitset & combatUnits)
         initializeSquads();
     }
 
-    _combatUnits = combatUnits;
+	_combatUnits.clear();
+	_combatUnits.insert(combatUnits.begin(), combatUnits.end());
 
 
 	if (isSquadUpdateFrame())
@@ -254,12 +255,12 @@ void CombatCommander::updateDefenseSquads()
     { 
         return; 
     }
-    
-    BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+
+	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
     BWTA::Region * enemyRegion = nullptr;
-    if (enemyBaseLocation)
+    if (!ebases.empty())
     {
-        enemyRegion = BWTA::getRegion(enemyBaseLocation->getPosition());
+        enemyRegion = BWTA::getRegion(ebases.front().lastPosition);
     }
 
 	// for each of our occupied regions
@@ -479,12 +480,12 @@ void CombatCommander::drawSquadInformation(int x, int y)
 
 BWAPI::Position CombatCommander::getMainAttackLocation()
 {
-    BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
 
     // First choice: Attack an enemy region if we can see units inside it
-    if (enemyBaseLocation)
+    if (!ebases.empty())
     {
-        BWAPI::Position enemyBasePosition = enemyBaseLocation->getPosition();
+        BWAPI::Position enemyBasePosition = ebases.front().lastPosition;
 
         // get all known enemy units in the area
         BWAPI::Unitset enemyUnitsInArea;
@@ -503,7 +504,7 @@ BWAPI::Position CombatCommander::getMainAttackLocation()
         {
             if (!onlyOverlords)
             {
-                return enemyBaseLocation->getPosition();
+                return ebases.front().lastPosition;
             }
         }
     }

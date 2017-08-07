@@ -60,12 +60,11 @@ class UnitData
     std::vector<int>						numConstructedUnits;
 	std::vector<int>						numConstructingUnits;
 	std::vector<BWAPI::Unitset>				unitsets;
-	std::map<BWAPI::Unit, std::set<BWAPI::Unit>>	baseLarva;
 
     int										mineralsLost;
     int										gasLost;
 
-	void	updateSelfZerg(BWAPI::Unit unit);
+	void	updateSelf(BWAPI::Unit unit);
 	void	updateEnemy(BWAPI::Unit unit);
 
 public:
