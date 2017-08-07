@@ -323,11 +323,11 @@ BWAPI::TilePosition MapTools::getNextExpansion(BWAPI::Player player)
 BWAPI::TilePosition MapTools::getNextCreep()
 {
 	int numColony = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Creep_Colony, BWAPI::Broodwar->self());
-	auto enemyL = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
-	auto enemyP = BWAPI::TilePositions::None;
-	if (enemyL)
+	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
+	auto enemyP = BWAPI::Positions::None;
+	if (!ebases.empty())
 	{
-		enemyP = enemyL->getTilePosition();
+		enemyP = ebases.front().lastPosition;
 	}
 	else
 	{
@@ -411,10 +411,10 @@ BWAPI::TilePosition MapTools::getNextCreep()
 				if (BWAPI::Broodwar->hasCreep(tile)
 					&& BWAPI::Broodwar->canBuildHere(tile, BWAPI::UnitTypes::Zerg_Creep_Colony))
 				{
-					if (!bestTile.isValid() || bestDist > tile.getDistance(enemyP))
+					if (!bestTile.isValid() || bestDist > tile.getDistance(BWAPI::TilePosition(enemyP)))
 					{
 						bestTile = tile;
-						bestDist = tile.getDistance(enemyP);
+						bestDist = tile.getDistance(BWAPI::TilePosition(enemyP));
 					}
 				}
 			}

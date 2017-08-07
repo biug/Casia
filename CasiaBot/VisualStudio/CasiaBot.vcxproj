@@ -150,7 +150,6 @@
     <ClCompile Include="..\Source\CombatSimulation.cpp" />
     <ClCompile Include="..\Source\CombatCommander.cpp" />
     <ClCompile Include="..\Source\Common.cpp" />
-    <ClCompile Include="..\source\DetectorManager.cpp" />
     <ClCompile Include="..\Source\Dll.cpp" />
     <ClCompile Include="..\Source\GameCommander.cpp" />
     <ClCompile Include="..\Source\HarassMutaliskManager.cpp" />
@@ -163,7 +162,6 @@
     <ClCompile Include="..\Source\MapGrid.cpp" />
     <ClCompile Include="..\Source\MapPath.cpp" />
     <ClCompile Include="..\Source\MapTools.cpp" />
-    <ClCompile Include="..\Source\MedicManager.cpp" />
     <ClCompile Include="..\source\MeleeManager.cpp" />
     <ClCompile Include="..\source\MetaType.cpp" />
     <ClCompile Include="..\source\MicroManager.cpp" />
@@ -180,10 +178,8 @@
     <ClCompile Include="..\Source\Squad.cpp" />
     <ClCompile Include="..\Source\SquadData.cpp" />
     <ClCompile Include="..\Source\StrategyManager.cpp" />
-    <ClCompile Include="..\Source\TankManager.cpp" />
     <ClCompile Include="..\Source\ThreadManager.cpp" />
     <ClCompile Include="..\source\TimerManager.cpp" />
-    <ClCompile Include="..\source\TransportManager.cpp" />
     <ClCompile Include="..\Source\CABAssert.cpp" />
     <ClCompile Include="..\Source\UnitData.cpp" />
     <ClCompile Include="..\Source\UnitUtil.cpp" />
@@ -231,7 +227,6 @@
     <ClInclude Include="..\Source\CombatSimulation.h" />
     <ClInclude Include="..\Source\CombatCommander.h" />
     <ClInclude Include="..\Source\Common.h" />
-    <ClInclude Include="..\source\DetectorManager.h" />
     <ClInclude Include="..\Source\DistanceMap.hpp" />
     <ClInclude Include="..\Source\GameCommander.h" />
     <ClInclude Include="..\Source\GameHistory.hpp" />
@@ -245,7 +240,6 @@
     <ClInclude Include="..\Source\MapGrid.h" />
     <ClInclude Include="..\Source\MapPath.h" />
     <ClInclude Include="..\Source\MapTools.h" />
-    <ClInclude Include="..\Source\MedicManager.h" />
     <ClInclude Include="..\source\MeleeManager.h" />
     <ClInclude Include="..\source\MetaType.h" />
     <ClInclude Include="..\source\MicroManager.h" />
@@ -263,10 +257,8 @@
     <ClInclude Include="..\Source\SquadData.h" />
     <ClInclude Include="..\Source\SquadOrder.h" />
     <ClInclude Include="..\Source\StrategyManager.h" />
-    <ClInclude Include="..\Source\TankManager.h" />
     <ClInclude Include="..\Source\ThreadManager.h" />
     <ClInclude Include="..\source\TimerManager.h" />
-    <ClInclude Include="..\source\TransportManager.h" />
     <ClInclude Include="..\Source\CABAssert.h" />
     <ClInclude Include="..\Source\UnitData.h" />
     <ClInclude Include="..\Source\UnitUtil.h" />

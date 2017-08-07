@@ -45,73 +45,26 @@ void InformationManager::updateUnitInfo()
 void InformationManager::initializeRegionInformation() 
 {
 	// set initial pointers to null
-	_mainBaseLocations[_self] = BWTA::getStartLocation(BWAPI::Broodwar->self());
-	_mainBaseLocations[_enemy] = BWTA::getStartLocation(BWAPI::Broodwar->enemy());
+	for (const auto & unit : BWAPI::Broodwar->self()->getUnits())
+	{
+		if (unit->getType() == BWAPI::UnitTypes::Zerg_Hatchery)
+		{
+			_selfBases.push_back(unit);
+			// push that region into our occupied vector
+			updateOccupiedRegions(BWTA::getRegion(unit->getTilePosition()), BWAPI::Broodwar->self());
+			break;
+		}
+	}
+	_enemyBaseInfos.clear();
 
-	// push that region into our occupied vector
-	updateOccupiedRegions(BWTA::getRegion(_mainBaseLocations[_self]->getTilePosition()), BWAPI::Broodwar->self());
 }
 
 
 void InformationManager::updateBaseLocationInfo() 
 {
+	BWTA::Region * region;
 	_occupiedRegions[_self].clear();
 	_occupiedRegions[_enemy].clear();
-		
-	// if we haven't found the enemy main base location yet
-	if (!_mainBaseLocations[_enemy]) 
-	{ 
-		// how many start locations have we explored
-		int exploredStartLocations = 0;
-		bool baseFound = false;
-
-		// an undexplored base location holder
-		BWTA::BaseLocation * unexplored = nullptr;
-
-		for (BWTA::BaseLocation * startLocation : BWTA::getStartLocations()) 
-		{
-			if (isEnemyBuildingInRegion(BWTA::getRegion(startLocation->getTilePosition()))) 
-			{
-                if (Config::Debug::DrawScoutInfo)
-                {
-				    BWAPI::Broodwar->printf("Enemy base found by seeing it");
-                }
-
-				baseFound = true;
-				_mainBaseLocations[_enemy] = startLocation;
-				updateOccupiedRegions(BWTA::getRegion(startLocation->getTilePosition()), BWAPI::Broodwar->enemy());
-			}
-
-			// if it's explored, increment
-			if (BWAPI::Broodwar->isExplored(startLocation->getTilePosition())) 
-			{
-				exploredStartLocations++;
-
-			// otherwise set the unexplored base
-			} 
-			else 
-			{
-				unexplored = startLocation;
-			}
-		}
-
-		// if we've explored every start location except one, it's the enemy
-		if (!baseFound && exploredStartLocations == ((int)BWTA::getStartLocations().size() - 1)) 
-		{
-            if (Config::Debug::DrawScoutInfo)
-            {
-                BWAPI::Broodwar->printf("Enemy base found by process of elimination");
-            }
-			
-			_mainBaseLocations[_enemy] = unexplored;
-			updateOccupiedRegions(BWTA::getRegion(unexplored->getTilePosition()), BWAPI::Broodwar->enemy());
-		}
-	// otherwise we do know it, so push it back
-	} 
-	else 
-	{
-		updateOccupiedRegions(BWTA::getRegion(_mainBaseLocations[_enemy]->getTilePosition()), BWAPI::Broodwar->enemy());
-	}
 
 	// for each enemy unit we know about
 	for (const auto & kv : _unitData[_enemy].getUnits())
@@ -123,7 +76,23 @@ void InformationManager::updateBaseLocationInfo()
 		if (type.isBuilding()) 
 		{
 			// update the enemy occupied regions
-			updateOccupiedRegions(BWTA::getRegion(BWAPI::TilePosition(ui.lastPosition)), BWAPI::Broodwar->enemy());
+			updateOccupiedRegions(BWTA::getRegion(BWAPI::TilePosition(ui.lastPosition)), _enemy);
+			if (type.isResourceDepot())
+			{
+				bool find = false;
+				for (const auto & base : _enemyBaseInfos)
+				{
+					if (base.unit == kv.first)
+					{
+						find = true;
+						break;
+					}
+				}
+				if (!find)
+				{
+					_enemyBaseInfos.push_back(kv.second);
+				}
+			}
 		}
 	}
 
@@ -137,7 +106,23 @@ void InformationManager::updateBaseLocationInfo()
 		if (type.isBuilding()) 
 		{
 			// update the enemy occupied regions
-			updateOccupiedRegions(BWTA::getRegion(BWAPI::TilePosition(ui.lastPosition)), BWAPI::Broodwar->self());
+			updateOccupiedRegions(BWTA::getRegion(BWAPI::TilePosition(ui.lastPosition)), _self);
+			if (type.isResourceDepot())
+			{
+				bool find = false;
+				for (const auto & base : _selfBases)
+				{
+					if (base == kv.first)
+					{
+						find = true;
+						break;
+					}
+				}
+				if (!find)
+				{
+					_selfBases.push_back(kv.first);
+				}
+			}
 		}
 	}
 }
@@ -224,9 +209,14 @@ std::set<BWTA::Region *> & InformationManager::getOccupiedRegions(BWAPI::Player 
 	return _occupiedRegions[player];
 }
 
-BWTA::BaseLocation * InformationManager::getMainBaseLocation(BWAPI::Player player) 
+const std::vector<BWAPI::Unit> & InformationManager::getSelfBases() const
 {
-	return _mainBaseLocations[player];
+	return _selfBases;
+}
+
+const std::vector<UnitInfo> & InformationManager::getEnemyBaseInfos() const
+{
+	return _enemyBaseInfos;
 }
 
 BWAPI::Position InformationManager::getLastPosition(BWAPI::Unit unit, BWAPI::Player player) const
@@ -538,8 +528,37 @@ void InformationManager::onUnitDestroy(BWAPI::Unit unit)
     {
         return;
     }
-
-    _unitData[unit->getPlayer()].removeUnit(unit);
+	auto player = unit->getPlayer();
+	// remove unit
+    _unitData[player].removeUnit(unit);
+	if (player == BWAPI::Broodwar->self())
+	{
+		auto itr = _selfBases.begin();
+		while (itr != _selfBases.end())
+		{
+			if (*itr == unit)
+			{
+				// remove base
+				_selfBases.erase(itr);
+				break;
+			}
+			++itr;
+		}
+	}
+	else
+	{
+		auto itr = _enemyBaseInfos.begin();
+		while (itr != _enemyBaseInfos.end())
+		{
+			if (itr->unit == unit)
+			{
+				// remove base
+				_enemyBaseInfos.erase(itr);
+				break;
+			}
+			++itr;
+		}
+	}
 }
 
 bool InformationManager::isCombatUnit(BWAPI::UnitType type) const
