@@ -3,14 +3,10 @@
 #include "Common.h"
 #include "MeleeManager.h"
 #include "RangedManager.h"
-#include "DetectorManager.h"
-#include "TransportManager.h"
 #include "SquadOrder.h"
 #include "DistanceMap.hpp"
 #include "StrategyManager.h"
 #include "CombatSimulation.h"
-#include "TankManager.h"
-#include "MedicManager.h"
 #include "LurkerManager.h"
 #include "HydraliskManager.h"
 #include "ZerglingManager.h"
@@ -35,7 +31,6 @@ namespace CasiaBot
 		SquadOrder          _order;
 		MeleeManager        _meleeManager;
 		RangedManager       _rangedManager;
-		DetectorManager     _detectorManager;
 		LurkerManager		_lurkerManager;
 		HydraliskManager	_hydraliskManager;
 		ZerglingManager		_zerglingManager;

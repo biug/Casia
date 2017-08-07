@@ -186,26 +186,7 @@ void WorkerManager::handleGasWorkers()
 
 bool WorkerManager::isGasStealRefinery(BWAPI::Unit unit)
 {
-    BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
-    if (!enemyBaseLocation)
-    {
-        return false;
-    }
-    
-    if (enemyBaseLocation->getGeysers().empty())
-    {
-        return false;
-    }
-    
-	for (auto & u : enemyBaseLocation->getGeysers())
-	{
-        if (unit->getTilePosition() == u->getTilePosition())
-        {
-            return true;
-        }
-	}
-
-    return false;
+	return false;
 }
 
 void WorkerManager::handleMineralWorkers()

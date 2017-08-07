@@ -50,7 +50,8 @@ void CombatCommander::update(const BWAPI::Unitset & combatUnits)
         initializeSquads();
     }
 
-    _combatUnits = combatUnits;
+	_combatUnits.clear();
+	_combatUnits.insert(combatUnits.begin(), combatUnits.end());
 
 
 	if (isSquadUpdateFrame())
@@ -187,7 +188,7 @@ void CombatCommander::updateScoutDefenseSquad()
     bool assignScoutDefender = enemyUnitsInRegion.size() == 1 && (*enemyUnitsInRegion.begin())->getType().isWorker();
 
     // if our current squad is empty and we should assign a worker, do it
-    if (scoutDefenseSquad.isEmpty() && assignScoutDefender && BWAPI::Broodwar->getFrameCount() < 3600)
+    if (assignScoutDefender && scoutDefenseSquad.isEmpty() && BWAPI::Broodwar->getFrameCount() < 3600)
     {
         // the enemy worker that is attacking us
         BWAPI::Unit enemyWorker = *enemyUnitsInRegion.begin();
@@ -205,6 +206,33 @@ void CombatCommander::updateScoutDefenseSquad()
             }
 		}
     }
+	else if (scoutDefenseSquad.isEmpty() && assignScoutDefender &&  BWAPI::Broodwar->getFrameCount() >= 3600){
+		BWAPI::Unit enemyWorker = *enemyUnitsInRegion.begin();
+		if (!_combatUnits.empty()){
+			for (auto & unit : _combatUnits)
+			{
+				if ((unit->getType() == BWAPI::UnitTypes::Zerg_Zergling) && _squadData.canAssignUnitToSquad(unit, scoutDefenseSquad))
+				{
+					unit->attack(enemyWorker);
+					_squadData.assignUnitToSquad(unit, scoutDefenseSquad);
+					break;
+				}
+			}
+		}
+		else{
+			// get our worker unit that is mining that is closest to it
+			BWAPI::Unit workerDefender = findClosestWorkerToTarget(_combatUnits, enemyWorker);
+			if (enemyWorker && workerDefender)
+			{
+				// grab it from the worker manager and put it in the squad
+				if (_squadData.canAssignUnitToSquad(workerDefender, scoutDefenseSquad))
+				{
+					WorkerManager::Instance().setWorkerCombating(workerDefender);
+					_squadData.assignUnitToSquad(workerDefender, scoutDefenseSquad);
+				}
+			}
+		}
+	}
     // if our squad is not empty and we shouldn't have a worker chasing then take him out of the squad
     else if (!scoutDefenseSquad.isEmpty() && !assignScoutDefender)
     {
@@ -227,12 +255,12 @@ void CombatCommander::updateDefenseSquads()
     { 
         return; 
     }
-    
-    BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+
+	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
     BWTA::Region * enemyRegion = nullptr;
-    if (enemyBaseLocation)
+    if (!ebases.empty())
     {
-        enemyRegion = BWTA::getRegion(enemyBaseLocation->getPosition());
+        enemyRegion = BWTA::getRegion(ebases.front().lastPosition);
     }
 
 	// for each of our occupied regions
@@ -452,12 +480,12 @@ void CombatCommander::drawSquadInformation(int x, int y)
 
 BWAPI::Position CombatCommander::getMainAttackLocation()
 {
-    BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
 
     // First choice: Attack an enemy region if we can see units inside it
-    if (enemyBaseLocation)
+    if (!ebases.empty())
     {
-        BWAPI::Position enemyBasePosition = enemyBaseLocation->getPosition();
+        BWAPI::Position enemyBasePosition = ebases.front().lastPosition;
 
         // get all known enemy units in the area
         BWAPI::Unitset enemyUnitsInArea;
@@ -476,7 +504,7 @@ BWAPI::Position CombatCommander::getMainAttackLocation()
         {
             if (!onlyOverlords)
             {
-                return enemyBaseLocation->getPosition();
+                return ebases.front().lastPosition;
             }
         }
     }

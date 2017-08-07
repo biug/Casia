@@ -19,8 +19,9 @@ class InformationManager
     BWAPI::Player       _self;
     BWAPI::Player       _enemy;
 
-    std::map<BWAPI::Player, UnitData>                   _unitData;
-    std::map<BWAPI::Player, BWTA::BaseLocation *>       _mainBaseLocations;
+    std::hash_map<BWAPI::Player, UnitData>              _unitData;
+	std::vector<BWAPI::Unit>							_selfBases;
+	std::vector<UnitInfo>								_enemyBaseInfos;
     std::map<BWAPI::Player, std::set<BWTA::Region *> >  _occupiedRegions;
 
 	bool					_isEncounterRush;
@@ -71,7 +72,8 @@ public:
     const UIMap &           getUnitInfo(BWAPI::Player player) const;
 
     std::set<BWTA::Region *> &  getOccupiedRegions(BWAPI::Player player);
-    BWTA::BaseLocation *    getMainBaseLocation(BWAPI::Player player);
+    const std::vector<BWAPI::Unit> &  getSelfBases() const;
+	const std::vector<UnitInfo> &  getEnemyBaseInfos() const;
 	BWAPI::Position			getLastPosition(BWAPI::Unit unit, BWAPI::Player player) const;
 
     bool                    enemyHasCloakedUnits();

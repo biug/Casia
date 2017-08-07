@@ -28,12 +28,12 @@ void ZerglingManager::execute(const SquadOrder & inputOrder)
 		auto center = creepsunken.getPosition();
 		// find sunken region
 		auto base = BWAPI::Broodwar->self()->getStartLocation();
-		BWTA::BaseLocation * ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
-		if (!center.isValid() || ebase == nullptr) return;
-		auto path = MapPath::Instance().getPath({ BWAPI::Position(base), ebase->getPosition() });
+		const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
+		if (!center.isValid() || ebases.empty()) return;
+		auto path = MapPath::Instance().getPath({ BWAPI::Position(base), ebases.front().lastPosition });
 		if (path.empty())
 		{
-			MapPath::Instance().insert({ BWAPI::Position(base), ebase->getPosition() });
+			MapPath::Instance().insert({ BWAPI::Position(base), ebases.front().lastPosition });
 			return;
 		}
 		auto groupP = path.size() > 5 ? path[5] : base;
