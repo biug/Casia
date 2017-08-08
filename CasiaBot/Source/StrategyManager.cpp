@@ -19,6 +19,7 @@ StrategyManager::StrategyManager()
 	_actionZVPZealot.init();
 	_actionZVPDragoon.init();
 	_actionZVPZerglingRush.init();
+	_actionZVPHydra.init();
 }
 
 // get an instance of this
@@ -161,6 +162,7 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 		_actionZVPZealot.updateCurrentState(queue);
 		_actionZVPDragoon.updateCurrentState(queue);
 		_actionZVPZerglingRush.updateCurrentState(queue);
+		_actionZVPHydra.updateCurrentState(queue);
 
 		//to do
 		if (_action == nullptr) {
@@ -187,6 +189,7 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 				else if (useZergling) {
 					_action = &_actionZVPZerglingRush;
 				}
+				
 			}
 		}
 		if (_action != nullptr)
@@ -203,6 +206,7 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 		if (_action != nullptr)
 			_action->getBuildOrderList(queue);
 	}
+	_action = &_actionZVPHydra;
 }
 
 void StrategyManager::readOpeningResults()

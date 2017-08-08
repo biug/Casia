@@ -14,6 +14,7 @@
 #include "ActionZVPZealot.h"
 #include "ActionZVPDragoon.h"
 #include "ActionZVPZerglingRush.h"
+#include "ActionZVPHydra.h"
 
 namespace CasiaBot
 {
@@ -67,6 +68,7 @@ class StrategyManager
 	ActionZVPZealot					_actionZVPZealot;
 	ActionZVPDragoon				_actionZVPDragoon;
 	ActionZVPZerglingRush			_actionZVPZerglingRush;
+	ActionZVPHydra					_actionZVPHydra;
 
 	        void	                writeResults();
 	const	int					    getScore(BWAPI::Player player) const;

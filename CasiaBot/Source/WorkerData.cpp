@@ -518,7 +518,6 @@ BWAPI::Unit WorkerData::getLarvaDepot() const
 					if (base == mineralBase || base->getDistance(mineralBase) < 300)
 					{
 						int larvas = base->getLarva().size();
-						BWAPI::Broodwar->drawTextScreen(200, 210, "\x04 size:  %d", mineralBases.size());
 						if (larvas > maxLarva)
 						{
 							maxLarva = larvas;

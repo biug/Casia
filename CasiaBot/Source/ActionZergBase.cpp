@@ -60,6 +60,12 @@ void ActionZergBase::updateCurrentState(ProductionQueue &queue)
 	adrenal_glands_count = queue.upgradeCount(BWAPI::UpgradeTypes::Adrenal_Glands)
 		+ BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Adrenal_Glands)
 		+ (BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Adrenal_Glands) ? 1 : 0);
+	grooved_spines_completing = queue.upgradeCount(BWAPI::UpgradeTypes::Grooved_Spines)
+		|| BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Grooved_Spines)
+		|| (BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Grooved_Spines) );
+	muscular_argument_completing = queue.upgradeCount(BWAPI::UpgradeTypes::Muscular_Augments)
+		|| BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Muscular_Augments)
+		|| (BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Muscular_Augments));
 
 	//½¨Öþ
 	hatchery_count = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Hatchery, BWAPI::Broodwar->self());

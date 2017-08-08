@@ -58,6 +58,8 @@ namespace CasiaBot
 		int guardian_in_queue = 0;                   //队列中守卫者
 		int devourer_in_queue = 0;                   //队列中吞噬者
 
+		bool muscular_argument_completing;
+		bool grooved_spines_completing;
 		int metabolic_boost_count;
 		int lurker_aspect_count;
 		int adrenal_glands_count;
