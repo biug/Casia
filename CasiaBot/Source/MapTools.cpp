@@ -363,7 +363,9 @@ BWAPI::TilePosition MapTools::getNextCreep()
 					if (badPath) continue;
 					for (const auto & node : path)
 					{
-						if (BWAPI::Broodwar->isVisible(node) && BWAPI::Broodwar->hasCreep(node)
+						if (node.getDistance(base->getTilePosition()) < 25
+							&& node.getDistance(base->getTilePosition()) > 7
+							&& BWAPI::Broodwar->hasCreep(node)
 							&& BWAPI::Broodwar->canBuildHere(node, BWAPI::UnitTypes::Zerg_Creep_Colony))
 						{
 							validNodes.insert(node);
@@ -375,7 +377,7 @@ BWAPI::TilePosition MapTools::getNextCreep()
 			BWAPI::TilePosition bestNode = BWAPI::TilePositions::None;
 			for (const auto & node : validNodes)
 			{
-				if (node.getDistance(BWAPI::Broodwar->self()->getStartLocation()) < 10)
+				if (node.getDistance(BWAPI::Broodwar->self()->getStartLocation()) < 25)
 				{
 					bestNode = node;
 					break;
