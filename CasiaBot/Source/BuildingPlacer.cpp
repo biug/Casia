@@ -480,6 +480,7 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 	// 第一个地堡
 	if (numColony == 0)
 	{
+		BWAPI::Broodwar->printf("first");
 		// 寻找这个基地到对方家中的路径
 		auto path = MapPath::Instance().getPath({ base->getPosition(), BWAPI::Position(enemyP) });
 		if (path.empty())
@@ -540,12 +541,13 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 	}
 	else
 	{
+		BWAPI::Broodwar->printf("not first");
 		auto & creepSet = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Creep_Colony);
 		auto & sunkenSet = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Sunken_Colony);
 		BWAPI::Unitset creeps;
 		creeps.insert(creepSet.begin(), creepSet.end());
 		creeps.insert(sunkenSet.begin(), sunkenSet.end());
-		auto center = creeps.getPosition();
+		auto center = BWAPI::TilePosition(creeps.getPosition());
 		int radius = 3;
 		int bestDist = 100000;
 		BWAPI::TilePosition bestTile = BWAPI::TilePositions::None;
@@ -554,13 +556,16 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 			for (int y = center.y - radius; y <= center.y + radius; ++y)
 			{
 				BWAPI::TilePosition tile(x, y);
-				if (BWAPI::Broodwar->hasCreep(tile)
-					&& BWAPI::Broodwar->canBuildHere(tile, BWAPI::UnitTypes::Zerg_Creep_Colony))
+				Building b;
+				b.type = BWAPI::UnitTypes::Zerg_Creep_Colony;
+				auto drones = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Drone);
+				if (drones.size() > 0) b.builderUnit = *drones.begin();
+				if (canBuildHere(tile, b))
 				{
-					if (!bestTile.isValid() || bestDist > tile.getDistance(BWAPI::TilePosition(center)))
+					if (!bestTile.isValid() || bestDist > tile.getDistance(center))
 					{
 						bestTile = tile;
-						bestDist = tile.getDistance(BWAPI::TilePosition(center));
+						bestDist = tile.getDistance(center);
 					}
 				}
 			}

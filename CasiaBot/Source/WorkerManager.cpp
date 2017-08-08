@@ -74,7 +74,7 @@ void WorkerManager::updateWorkerStatus()
 		}
 
 		// if something morphs into a worker, add it
-		if (unit->getType().isWorker() && unit->getHitPoints() >= 0)
+		if (unit->getType().isWorker() && unit->getHitPoints() > 0)
 		{
 			//BWAPI::Broodwar->printf("A worker was shown %d", unit->getID());
 			workerData.addWorker(unit);
@@ -475,9 +475,9 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 	BWAPI::Unit closestMovingWorker = nullptr;
 	BWAPI::Unit closestMiningWorker = nullptr;
 	BWAPI::Unit closestGasWorker = nullptr;
-	double closestMovingWorkerDistance = 0;
-	double closestMiningWorkerDistance = 0;
-	double closestGasWorkerDistance = 0;
+	double closestMovingWorkerDistance = 100000;
+	double closestMiningWorkerDistance = 100000;
+	double closestGasWorkerDistance = 100000;
 
 	// look through each worker that had moved there first
 	for (auto & worker : workerData.getWorkers())
@@ -498,6 +498,7 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 		if (worker->isCompleted() && (workerData.getWorkerJob(worker) == WorkerData::Minerals))
 		{
 			// if it is a new closest distance, set the pointer
+			if (!worker->isMoving()) continue;
 			double distance = worker->getDistance(BWAPI::Position(b.finalPosition));
 			if (!closestMiningWorker || distance < closestMiningWorkerDistance)
 			{
@@ -509,6 +510,7 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 		if (worker->isCompleted() && (workerData.getWorkerJob(worker) == WorkerData::Gas))
 		{
 			// if it is a new closest distance, set the pointer
+			if (!worker->isMoving()) continue;
 			double distance = worker->getDistance(BWAPI::Position(b.finalPosition));
 			if (!closestGasWorker || distance < closestGasWorkerDistance)
 			{
@@ -605,7 +607,9 @@ void WorkerManager::setWorkerMoving(int mineralsNeeded, int gasNeeded, BWAPI::Po
         CAB_ASSERT(unit != nullptr, "Unit was null");
 
 		// only consider it if it's a mineral worker
-		if (unit->isCompleted() && workerData.getWorkerJob(unit) == WorkerData::Minerals)
+		if (unit->isCompleted()
+			&& (workerData.getWorkerJob(unit) == WorkerData::Minerals
+				|| workerData.getWorkerJob(unit) == WorkerData::Gas))
 		{
 			// if it is a new closest distance, set the pointer
 			double distance = unit->getDistance(p);
