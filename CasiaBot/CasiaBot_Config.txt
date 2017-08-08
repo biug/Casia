@@ -83,7 +83,7 @@
         "ZVP"                       : "ZVP_10D",
         "ZVT"                       : "ZVT_9D",
         "ZVZ"                       : "ZVZ_9D",
-        "Random"                    : "ZVT_5D",
+        "Random"                    : "ZVP_10D",
         
         "ScoutGasSteal"             : false,
         "ScoutHarassEnemy"          : true,
