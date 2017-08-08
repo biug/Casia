@@ -201,7 +201,12 @@ const BWAPI::Race & MetaType::getRace() const
 
 bool MetaType::isBuilding()	const 
 { 
-    return _type == MetaTypes::Unit && _unitType.isBuilding(); 
+    return _type == MetaTypes::Unit && _unitType.isBuilding()
+		&& _unitType != BWAPI::UnitTypes::Zerg_Sunken_Colony
+		&& _unitType != BWAPI::UnitTypes::Zerg_Spore_Colony
+		&& _unitType != BWAPI::UnitTypes::Zerg_Lair
+		&& _unitType != BWAPI::UnitTypes::Zerg_Hive
+		&& _unitType != BWAPI::UnitTypes::Zerg_Greater_Spire;
 }
 
 bool MetaType::isRefinery()	const 

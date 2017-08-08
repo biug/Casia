@@ -68,7 +68,7 @@ namespace Config
         bool DrawModuleTimers               = false;
         bool DrawReservedBuildingTiles      = false;
         bool DrawCombatSimulationInfo       = false;
-        bool DrawBuildingInfo               = false;
+        bool DrawBuildingInfo               = true;
         bool DrawMouseCursorInfo            = false;
         bool DrawEnemyUnitInfo              = false;
         bool DrawBWTAInfo                   = false;

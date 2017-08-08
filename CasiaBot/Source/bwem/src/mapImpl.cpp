@@ -765,6 +765,25 @@ bool MapImpl::FindBasesForStartingLocations()
 	return !atLeastOneFailed;
 }
 
+const double MapImpl::GetPathDistance(const BWAPI::Position & a, const BWAPI::Position & b) const
+{
+	const auto & chokes = GetPath(a, b);
+	if (chokes.empty()) return a.getDistance(b);
+	else
+	{
+		double distanceFromHome = 0.0;
+		distanceFromHome = a.getDistance(BWAPI::Position(chokes.front()->Center()));
+		for (int i = 0; i < chokes.size() - 1; ++i)
+		{
+			BWAPI::Position p1(chokes[i]->Center());
+			BWAPI::Position p2(chokes[i + 1]->Center());
+			distanceFromHome += p1.getDistance(p2);
+		}
+		distanceFromHome += b.getDistance(BWAPI::Position(chokes.back()->Center()));
+		return distanceFromHome;
+	}
+}
+
 
 }} // namespace BWEM::detail
 
