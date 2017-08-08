@@ -77,7 +77,12 @@ void InformationManager::updateBaseLocationInfo()
 		{
 			// update the enemy occupied regions
 			updateOccupiedRegions(BWTA::getRegion(BWAPI::TilePosition(ui.lastPosition)), _enemy);
-			if (type.isResourceDepot())
+			if (type.isResourceDepot()
+				|| type == BWAPI::UnitTypes::Zerg_Hatchery
+				|| type == BWAPI::UnitTypes::Zerg_Lair
+				|| type == BWAPI::UnitTypes::Zerg_Hive
+				|| type == BWAPI::UnitTypes::Terran_Command_Center
+				|| type == BWAPI::UnitTypes::Protoss_Nexus)
 			{
 				bool find = false;
 				for (const auto & base : _enemyBaseInfos)
@@ -107,7 +112,10 @@ void InformationManager::updateBaseLocationInfo()
 		{
 			// update the enemy occupied regions
 			updateOccupiedRegions(BWTA::getRegion(BWAPI::TilePosition(ui.lastPosition)), _self);
-			if (type.isResourceDepot())
+			if (type.isResourceDepot()
+				|| type == BWAPI::UnitTypes::Zerg_Hatchery
+				|| type == BWAPI::UnitTypes::Zerg_Lair
+				|| type == BWAPI::UnitTypes::Zerg_Hive)
 			{
 				bool find = false;
 				for (const auto & base : _selfBases)
@@ -164,19 +172,23 @@ bool InformationManager::beingMarineRushed()
 {
 	int numBarracks = getNumUnits(BWAPI::UnitTypes::Terran_Barracks, BWAPI::Broodwar->enemy());
 	int numMarine = getNumUnits(BWAPI::UnitTypes::Terran_Marine, BWAPI::Broodwar->enemy());
+	int numZergling = getNumUnits(BWAPI::UnitTypes::Zerg_Zergling, BWAPI::Broodwar->self());
 	int frameCount = BWAPI::Broodwar->getFrameCount();
 	return (frameCount <= 3600 && numBarracks >= 2) ||
-		(frameCount <= 5000 && numMarine >= 5);
+		(frameCount <= 5000 && numMarine >= 5) ||
+		(numMarine >= 6 && numZergling <= 12);
 }
 
 bool InformationManager::beingZealotRushed()
 {
 	int numGateway = getNumUnits(BWAPI::UnitTypes::Protoss_Gateway, BWAPI::Broodwar->enemy());
 	int numZealot = getNumUnits(BWAPI::UnitTypes::Protoss_Zealot, BWAPI::Broodwar->enemy());
+	int numZergling = getNumUnits(BWAPI::UnitTypes::Zerg_Zergling, BWAPI::Broodwar->self());
 	int frameCount = BWAPI::Broodwar->getFrameCount();
 	return (frameCount <= 3300 && numGateway >= 2) ||
 		(frameCount <= 4000 && numZealot >= 2) ||
-		(frameCount <= 5000 && numZealot >= 5);
+		(frameCount <= 5000 && numZealot >= 4) ||
+		(numZealot >= 4 && numZergling <= 12);
 }
 
 bool InformationManager::beingZerglingRushed()

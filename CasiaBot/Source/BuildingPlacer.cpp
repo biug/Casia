@@ -463,7 +463,9 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 {
 	if (base == nullptr) base = getDefenseBase();
 	if (!base) return BWAPI::TilePositions::None;
-	int numColony = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Creep_Colony, BWAPI::Broodwar->self());
+	int numColony =
+		InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Creep_Colony, BWAPI::Broodwar->self())
+		+ InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Sunken_Colony, BWAPI::Broodwar->self());
 	numColony += numCreep;
 	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
 	auto enemyP = BWAPI::Positions::None;
