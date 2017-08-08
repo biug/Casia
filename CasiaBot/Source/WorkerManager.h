@@ -68,6 +68,7 @@ public:
     BWAPI::Unit getWorkerScout();
 	BWAPI::Unit getLarvaDepot();
 	const BWAPI::Unitset & getRefineries() const;
+	const BWAPI::Unitset & getMineralPatches(BWAPI::Unit base) const;
 	void addCanceledRefineryLocation(BWAPI::TilePosition position);
 	const std::set<BWAPI::TilePosition> & getCanceledRefineryLocations() const;
 

@@ -48,6 +48,9 @@ public:
     void					computeResourceBox();
 
     BWAPI::TilePosition		getRefineryPosition();
+	BWAPI::Unit				getDefenseBase();
+	BWAPI::TilePosition		getCreepPosition(int numCreep, BWAPI::Unit base = nullptr);
+	bool					isAwayResource(BWAPI::TilePosition tp, BWAPI::Unit base);
 
 };
 }

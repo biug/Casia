@@ -47,7 +47,7 @@ void InformationManager::initializeRegionInformation()
 	// set initial pointers to null
 	for (const auto & unit : BWAPI::Broodwar->self()->getUnits())
 	{
-		if (unit->getType() == BWAPI::UnitTypes::Zerg_Hatchery)
+		if (unit->getType().isResourceDepot())
 		{
 			_selfBases.push_back(unit);
 			// push that region into our occupied vector

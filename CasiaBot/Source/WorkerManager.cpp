@@ -333,6 +333,11 @@ const BWAPI::Unitset & WorkerManager::getRefineries() const
 	return workerData.getRefineries();
 }
 
+const BWAPI::Unitset & WorkerManager::getMineralPatches(BWAPI::Unit base) const
+{
+	return workerData.getMineralPatches(base);
+}
+
 void WorkerManager::addCanceledRefineryLocation(BWAPI::TilePosition position)
 {
 	return workerData.addCanceledRefineryLocation(position);
