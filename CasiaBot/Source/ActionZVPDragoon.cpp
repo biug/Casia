@@ -148,7 +148,7 @@ void ActionZVPDragoon::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 	}
 	else
 	{
-		if (creep_colony_count + creep_colony_in_queue == 0 && isSunkenColonyExist)
+		if (!isCreepColonyExist && isSunkenColonyExist)
 		{
 			if (drone_count + drone_in_queue >= 7
 				&& creep_colony_total + sunken_colony_total < (being_rushed ? sunkenUpperBound : sunkenLowerBound))
@@ -240,22 +240,28 @@ void ActionZVPDragoon::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 	bool notEnoughDrone = false;
 	if (real_base_count == 1)
 	{
-		if (drone_count + drone_in_queue < 12)
+		if (drone_in_queue < ((base_completed * 3) + 1) / 2)
 		{
-			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
-		}
-		else if (zergling_count >= 6 && drone_count + drone_in_queue < 15)
-		{
-			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone));
+			if (drone_count + drone_in_queue < 12)
+			{
+				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+			}
+			else if (zergling_count >= 6 && drone_count + drone_in_queue < 15)
+			{
+				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone));
+			}
 		}
 		notEnoughDrone = drone_count + drone_in_queue < 12;
 	}
 	else
 	{
 		notEnoughDrone = drone_count + drone_in_queue < 8 * real_base_count;
-		if (drone_count + drone_in_queue < real_base_count * 10)
+		if (drone_in_queue < ((base_completed * 3) + 1) / 2)
 		{
-			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), notEnoughDrone);
+			if (drone_count + drone_in_queue < real_base_count * 10)
+			{
+				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), notEnoughDrone);
+			}
 		}
 	}
 
@@ -263,49 +269,53 @@ void ActionZVPDragoon::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 	int need_zergling_count = 0;
 	if (isSpawningPoolExist)
 	{
-		//首先根据敌方单位数量判断
-		need_zergling_count = std::max(need_zergling_count, enemy_zealot_count * 4 + enemy_dragoon_count * 3 - zergling_count - zergling_in_queue);
-		if (need_zergling_count < 2)
-		{
-			//保证数量
-			if (zergling_count + zergling_in_queue < 20)
-				need_zergling_count = 2;
-			//在资源富余的情况下继续生产
-			if (mineralDequePositive && isExtractorExist && gasDequePositive && zergling_in_queue < 6)
-				need_zergling_count = 2;
-		}
-		else if (need_zergling_count > 2)
-		{
-			need_zergling_count = 2;
-		}
+		////首先根据敌方单位数量判断
+		//need_zergling_count = std::max(need_zergling_count, enemy_zealot_count * 4 + enemy_dragoon_count * 3 - zergling_count - zergling_in_queue);
+
+		// 根据幼虫数量判断
+		need_zergling_count = ((larva_count + 1) / 2) * 2 - zergling_in_queue;
+
+		//if (need_zergling_count < 2)
+		//{
+		//	//保证数量
+		//	if (zergling_count + zergling_in_queue < 20)
+		//		need_zergling_count = 2;
+		//	//在资源富余的情况下继续生产
+		//	if (mineralDequePositive && isExtractorExist && gasDequePositive && zergling_in_queue < 6)
+		//		need_zergling_count = 2;
+		//}
+		//else if (need_zergling_count > 2)
+		//{
+		//	need_zergling_count = 2;
+		//}
 		// 小狗太多时停止造小狗
 		if (zergling_count + zergling_in_queue > zerglingLimit)
 		{
 			need_zergling_count = 0;
 		}
-		if (zergling_count + zergling_in_queue < 16)
-		{
-			need_zergling_count = 4;
-		}
+		//if (zergling_count + zergling_in_queue < 16)
+		//{
+		//	need_zergling_count = 4;
+		//}
 
 		//优先补农民
 		if (notEnoughDrone && zergling_count + zergling_in_queue >= 15)
 		{
 			need_zergling_count = 0;
 		}
-		// 建造防御建筑时减少造小狗，若其他部队数量多时可继续建造
-		if (isBuildingSunkenColony && !isSunkenColonyBuildingComplete)
-		{
-			if (zergling_count + zergling_in_queue < 16)
-			{
-				need_zergling_count = 2;
-			}
-			else
-			{
-				need_zergling_count = lurker_count + lurker_in_queue >= 3 ? 2 : 0;
-			}
+		//// 建造防御建筑时减少造小狗，若其他部队数量多时可继续建造
+		//if (isBuildingSunkenColony && !isSunkenColonyBuildingComplete)
+		//{
+		//	if (zergling_count + zergling_in_queue < 16)
+		//	{
+		//		need_zergling_count = 2;
+		//	}
+		//	else
+		//	{
+		//		need_zergling_count = lurker_count + lurker_in_queue >= 3 ? 2 : 0;
+		//	}
 
-		}
+		//}
 	}
 	int need_hydralisk_count = 0;
 	if (isHydraliskDenExist)
