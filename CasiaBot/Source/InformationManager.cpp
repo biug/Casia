@@ -62,6 +62,30 @@ void InformationManager::initializeRegionInformation()
 
 void InformationManager::updateBaseLocationInfo() 
 {
+	for (BWTA::BaseLocation * base : BWTA::getBaseLocations())
+	{
+		BWAPI::Position myBasePosition(BWAPI::Broodwar->self()->getStartLocation());
+		BWAPI::Position thisTile = BWAPI::Position(base->getTilePosition());
+		const auto & chokes = BWEM::Map::Instance().GetPath(myBasePosition, thisTile);
+		if (!chokes.empty())
+		{
+			for (int i = 0; i < chokes.size() - 1; ++i)
+			{
+				if (chokes[i] && chokes[i + 1])
+				{
+					BWAPI::Broodwar->drawLineMap(
+						BWAPI::Position(chokes[i]->Center()),
+						BWAPI::Position(chokes[i + 1]->Center()),
+						BWAPI::Colors::Blue);
+				}
+				else
+				{
+					BWAPI::Broodwar->printf("bad choke");
+				}
+			}
+		}
+	}
+
 	BWTA::Region * region;
 	_occupiedRegions[_self].clear();
 	_occupiedRegions[_enemy].clear();

@@ -23,7 +23,9 @@ void OverlordManager::initEnemyBase()
 		return;
 	}
 	const auto & sbases = InformationManager::Instance().getSelfBases();
-	auto sbaseP = sbases.front()->getPosition();
+	auto sbaseP = sbases.empty()
+		? BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation())
+		: sbases.front()->getPosition();
 	//0最近的，1最远的，2剩下那个
 	int minDistance = 0;
 	int maxDistance = 0;
@@ -95,7 +97,9 @@ void OverlordManager::executeMove(const SquadOrder & inputOrder)
     const BWAPI::Unitset & overlordUnits = getUnits();
     //different position need to do
 	const auto & sbases = InformationManager::Instance().getSelfBases();
-	auto sbaseP = sbases.front()->getPosition();
+	auto sbaseP = sbases.empty()
+		? BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation())
+		: sbases.front()->getPosition();
 	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
 	//初始化开始基地的数据
 	initEnemyBase();

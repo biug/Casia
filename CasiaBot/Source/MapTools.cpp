@@ -183,86 +183,86 @@ void MapTools::search(DistanceMap & dmap,const int sR,const int sC)
             _fringe[fringeSize++] = nextIndex;
         }
 
-        // search right
-        nextIndex = (currentIndex % _cols < _cols - 1) ? (currentIndex + 1) : -1;
-        if (unexplored(dmap,nextIndex))
-        {
-            // set the distance based on distance to current cell
-            dmap.setDistance(nextIndex,newDist);
-            dmap.setMoveTo(nextIndex,'L');
-            dmap.addSorted(getTilePosition(nextIndex));
+// search right
+nextIndex = (currentIndex % _cols < _cols - 1) ? (currentIndex + 1) : -1;
+if (unexplored(dmap, nextIndex))
+{
+	// set the distance based on distance to current cell
+	dmap.setDistance(nextIndex, newDist);
+	dmap.setMoveTo(nextIndex, 'L');
+	dmap.addSorted(getTilePosition(nextIndex));
 
-            // put it in the fringe
-            _fringe[fringeSize++] = nextIndex;
-        }
-    }
+	// put it in the fringe
+	_fringe[fringeSize++] = nextIndex;
+}
+	}
 }
 
 const std::vector<BWAPI::TilePosition> & MapTools::getClosestTilesTo(BWAPI::Position pos)
 {
-    // make sure the distance map is calculated with pos as a destination
-    int a = getGroundDistance(BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation()),pos);
+	// make sure the distance map is calculated with pos as a destination
+	int a = getGroundDistance(BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation()), pos);
 
-    return _allMaps[pos].getSortedTiles();
+	return _allMaps[pos].getSortedTiles();
 }
 
 BWAPI::TilePosition MapTools::getTilePosition(int index)
 {
-    return BWAPI::TilePosition(index % _cols,index / _cols);
+	return BWAPI::TilePosition(index % _cols, index / _cols);
 }
 
 BWAPI::TilePosition MapTools::getNextExpansion()
 {
-    return getNextExpansion(BWAPI::Broodwar->self());
+	return getNextExpansion(BWAPI::Broodwar->self());
 }
 
 void MapTools::drawHomeDistanceMap()
 {
-    BWAPI::Position homePosition = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
-    for (int x = 0; x < BWAPI::Broodwar->mapWidth(); ++x)
-    {
-        for (int y = 0; y < BWAPI::Broodwar->mapHeight(); ++y)
-        {
-            BWAPI::Position pos(x*32, y*32);
+	BWAPI::Position homePosition = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
+	for (int x = 0; x < BWAPI::Broodwar->mapWidth(); ++x)
+	{
+		for (int y = 0; y < BWAPI::Broodwar->mapHeight(); ++y)
+		{
+			BWAPI::Position pos(x * 32, y * 32);
 
-            int dist = getGroundDistance(pos, homePosition);
+			int dist = getGroundDistance(pos, homePosition);
 
-            BWAPI::Broodwar->drawTextMap(pos + BWAPI::Position(16,16), "%d", dist);
-        }
-    }
+			BWAPI::Broodwar->drawTextMap(pos + BWAPI::Position(16, 16), "%d", dist);
+		}
+	}
 }
 
 BWAPI::TilePosition MapTools::getNextExpansion(BWAPI::Player player)
 {
-    BWTA::BaseLocation * closestMineBase = nullptr;
+	BWTA::BaseLocation * closestMineBase = nullptr;
 	BWTA::BaseLocation * closestGasBase = nullptr;
-    double minMineDistance = 100000;
+	double minMineDistance = 100000;
 	double minGasDistance = 100000;
 
-    BWAPI::TilePosition homeTile = player->getStartLocation();
+	BWAPI::TilePosition homeTile = player->getStartLocation();
 
-    // for each base location
-    for (BWTA::BaseLocation * base : BWTA::getBaseLocations())
-    {
-        // if the base has gas
-        if (!(base == BWTA::getStartLocation(player)))
-        {
-            // get the tile position of the base
-            BWAPI::TilePosition tile = base->getTilePosition();
-            bool buildingInTheWay = false;
+	// for each base location
+	for (BWTA::BaseLocation * base : BWTA::getBaseLocations())
+	{
+		// if the base has gas
+		if (!(base == BWTA::getStartLocation(player)))
+		{
+			// get the tile position of the base
+			BWAPI::TilePosition tile = base->getTilePosition();
+			bool buildingInTheWay = false;
 
-            for (int x = 0; x < BWAPI::Broodwar->self()->getRace().getCenter().tileWidth(); ++x)
-            {
-                for (int y = 0; y < BWAPI::Broodwar->self()->getRace().getCenter().tileHeight(); ++y)
-                {
-                    BWAPI::TilePosition tp(tile.x + x, tile.y + y);
+			for (int x = 0; x < BWAPI::Broodwar->self()->getRace().getCenter().tileWidth(); ++x)
+			{
+				for (int y = 0; y < BWAPI::Broodwar->self()->getRace().getCenter().tileHeight(); ++y)
+				{
+					BWAPI::TilePosition tp(tile.x + x, tile.y + y);
 
-                    for (auto & unit : BWAPI::Broodwar->getUnitsOnTile(tp))
-                    {
-                        if (unit->getType().isBuilding() && !unit->isFlying())
-                        {
-                            buildingInTheWay = true;
-break;
+					for (auto & unit : BWAPI::Broodwar->getUnitsOnTile(tp))
+					{
+						if (unit->getType().isBuilding() && !unit->isFlying())
+						{
+							buildingInTheWay = true;
+							break;
 						}
 					}
 				}
@@ -276,7 +276,20 @@ break;
 			// the base's distance from our main nexus
 			BWAPI::Position myBasePosition(player->getStartLocation());
 			BWAPI::Position thisTile = BWAPI::Position(tile);
-			double distanceFromHome = MapTools::Instance().getGroundDistance(thisTile, myBasePosition);
+			const auto & chokes = BWEM::Map::Instance().GetPath(myBasePosition, thisTile);
+			double distanceFromHome = 0.0;
+			if (chokes.empty()) distanceFromHome = myBasePosition.getDistance(thisTile);
+			else
+			{
+				distanceFromHome = myBasePosition.getDistance(BWAPI::Position(chokes.front()->Center()));
+				for (int i = 0; i < chokes.size() - 1; ++i)
+				{
+					BWAPI::Position p1(chokes[i]->Center());
+					BWAPI::Position p2(chokes[i + 1]->Center());
+					distanceFromHome += p1.getDistance(p2);
+				}
+				distanceFromHome += thisTile.getDistance(BWAPI::Position(chokes.back()->Center()));
+			}
 
 			// if it is not connected, continue
 			if (!BWTA::isConnected(homeTile, tile) || distanceFromHome < 0)
