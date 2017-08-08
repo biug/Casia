@@ -35,24 +35,34 @@ void HydraliskManager::execute(const SquadOrder & inputOrder)
 		}
 		auto center = creepsunken.getPosition();
 		// find sunken region
+		auto bases = InformationManager::Instance().getSelfBases();
+		BWAPI::Position baseP = BWAPI::Positions::None;
+		for (const auto & b : bases)
+		{
+			if (b->getDistance(center) < 300)
+			{
+				baseP = b->getPosition();
+				break;
+			}
+		}
+		if (!baseP.isValid())
+		{
+			baseP = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
+		}
 		const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
-		if (!center.isValid() || ebases.empty()) return;
-		auto ebaseP = ebases.front().lastPosition;
-		auto path = MapPath::Instance().getPath({ center, ebaseP });
+		if (!center.isValid() || ebases.empty()) center = baseP;
+		auto path = MapPath::Instance().getPath({ baseP, ebases.front().lastPosition });
 		if (path.empty())
 		{
-			MapPath::Instance().insert({ center, ebaseP });
-			for (auto & meleeUnit : getUnits())
-			{
-				Micro::SmartMove(meleeUnit, BWAPI::Position(base));
-			}
+			MapPath::Instance().insert({ baseP, ebases.front().lastPosition });
 			return;
 		}
-		auto groupP = path.size() > 3 ? path[3] : BWAPI::TilePosition(center);
+		// 集结在地堡和基地的中间
+		auto groupP = (center + baseP) / 2;
 
 		BWAPI::Unitset nearbyEnemies;
 		const BWAPI::Unitset & meleeUnits = getUnits();
-		MapGrid::Instance().GetUnits(nearbyEnemies, center, 200, false, true);
+		MapGrid::Instance().GetUnits(nearbyEnemies, center, 160, false, true);
 		if (nearbyEnemies.empty())
 		{
 			for (auto & meleeUnit : meleeUnits)
