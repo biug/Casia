@@ -80,7 +80,7 @@ void ScoutManager::moveScouts()
     gasSteal();
 
 	// get the enemy base location, if we have one
-	BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
 
     int scoutDistanceThreshold = 30;
 
@@ -102,9 +102,9 @@ void ScoutManager::moveScouts()
     }
     
 	// if we know where the enemy region is and where our scout is
-	if (_workerScout && enemyBaseLocation)
+	if (_workerScout && !ebases.empty())
 	{
-        int scoutDistanceToEnemy = MapTools::Instance().getGroundDistance(_workerScout->getPosition(), enemyBaseLocation->getPosition());
+        int scoutDistanceToEnemy = MapTools::Instance().getGroundDistance(_workerScout->getPosition(), ebases.front().lastPosition);
         bool scoutInRangeOfenemy = scoutDistanceToEnemy <= scoutDistanceThreshold;
         
         // we only care if the scout is under attack within the enemy region
@@ -168,11 +168,52 @@ void ScoutManager::moveScouts()
 	}
 
 	// for each start location in the level
-	if (!enemyBaseLocation)
+	if (ebases.empty())
 	{
         _scoutStatus = "Enemy base unknown, exploring";
 
-		for (BWTA::BaseLocation * startLocation : BWTA::getStartLocations()) 
+		//ÄæÊ±ÕëÌ½Â·
+		auto bs = BWTA::getStartLocations();
+		std::vector<BWTA::BaseLocation *> bv(bs.begin(), bs.end());
+		auto cmp = [](const BWTA::BaseLocation *pb1, const BWTA::BaseLocation *pb2) {
+			BWAPI::Position center(BWAPI::Broodwar->mapWidth() / 2, BWAPI::Broodwar->mapHeight() / 2);
+			int dx1 = pb1->getPosition().x - center.x, dy1 = pb1->getPosition().y - center.y;
+			int dx2 = pb2->getPosition().x - center.x, dy2 = pb2->getPosition().y - center.y;
+			double theta1, theta2;
+			if (dx1 == 0)
+			{
+				if (dy1 > 0)
+					theta1 = M_PI / 2;
+				else
+					theta1 = M_PI * 3 / 2;
+			}
+			else
+			{
+				theta1 = std::atan2(dy1, dx1);
+			}
+
+			if (dx2 == 0)
+			{
+				if (dy2 > 0)
+					theta2 = M_PI / 2;
+				else
+					theta2 = M_PI * 3 / 2;
+			}
+			else
+			{
+				theta2 = std::atan2(dy2, dx2);
+			}
+			//½µÐòÁÐ->ÄæÊ±Õë
+			return theta1 > theta2;
+		};
+
+		std::sort(bv.begin(), bv.end(), cmp);
+		auto iter = std::find(bv.begin(), bv.end(), BWTA::getStartLocation(BWAPI::Broodwar->self()));
+		std::reverse(bv.begin(), iter);
+		std::reverse(iter, bv.end());
+		std::reverse(bv.begin(), bv.end());
+
+		for (BWTA::BaseLocation * startLocation : bv) 
 		{
 			// if we haven't explored it yet
 			if (!BWAPI::Broodwar->isExplored(startLocation->getTilePosition())) 
@@ -218,8 +259,8 @@ void ScoutManager::gasSteal()
         return;
     }
 
-    BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
-    if (!enemyBaseLocation)
+	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
+    if (ebases.empty())
     {
         _gasStealStatus = "No enemy base location found";
         return;
@@ -229,7 +270,7 @@ void ScoutManager::gasSteal()
     if (!enemyGeyser)
     {
         _gasStealStatus = "No enemy geyser found";
-        false;
+        return;
     }
 
     if (!_didGasSteal)
@@ -247,8 +288,6 @@ BWAPI::Unit ScoutManager::closestEnemyWorker()
 	double maxDist = 0;
 
 	
-	BWAPI::Unit geyser = getEnemyGeyser();
-	
 	for (auto & unit : BWAPI::Broodwar->enemy()->getUnits())
 	{
 		if (unit->getType().isWorker() && unit->isConstructing())
@@ -258,11 +297,14 @@ BWAPI::Unit ScoutManager::closestEnemyWorker()
 	}
 
 	// for each enemy worker
+	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
+	if (ebases.empty()) return nullptr;
 	for (auto & unit : BWAPI::Broodwar->enemy()->getUnits())
 	{
+		auto ebaseP = ebases.front().lastPosition;
 		if (unit->getType().isWorker())
 		{
-			double dist = unit->getDistance(geyser);
+			double dist = unit->getDistance(ebaseP);
 
 			if (dist < 800 && dist > maxDist)
 			{
@@ -277,15 +319,7 @@ BWAPI::Unit ScoutManager::closestEnemyWorker()
 
 BWAPI::Unit ScoutManager::getEnemyGeyser()
 {
-	BWAPI::Unit geyser = nullptr;
-	BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
-
-	for (auto & unit : enemyBaseLocation->getGeysers())
-	{
-		geyser = unit;
-	}
-
-	return geyser;
+	return nullptr;
 }
 
 bool ScoutManager::enemyWorkerInRadius()
@@ -352,8 +386,6 @@ int ScoutManager::getClosestVertexIndex(BWAPI::Unit unit)
 BWAPI::Position ScoutManager::getFleePosition()
 {
     CAB_ASSERT_WARNING(!_enemyRegionVertices.empty(), "We should have an enemy region vertices if we are fleeing");
-    
-    BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
 
     // if this is the first flee, we will not have a previous perimeter index
     if (_currentRegionVertexIndex == -1)
@@ -394,15 +426,15 @@ BWAPI::Position ScoutManager::getFleePosition()
 
 void ScoutManager::calculateEnemyRegionVertices()
 {
-    BWTA::BaseLocation * enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
     //CAB_ASSERT_WARNING(enemyBaseLocation, "We should have an enemy base location if we are fleeing");
 
-    if (!enemyBaseLocation)
+    if (ebases.empty())
     {
         return;
     }
 
-    BWTA::Region * enemyRegion = enemyBaseLocation->getRegion();
+    BWTA::Region * enemyRegion = BWTA::getRegion(ebases.front().lastPosition);
     //CAB_ASSERT_WARNING(enemyRegion, "We should have an enemy region if we are fleeing");
 
     if (!enemyRegion)

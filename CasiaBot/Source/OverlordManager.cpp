@@ -22,13 +22,16 @@ void OverlordManager::initEnemyBase()
 	{
 		return;
 	}
-	BWAPI::Position ourBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->self())->getPosition();
+	const auto & sbases = InformationManager::Instance().getSelfBases();
+	auto sbaseP = sbases.empty()
+		? BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation())
+		: sbases.front()->getPosition();
 	//0最近的，1最远的，2剩下那个
 	int minDistance = 0;
 	int maxDistance = 0;
 	int nowDistance;
 	for (auto & base : BWTA::getStartLocations()) {
-		nowDistance = abs(base->getPosition().x - ourBaseLocation.x) + abs(base->getPosition().y - ourBaseLocation.y);
+		nowDistance = abs(base->getPosition().x - sbaseP.x) + abs(base->getPosition().y - sbaseP.y);
 		if ((startBase[0] == nullptr || minDistance > nowDistance) && nowDistance != 0){
 			startBase[0] = base;
 			minDistance = nowDistance;
@@ -45,7 +48,7 @@ void OverlordManager::initEnemyBase()
 		needDetect[1] = false;
 	}
 	for (auto & base : BWTA::getStartLocations()) {
-		if (startBase[0] != base && startBase[1] != base && ourBaseLocation != base->getPosition()){
+		if (startBase[0] != base && startBase[1] != base && sbaseP != base->getPosition()){
 			startBase[2] = base;
 			needDetect[2] = true;
 		}
@@ -57,7 +60,7 @@ void OverlordManager::initEnemyBase()
 	//以地图中心建立坐标系，与地图数据中y方向相反
 	double angle[4];
 	angle[0] = atan2(halfHeight - startBase[0]->getPosition().y, startBase[0]->getPosition().x - halfWidth);
-	angle[3] = atan2(halfHeight - ourBaseLocation.y, ourBaseLocation.x - halfWidth);
+	angle[3] = atan2(halfHeight - sbaseP.y, sbaseP.x - halfWidth);
 	int compare = 0;
 	if (needDetect[2])
 	{
@@ -93,8 +96,11 @@ void OverlordManager::executeMove(const SquadOrder & inputOrder)
 
     const BWAPI::Unitset & overlordUnits = getUnits();
     //different position need to do
-	BWAPI::Position ourBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->self())->getPosition();
-    BWTA::BaseLocation *enemyBaseLocation = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
+	const auto & sbases = InformationManager::Instance().getSelfBases();
+	auto sbaseP = sbases.empty()
+		? BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation())
+		: sbases.front()->getPosition();
+	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
 	//初始化开始基地的数据
 	initEnemyBase();
 	
@@ -150,7 +156,7 @@ void OverlordManager::executeMove(const SquadOrder & inputOrder)
 				BWAPI::Position aimPosition;
 				int aimPlace = -1;
 				//顺时针探路
-				if (enemyBaseLocation == nullptr)
+				if (ebases.empty())
 				{
 					////从最小开始的方向
 					//if (current == 0)
@@ -189,7 +195,8 @@ void OverlordManager::executeMove(const SquadOrder & inputOrder)
 				//探到基地，去角落呆着
 				else
 				{
-					aimPosition = enemyBaseLocation->getPosition();
+					auto ebaseP = ebases.front().lastPosition;
+					aimPosition = ebaseP;
 					int maxWidth = 32 * BWAPI::Broodwar->mapWidth();
 					int maxHeight = 32 * BWAPI::Broodwar->mapHeight();
 					if (aimPosition.x > maxWidth / 2)
@@ -232,9 +239,9 @@ void OverlordManager::executeMove(const SquadOrder & inputOrder)
 				curBase++;
 			}
 			//剩下全呆家里
-			else if (overlordUnit->getDistance(ourBaseLocation) < 100)
+			else if (overlordUnit->getDistance(sbaseP) < 100)
 			{
-				Micro::SmartMove(overlordUnit, ourBaseLocation);
+				Micro::SmartMove(overlordUnit, sbaseP);
 			}
         }
     }

@@ -18,9 +18,6 @@ namespace CasiaBot
 
 	protected:
 		virtual void tryAddInQueue(CasiaBot::ProductionQueue &queue, const CasiaBot::ProductionItem & item, bool priority = false) = 0;
-		BWAPI::Position getDefenceChoke(BWAPI::TilePosition current);
-		void generateMainPath();
-		BWAPI::Unit furthestResDepotOnMainPath();
 
 	protected:
 		//己方已生成单位

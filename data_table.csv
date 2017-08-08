@@ -1,0 +1,43 @@
+last time,'2017-08-08 00:45:15,UTC/GMT+02:00,now time,'2017-08-08 02:36:13,UTC/GMT+02:00
+name,race,type,wins,all,win rate
+Andrew Smith,Protoss,AI_MODULE,1,2,50.0
+Antiga,Zerg,AI_MODULE,1,1,100.0
+Aurelien Lermant,Zerg,JAVA_JNI,1,1,100.0
+AyyyLmao,Protoss,JAVA_JNI,0,1,0.0
+Bereaver,Protoss,EXE,0,1,0.0
+Bjorn P Mattsson,Zerg,JAVA_MIRROR,1,1,100.0
+Black Crow,Zerg,EXE,1,1,100.0
+DAIDOES,Protoss,AI_MODULE,0,3,0.0
+Dawid Loranc,Zerg,JAVA_MIRROR,2,2,100.0
+ICELab,Terran,AI_MODULE,0,1,0.0
+Jakub Trancik,Protoss,AI_MODULE,0,1,0.0
+Johan Kayser,Terran,AI_MODULE,1,1,100.0
+Kruecke,Terran,AI_MODULE,2,2,100.0
+Lukas Moravec,Protoss,AI_MODULE,0,2,0.0
+Marian Devecka,Zerg,AI_MODULE,1,1,100.0
+Marine Hell,Terran,JAVA_MIRROR,2,2,100.0
+MegaBot,Protoss,AI_MODULE,0,1,0.0
+Microwave,Zerg,AI_MODULE,0,1,0.0
+OpprimoBot,Random,AI_MODULE,1,1,100.0
+Oyvind Johannessen,Random,JAVA_MIRROR,1,1,100.0
+PeregrineBot,Zerg,AI_MODULE,2,2,100.0
+PurpleCheese,Protoss,JAVA_MIRROR,0,1,0.0
+PurpleWave,Protoss,JAVA_MIRROR,6,6,100.0
+Randomhammer,Random,AI_MODULE,0,2,0.0
+Soeren Klett,Terran,JAVA_JNI,2,2,100.0
+Sparks,Terran,AI_MODULE,2,2,100.0
+Steamhammer,Zerg,AI_MODULE,0,1,0.0
+Stone,Terran,AI_MODULE,1,1,100.0
+TyrProtoss,Protoss,JAVA_MIRROR,1,3,33.333333333333336
+UPStarCraftAI 2016,Zerg,JAVA_MIRROR,1,1,100.0
+WOPR Z,Zerg,JAVA_MIRROR,3,3,100.0
+Zia bot,Zerg,AI_MODULE,2,2,100.0
+ZurZurZur,Zerg,JAVA_MIRROR,0,2,0.0
+krasi0,Terran,EXE,0,4,0.0
+zLyfe,Zerg,AI_MODULE,1,1,100.0
+zhandong,Zerg,AI_MODULE,1,1,100.0
+Sum,All,,37,61,60.65573770491803
+Sum,Protoss,,8,21,38.095238095238095
+Sum,Zerg,,17,21,80.95238095238095
+Sum,Terran,,10,15,66.66666666666667
+Sum,Random,,2,4,50.0

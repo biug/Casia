@@ -90,9 +90,6 @@
     <ClCompile Include="..\source\WorkerManager.cpp">
       <Filter>game\macro</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\DetectorManager.cpp">
-      <Filter>game\combat\micro</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\MeleeManager.cpp">
       <Filter>game\combat\micro</Filter>
     </ClCompile>
@@ -103,9 +100,6 @@
       <Filter>game\combat\micro</Filter>
     </ClCompile>
     <ClCompile Include="..\source\ScoutManager.cpp">
-      <Filter>game\combat\micro</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\TransportManager.cpp">
       <Filter>game\combat\micro</Filter>
     </ClCompile>
     <ClCompile Include="..\source\BuildOrderQueue.cpp">
@@ -146,12 +140,6 @@
     </ClCompile>
     <ClCompile Include="..\Source\UnitUtil.cpp">
       <Filter>util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Source\TankManager.cpp">
-      <Filter>game\combat\micro</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Source\MedicManager.cpp">
-      <Filter>game\combat\micro</Filter>
     </ClCompile>
     <ClCompile Include="..\Source\Logger.cpp">
       <Filter>util</Filter>
@@ -323,12 +311,6 @@
     <ClInclude Include="..\source\WorkerManager.h">
       <Filter>game\macro</Filter>
     </ClInclude>
-    <ClInclude Include="..\source\DetectorManager.h">
-      <Filter>game\combat\micro</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\TransportManager.h">
-      <Filter>game\combat\micro</Filter>
-    </ClInclude>
     <ClInclude Include="..\source\MeleeManager.h">
       <Filter>game\combat\micro</Filter>
     </ClInclude>
@@ -379,12 +361,6 @@
     </ClInclude>
     <ClInclude Include="..\Source\UnitUtil.h">
       <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Source\TankManager.h">
-      <Filter>game\combat\micro</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Source\MedicManager.h">
-      <Filter>game\combat\micro</Filter>
     </ClInclude>
     <ClInclude Include="..\Source\Logger.h">
       <Filter>util</Filter>

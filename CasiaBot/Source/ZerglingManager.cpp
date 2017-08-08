@@ -27,20 +27,34 @@ void ZerglingManager::execute(const SquadOrder & inputOrder)
 		if (creepsunken.empty()) return;
 		auto center = creepsunken.getPosition();
 		// find sunken region
-		auto base = BWAPI::Broodwar->self()->getStartLocation();
-		BWTA::BaseLocation * ebase = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
-		if (!center.isValid() || ebase == nullptr) return;
-		auto path = MapPath::Instance().getPath({ BWAPI::Position(base), ebase->getPosition() });
+		auto bases = InformationManager::Instance().getSelfBases();
+		BWAPI::Position baseP = BWAPI::Positions::None;
+		for (const auto & b : bases)
+		{
+			if (b->getDistance(center) < 300)
+			{
+				baseP = b->getPosition();
+				break;
+			}
+		}
+		if (!baseP.isValid())
+		{
+			baseP = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
+		}
+		const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
+		if (!center.isValid() || ebases.empty()) center = baseP;
+		auto path = MapPath::Instance().getPath({ baseP, ebases.front().lastPosition });
 		if (path.empty())
 		{
-			MapPath::Instance().insert({ BWAPI::Position(base), ebase->getPosition() });
+			MapPath::Instance().insert({ baseP, ebases.front().lastPosition });
 			return;
 		}
-		auto groupP = path.size() > 2 ? path[2] : base;
+		// 集结在地堡和基地的中间
+		auto groupP = (center + baseP) / 2;
 
 		BWAPI::Unitset nearbyEnemies;
 		const BWAPI::Unitset & meleeUnits = getUnits();
-		MapGrid::Instance().GetUnits(nearbyEnemies, center, 200, false, true);
+		MapGrid::Instance().GetUnits(nearbyEnemies, center, 160, false, true);
 		if (nearbyEnemies.empty())
 		{
 			for (auto & meleeUnit : meleeUnits)

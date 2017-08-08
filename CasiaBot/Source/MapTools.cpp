@@ -183,106 +183,119 @@ void MapTools::search(DistanceMap & dmap,const int sR,const int sC)
             _fringe[fringeSize++] = nextIndex;
         }
 
-        // search right
-        nextIndex = (currentIndex % _cols < _cols - 1) ? (currentIndex + 1) : -1;
-        if (unexplored(dmap,nextIndex))
-        {
-            // set the distance based on distance to current cell
-            dmap.setDistance(nextIndex,newDist);
-            dmap.setMoveTo(nextIndex,'L');
-            dmap.addSorted(getTilePosition(nextIndex));
+// search right
+nextIndex = (currentIndex % _cols < _cols - 1) ? (currentIndex + 1) : -1;
+if (unexplored(dmap, nextIndex))
+{
+	// set the distance based on distance to current cell
+	dmap.setDistance(nextIndex, newDist);
+	dmap.setMoveTo(nextIndex, 'L');
+	dmap.addSorted(getTilePosition(nextIndex));
 
-            // put it in the fringe
-            _fringe[fringeSize++] = nextIndex;
-        }
-    }
+	// put it in the fringe
+	_fringe[fringeSize++] = nextIndex;
+}
+	}
 }
 
 const std::vector<BWAPI::TilePosition> & MapTools::getClosestTilesTo(BWAPI::Position pos)
 {
-    // make sure the distance map is calculated with pos as a destination
-    int a = getGroundDistance(BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation()),pos);
+	// make sure the distance map is calculated with pos as a destination
+	int a = getGroundDistance(BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation()), pos);
 
-    return _allMaps[pos].getSortedTiles();
+	return _allMaps[pos].getSortedTiles();
 }
 
 BWAPI::TilePosition MapTools::getTilePosition(int index)
 {
-    return BWAPI::TilePosition(index % _cols,index / _cols);
+	return BWAPI::TilePosition(index % _cols, index / _cols);
 }
 
 BWAPI::TilePosition MapTools::getNextExpansion()
 {
-    return getNextExpansion(BWAPI::Broodwar->self());
+	return getNextExpansion(BWAPI::Broodwar->self());
 }
 
 void MapTools::drawHomeDistanceMap()
 {
-    BWAPI::Position homePosition = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
-    for (int x = 0; x < BWAPI::Broodwar->mapWidth(); ++x)
-    {
-        for (int y = 0; y < BWAPI::Broodwar->mapHeight(); ++y)
-        {
-            BWAPI::Position pos(x*32, y*32);
+	BWAPI::Position homePosition = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
+	for (int x = 0; x < BWAPI::Broodwar->mapWidth(); ++x)
+	{
+		for (int y = 0; y < BWAPI::Broodwar->mapHeight(); ++y)
+		{
+			BWAPI::Position pos(x * 32, y * 32);
 
-            int dist = getGroundDistance(pos, homePosition);
+			int dist = getGroundDistance(pos, homePosition);
 
-            BWAPI::Broodwar->drawTextMap(pos + BWAPI::Position(16,16), "%d", dist);
-        }
-    }
+			BWAPI::Broodwar->drawTextMap(pos + BWAPI::Position(16, 16), "%d", dist);
+		}
+	}
 }
 
 BWAPI::TilePosition MapTools::getNextExpansion(BWAPI::Player player)
 {
-    BWTA::BaseLocation * closestMineBase = nullptr;
+	BWTA::BaseLocation * closestMineBase = nullptr;
 	BWTA::BaseLocation * closestGasBase = nullptr;
-    double minMineDistance = 100000;
+	double minMineDistance = 100000;
 	double minGasDistance = 100000;
 
-    BWAPI::TilePosition homeTile = player->getStartLocation();
+	BWAPI::TilePosition homeTile = player->getStartLocation();
 
-    // for each base location
-    for (BWTA::BaseLocation * base : BWTA::getBaseLocations())
-    {
-        // if the base has gas
-        if (!(base == BWTA::getStartLocation(player)))
-        {
-            // get the tile position of the base
-            BWAPI::TilePosition tile = base->getTilePosition();
-            bool buildingInTheWay = false;
+	// for each base location
+	for (BWTA::BaseLocation * base : BWTA::getBaseLocations())
+	{
+		// if the base has gas
+		if (!(base == BWTA::getStartLocation(player)))
+		{
+			// get the tile position of the base
+			BWAPI::TilePosition tile = base->getTilePosition();
+			bool buildingInTheWay = false;
 
-            for (int x = 0; x < BWAPI::Broodwar->self()->getRace().getCenter().tileWidth(); ++x)
-            {
-                for (int y = 0; y < BWAPI::Broodwar->self()->getRace().getCenter().tileHeight(); ++y)
-                {
-                    BWAPI::TilePosition tp(tile.x + x, tile.y + y);
+			for (int x = 0; x < BWAPI::Broodwar->self()->getRace().getCenter().tileWidth(); ++x)
+			{
+				for (int y = 0; y < BWAPI::Broodwar->self()->getRace().getCenter().tileHeight(); ++y)
+				{
+					BWAPI::TilePosition tp(tile.x + x, tile.y + y);
 
-                    for (auto & unit : BWAPI::Broodwar->getUnitsOnTile(tp))
-                    {
-                        if (unit->getType().isBuilding() && !unit->isFlying())
-                        {
-                            buildingInTheWay = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            if (buildingInTheWay)
-            {
-                continue;
-            }
+					for (auto & unit : BWAPI::Broodwar->getUnitsOnTile(tp))
+					{
+						if (unit->getType().isBuilding() && !unit->isFlying())
+						{
+							buildingInTheWay = true;
+							break;
+						}
+					}
+				}
+			}
 
-            // the base's distance from our main nexus
-            BWAPI::Position myBasePosition(player->getStartLocation());
-            BWAPI::Position thisTile = BWAPI::Position(tile);
-            double distanceFromHome = MapTools::Instance().getGroundDistance(thisTile,myBasePosition);
+			if (buildingInTheWay)
+			{
+				continue;
+			}
 
-            // if it is not connected, continue
-            if (!BWTA::isConnected(homeTile,tile) || distanceFromHome < 0)
-            {
-                continue;
-            }
+			// the base's distance from our main nexus
+			BWAPI::Position myBasePosition(player->getStartLocation());
+			BWAPI::Position thisTile = BWAPI::Position(tile);
+			const auto & chokes = BWEM::Map::Instance().GetPath(myBasePosition, thisTile);
+			double distanceFromHome = 0.0;
+			if (chokes.empty()) distanceFromHome = myBasePosition.getDistance(thisTile);
+			else
+			{
+				distanceFromHome = myBasePosition.getDistance(BWAPI::Position(chokes.front()->Center()));
+				for (int i = 0; i < chokes.size() - 1; ++i)
+				{
+					BWAPI::Position p1(chokes[i]->Center());
+					BWAPI::Position p2(chokes[i + 1]->Center());
+					distanceFromHome += p1.getDistance(p2);
+				}
+				distanceFromHome += thisTile.getDistance(BWAPI::Position(chokes.back()->Center()));
+			}
+
+			// if it is not connected, continue
+			if (!BWTA::isConnected(homeTile, tile) || distanceFromHome < 0)
+			{
+				continue;
+			}
 
 			if (!base->isMineralOnly())
 			{
@@ -300,126 +313,23 @@ BWAPI::TilePosition MapTools::getNextExpansion(BWAPI::Player player)
 					minMineDistance = distanceFromHome;
 				}
 			}
-        }
+		}
 
-    }
+	}
 
-    if (closestGasBase
+	if (closestGasBase
 		&& InformationManager::Instance().checkBuildingLocation(closestGasBase->getTilePosition()))
-    {
-        return closestGasBase->getTilePosition();
-    }
+	{
+		return closestGasBase->getTilePosition();
+	}
 	else if (closestMineBase
 		&& InformationManager::Instance().checkBuildingLocation(closestMineBase->getTilePosition()))
 	{
 		return closestMineBase->getTilePosition();
 	}
-    else
-    {
-        return BWAPI::TilePositions::None;
-    }
-}
-
-BWAPI::TilePosition MapTools::getNextCreep()
-{
-	int numColony = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Creep_Colony, BWAPI::Broodwar->self());
-	auto enemyL = InformationManager::Instance().getMainBaseLocation(BWAPI::Broodwar->enemy());
-	auto enemyP = BWAPI::TilePositions::None;
-	if (enemyL)
-	{
-		enemyP = enemyL->getTilePosition();
-	}
 	else
 	{
 		return BWAPI::TilePositions::None;
-	}
-	if (numColony == 0)
-	{
-		if (enemyP.isValid())
-		{
-			const auto & bases = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Hatchery);
-			std::set<BWAPI::TilePosition> validNodes;
-			for (const auto & base : bases)
-			{
-				auto path = MapPath::Instance().getPath({ base->getPosition(), BWAPI::Position(enemyP) });
-				if (path.empty())
-				{
-					MapPath::Instance().insert({ base->getPosition(), BWAPI::Position(enemyP) });
-					return BWAPI::TilePositions::None;
-				}
-				else
-				{
-					bool badPath = false;
-					for (const auto & node : path)
-					{
-						for (const auto & b : bases)
-						{
-							if (b != base && node.getDistance(b->getTilePosition()) < 10)
-							{
-								badPath = true;
-							}
-						}
-					}
-					if (badPath) continue;
-					for (const auto & node : path)
-					{
-						if (node.getDistance(base->getTilePosition()) < 25
-							&& node.getDistance(base->getTilePosition()) > 7
-							&& BWAPI::Broodwar->hasCreep(node)
-							&& BWAPI::Broodwar->canBuildHere(node, BWAPI::UnitTypes::Zerg_Creep_Colony))
-						{
-							validNodes.insert(node);
-						}
-					}
-				}
-			}
-			if (validNodes.empty()) return BWAPI::TilePositions::None;
-			BWAPI::TilePosition bestNode = BWAPI::TilePositions::None;
-			for (const auto & node : validNodes)
-			{
-				if (node.getDistance(BWAPI::Broodwar->self()->getStartLocation()) < 25)
-				{
-					bestNode = node;
-					break;
-				}
-			}
-			if (!bestNode.isValid()) bestNode = *validNodes.begin();
-			return bestNode;
-		}
-		else
-		{
-			if (!enemyP.isValid()) BWAPI::Broodwar->printf("bad enemy location");
-		}
-		return BWAPI::TilePositions::None;
-	}
-	else
-	{
-		auto & creepSet = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Creep_Colony);
-		auto & sunkenSet = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Sunken_Colony);
-		BWAPI::Unitset creeps;
-		creeps.insert(creepSet.begin(), creepSet.end());
-		creeps.insert(sunkenSet.begin(), sunkenSet.end());
-		auto center = creeps.getPosition();
-		int radius = 2;
-		int bestDist = 100000;
-		BWAPI::TilePosition bestTile = BWAPI::TilePositions::None;
-		for (int x = center.x - radius; x <= center.x + radius; ++x)
-		{
-			for (int y = center.y - radius; y <= center.y + radius; ++y)
-			{
-				BWAPI::TilePosition tile(x, y);
-				if (BWAPI::Broodwar->hasCreep(tile)
-					&& BWAPI::Broodwar->canBuildHere(tile, BWAPI::UnitTypes::Zerg_Creep_Colony))
-				{
-					if (!bestTile.isValid() || bestDist > tile.getDistance(enemyP))
-					{
-						bestTile = tile;
-						bestDist = tile.getDistance(enemyP);
-					}
-				}
-			}
-		}
-		return bestTile;
 	}
 }
 

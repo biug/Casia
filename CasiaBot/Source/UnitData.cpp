@@ -19,7 +19,7 @@ UnitData::UnitData()
 	unitsets				= std::vector<BWAPI::Unitset>(maxTypeID);
 }
 
-void UnitData::updateSelfZerg(BWAPI::Unit unit)
+void UnitData::updateSelf(BWAPI::Unit unit)
 {
 	auto lastType = unitMap[unit].type;
 	if (lastType != unit->getType())
@@ -129,7 +129,7 @@ void UnitData::updateUnit(BWAPI::Unit unit)
 	{
 		if (unit->getPlayer() == BWAPI::Broodwar->self())
 		{
-			updateSelfZerg(unit);
+			updateSelf(unit);
 		}
 		else
 		{
