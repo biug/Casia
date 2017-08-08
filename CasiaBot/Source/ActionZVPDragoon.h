@@ -21,9 +21,11 @@ namespace CasiaBot
 
 	private:
 		double enemyDragoonOverZealotRate = 0;
+		bool isBuildingSunkenColony = false;
+		bool isSunkenColonyBuildingComplete = false;
 		int droneLimit = 16;
-		const int zerglingLimit = 20;
-		const int hydraliskLimit = 6;
+		int zerglingLimit = 20;
+		const int hydraliskLimit = 20;
 		const int lurkerLimit = 15;
 		const int creepColonyLimit = 7;
 		const int sunkenColonyLimit = 7;
@@ -37,5 +39,7 @@ namespace CasiaBot
 		const int metabolicBoostLimit = 1;
 		const int lurkerAspectLimit = 1;
 		const int adrenalGlandsLimit = 1;
+		const int muscularAugmentsLimit = 1;
+		const int groovedSpinesLimit = 1;
 	};
 }
