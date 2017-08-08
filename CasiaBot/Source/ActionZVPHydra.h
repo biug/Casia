@@ -23,6 +23,7 @@ namespace CasiaBot
 	private:
 		double enemyDragoonOverZealotRate = 0;
 		bool able_defend = false;
+		bool larva_lacking = false;
 		int droneLimit = 16;
 		const int zerglingLimit = 20;
 		const int hydraliskLimit = 6;

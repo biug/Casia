@@ -48,7 +48,7 @@ bool ActionZVPHydra::tick()
 	}
 }
 
-void ActionZVPHydra::getBuildOrderListNew(CasiaBot::ProductionQueue & queue)
+void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 {
 	// 当前帧数（累计）
 	int currentFrameCount = BWAPI::Broodwar->getFrameCount();
@@ -68,6 +68,7 @@ void ActionZVPHydra::getBuildOrderListNew(CasiaBot::ProductionQueue & queue)
 		lastFrameCount = currentFrameCount;
 		lastFrameMineralAmount = minerals;
 		lastFrameGasAmount = gas;
+
 	}
 	bool mineralDequePositive = IsDequeAllPositive(mineralNetIncrease);
 	bool gasDequePositive = IsDequeNoneNegative(gasNetIncrease);
@@ -83,6 +84,9 @@ void ActionZVPHydra::getBuildOrderListNew(CasiaBot::ProductionQueue & queue)
 	bool isSpawningPoolExist = spawning_pool_being_built + spawning_pool_count + spawning_pool_in_queue > 0;
 	bool isExtractorExist = extractor_being_built + extractor_count + extractor_in_queue > 0;
 	bool isHydraliskDenExist = hydralisk_den_being_built + hydralisk_den_count + hydralisk_den_in_queue > 0;
+	//TODO
+	larva_lacking = false;
+
 
 	// 每200帧检查队列一次
 	if ((currentFrameCount + 100) % 200 == 0)
@@ -127,47 +131,14 @@ void ActionZVPHydra::getBuildOrderListNew(CasiaBot::ProductionQueue & queue)
 		}
 	}
 
-	// 每200帧检查队列一次
-	if ((currentFrameCount + 100) % 200 == 0)
+	if (!isSpawningPoolExist)
 	{
-		if (!isSpawningPoolExist && hydralisk_in_queue > 0)
-		{
-			queue.clear();
-		}
-		else if (!isSpawningPoolExist && hydralisk_den_in_queue > 0)
-		{
-			queue.clear();
-		}
-		else if (!isHatcheryExist && lair_in_queue > 0)
-		{
-			queue.clear();
-		}
-		else if (!isLairExist && hive_in_queue > 0)
-		{
-			queue.clear();
-		}
-		else if (!isHydraliskDenExist && hydralisk_in_queue > 0)
-		{
-			queue.clear();
-		}
-		else if (!(lurker_count + lurker_in_queue < hydralisk_completed))
-		{
-			queue.clear();
-		}
-		else if (!isCreepColonyExist && sunken_colony_in_queue > 0)
-		{
-			queue.clear();
-		}
-		if (hydralisk_count + hydralisk_in_queue > zerglingLimit)
-		{
-			queue.clear();
-		}
-		// 农民过少时
-		if (drone_count < 5 && drone_in_queue < 1)
-		{
-			queue.clear();
-			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
-		}
+		tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Spawning_Pool), true);
+	}
+
+	if (!isExtractorExist && drone_count >= 11 && spawning_pool_count > 0)
+	{
+		tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Extractor), true);
 	}
 
 	if (!isSpawningPoolExist)
@@ -224,13 +195,109 @@ void ActionZVPHydra::getBuildOrderListNew(CasiaBot::ProductionQueue & queue)
 		able_defend = (sunken_colony_in_queue + sunken_colony_being_built) > 4 && mineralDequePositive;
 	}
 	else {
+		int extractorUpperBound = std::min(base_completed - 1, 3);
+		if (isExtractorExist && extractor_count + extractor_being_built + extractor_in_queue < extractorUpperBound && gas < 400)
+		{
+			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Extractor));
+		}
+
 		if (enemy_army_supply > army_supply * 1.1) {
-			force_expand = true;
-		}else if(opponent_has_expanded || drone_count + drone_in_queue >= base)
+			if (!isHydraliskDenExist) {
+				if (isExtractorExist && gas > 150)
+				{
+					tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Hydralisk_Den));
+				}
+				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Zergling));
+			}
+			else if (isHydraliskDenExist)
+			{
+				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Hydralisk));
+				if (lurker_aspect_count > 0 && gas > 100 && lurker_count * 5 < hydralisk_count
+					&& enemy_air_army_supply < 10)
+				{
+					tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Lurker));
+				}
+				else if (lurker_aspect_count == 0 && hydralisk_count > 15 && enemy_air_army_supply < 8)
+				{
+					tryAddInQueue(queue, MetaType(BWAPI::TechTypes::Lurker_Aspect));
+				}
+			}
+
+		}
+		//build more bases
+		else if (larva_lacking && mineralDequePositive)
+		{
+			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Hatchery, "Main"));
+		}
+		else if (opponent_has_expanded ||
+			drone_count + drone_in_queue >= InformationManager::Instance().getSelfBases().size() * 12 + extractor_count * 3
+			&& InformationManager::Instance().getSelfBases().size() < 4)
+		{
+			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Hatchery));
+		}
+		//train more workers
+		else if (drone_count + drone_in_queue < InformationManager::Instance().getSelfBases().size() * 12 + extractor_count * 3)
+		{
+			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone));
+		}
+		//train more army & upgrade tech
+		else
+		{
+			if (!muscular_argument_completing)
+			{
+				if (hydralisk_den_completed > 0 && gas >= 150 && hydralisk_count + hydralisk_in_queue > 7)
+				{
+					tryAddInQueue(queue, MetaType(BWAPI::UpgradeTypes::Muscular_Augments));
+				}
+			}
+			else if (!grooved_spines_completing) {
+				if (hydralisk_den_completed > 0 && gas >= 150 && hydralisk_count + hydralisk_in_queue > 12)
+				{
+					tryAddInQueue(queue, MetaType(BWAPI::UpgradeTypes::Muscular_Augments));
+				}
+			}
+			else if (!isHiveExist)	// 若蜂巢不存在
+			{
+				if (isQueenNestExist)	// 若皇后巢存在
+				{
+					if (currentFrameCount > 10800 && army_supply > 40)
+					{
+						tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Hive));
+					}
+				}
+				else	// 若皇后巢不存在
+				{
+					if (isLairExist)	// 若兽穴存在
+					{
+						if (currentFrameCount > 9000 && army_supply > 20)
+						{
+							tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Queens_Nest));
+						}
+					}
+					else if (currentFrameCount > 4800 && hydralisk_count > 15)	// 若兽穴不存在
+					{
+						tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Lair));
+					}
+				}
+			}
+
+			if (hydralisk_den_completed > 0 && (lair_completed > 0 || hive_completed > 0) &&
+				lurker_aspect_count == 0 && gas >= 125 && hydralisk_count + hydralisk_in_queue > 15)
+			{
+				tryAddInQueue(queue, MetaType(BWAPI::TechTypes::Lurker_Aspect));
+			}
+
+			//补气矿
+			int extractorUpperBound = std::min(base_completed, 3);
+			if (isExtractorExist && extractor_count + extractor_being_built + extractor_in_queue < extractorUpperBound && gas < 400)
+			{
+				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Extractor));
+			}
+		}
 	}
 }
 
-void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
+void ActionZVPHydra::getBuildOrderListNew(CasiaBot::ProductionQueue & queue)
 {
 	// 当前帧数（累计）
 	int currentFrameCount = BWAPI::Broodwar->getFrameCount();
