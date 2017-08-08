@@ -226,7 +226,7 @@ void ActionZVPHydra::getBuildOrderListNew(CasiaBot::ProductionQueue & queue)
 	else {
 		if (enemy_army_supply > army_supply * 1.1) {
 			force_expand = true;
-		}
+		}else if(opponent_has_expanded || drone_count + drone_in_queue >= base)
 	}
 }
 
