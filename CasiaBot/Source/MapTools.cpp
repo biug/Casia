@@ -234,21 +234,20 @@ void MapTools::drawHomeDistanceMap()
 
 BWAPI::TilePosition MapTools::getNextExpansion(BWAPI::Player player)
 {
-	BWTA::BaseLocation * closestMineBase = nullptr;
-	BWTA::BaseLocation * closestGasBase = nullptr;
+	BWAPI::TilePosition closestMineBase = BWAPI::TilePositions::None;
+	BWAPI::TilePosition closestGasBase = BWAPI::TilePositions::None;
 	double minMineDistance = 100000;
 	double minGasDistance = 100000;
 
 	BWAPI::TilePosition homeTile = player->getStartLocation();
 
 	// for each base location
-	for (BWTA::BaseLocation * base : BWTA::getBaseLocations())
+	for (const auto & area : BWEM::Map::Instance().Areas())
 	{
-		// if the base has gas
-		if (!(base == BWTA::getStartLocation(player)))
+		for (const auto & base : area.Bases())
 		{
 			// get the tile position of the base
-			BWAPI::TilePosition tile = base->getTilePosition();
+			BWAPI::TilePosition tile = base.Location();
 			bool buildingInTheWay = false;
 
 			for (int x = 0; x < BWAPI::Broodwar->self()->getRace().getCenter().tileWidth(); ++x)
@@ -284,35 +283,34 @@ BWAPI::TilePosition MapTools::getNextExpansion(BWAPI::Player player)
 				continue;
 			}
 
-			if (!base->isMineralOnly())
+			if (base.Geysers().empty())
 			{
-				if (!closestGasBase || distanceFromHome < minGasDistance)
+				if (!closestMineBase || distanceFromHome < minMineDistance)
 				{
-					closestGasBase = base;
-					minGasDistance = distanceFromHome;
+					closestMineBase = base.Location();
+					minMineDistance = distanceFromHome;
 				}
 			}
 			else
 			{
-				if (!closestMineBase || distanceFromHome < minMineDistance)
+				if (!closestGasBase || distanceFromHome < minGasDistance)
 				{
-					closestMineBase = base;
-					minMineDistance = distanceFromHome;
+					closestGasBase = base.Location();
+					minGasDistance = distanceFromHome;
 				}
 			}
 		}
-
 	}
 
 	if (closestGasBase
-		&& InformationManager::Instance().checkBuildingLocation(closestGasBase->getTilePosition()))
+		&& InformationManager::Instance().checkBuildingLocation(closestGasBase))
 	{
-		return closestGasBase->getTilePosition();
+		return closestGasBase;
 	}
 	else if (closestMineBase
-		&& InformationManager::Instance().checkBuildingLocation(closestMineBase->getTilePosition()))
+		&& InformationManager::Instance().checkBuildingLocation(closestMineBase))
 	{
-		return closestMineBase->getTilePosition();
+		return closestMineBase;
 	}
 	else
 	{
