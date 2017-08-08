@@ -200,6 +200,10 @@ int HydraliskManager::getAttackPriority(BWAPI::Unit hydraliskUnit, BWAPI::Unit t
 	BWAPI::UnitType rangedType = hydraliskUnit->getType();
 	BWAPI::UnitType targetType = target->getType();
 
+	if (targetType.isFlyer())
+	{
+		return 200;
+	}
     
     if (hydraliskUnit->getType() == BWAPI::UnitTypes::Zerg_Scourge)
     {

@@ -320,16 +320,15 @@ void ActionZVPDragoon::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 	int need_hydralisk_count = 0;
 	if (isHydraliskDenExist)
 	{
-		//首先根据敌方单位数量判断
-		need_hydralisk_count = std::max(need_hydralisk_count, need_zergling_count / 3);
-		if (need_hydralisk_count < 1) {
-			//保证数量
-			if (hydralisk_count + hydralisk_in_queue < 16)
-				need_hydralisk_count = 1;
-			//在资源富余的情况下继续生产
-			if (isHiveExist && mineralDequePositive && isExtractorExist && gasDequePositive && hydralisk_in_queue < 2)
-				need_hydralisk_count = 1;
+		// 根据幼虫数量判断
+		need_hydralisk_count = std::max(need_hydralisk_count, (larva_count + 1) / 2 - hydralisk_in_queue);
+
+		// 避免超过限制
+		if (hydralisk_count + hydralisk_in_queue > hydraliskLimit)
+		{
+			need_hydralisk_count = 0;
 		}
+
 		//优先补农民
 		if (notEnoughDrone && hydralisk_count + hydralisk_in_queue >= 5)
 		{
@@ -339,8 +338,8 @@ void ActionZVPDragoon::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 	int need_lurker_count = 0;
 	if (isHydraliskDenExist)
 	{
-		//首先根据敌方单位数量判断
-		need_lurker_count = std::max(need_lurker_count, need_zergling_count / 3);
+		// 根据刺蛇数量判断
+		need_lurker_count = std::max(need_lurker_count, need_hydralisk_count / 2);
 		if (need_lurker_count < 1) {
 			//保证数量
 			if (lurker_count + lurker_in_queue < 10)
@@ -353,6 +352,20 @@ void ActionZVPDragoon::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 		if (notEnoughDrone && lurker_count + lurker_in_queue >= 3)
 		{
 			need_lurker_count = 0;
+		}
+
+		// 若敌方有空中单位，减少刺蛇变成地刺的数量
+		if (lurker_count + lurker_in_queue >= 3 && enemyAirForceCount > 0)
+		{
+			int reservedHydraliskCount = enemyAirForceCount * 2;
+			if (reservedHydraliskCount >= hydralisk_completed)
+			{
+				need_lurker_count = 0;
+			}
+			else if (lurker_in_queue < hydralisk_completed - reservedHydraliskCount)
+			{
+				need_lurker_count = 1;
+			}
 		}
 	}
 
@@ -494,6 +507,8 @@ void ActionZVPDragoon::updateCurrentState(ProductionQueue &queue)
 	{
 		zerglingLimit = 45;
 	}
+
+	enemyAirForceCount = enemy_scout_count + enemy_corsair_count + enemy_carrier_count + enemy_arbiter_count;
 }
 
 void ActionZVPDragoon::tryAddInQueue(ProductionQueue & queue, const ProductionItem & item, bool priority)

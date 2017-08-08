@@ -21,6 +21,7 @@ namespace CasiaBot
 
 	private:
 		double enemyDragoonOverZealotRate = 0;
+		int enemyAirForceCount = 0;
 		bool isBuildingSunkenColony = false;
 		bool isSunkenColonyBuildingComplete = false;
 		int droneLimit = 16;
