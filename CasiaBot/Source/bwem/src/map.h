@@ -202,6 +202,7 @@ public:
 	//       To avoid this and the potential performance penalty, just make sure GetArea(a) != nullptr and GetArea(b) != nullptr.
 	//       Then GetPath should perform very quick.
 	virtual const CPPath &				GetPath(const BWAPI::Position & a, const BWAPI::Position & b, int * pLength = nullptr) const = 0;
+	virtual const double GetPathDistance(const BWAPI::Position & a, const BWAPI::Position & b) const = 0;
 
 	// Generic algorithm for breadth first search in the Map.
 	// See the several use cases in BWEM source files.

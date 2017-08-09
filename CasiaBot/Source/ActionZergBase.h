@@ -178,6 +178,7 @@ namespace CasiaBot
 		int enemy_carrier_count = 0;				//航母
 		int enemy_arbiter_count = 0;				//仲裁者
 		int enemy_corsair_count = 0;				//海盗船
+		int enemy_scout_count = 0;					//侦察机
 
 													//神族建筑
 		int enemy_cannon_count = 0;					//光子炮塔

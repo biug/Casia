@@ -17,7 +17,7 @@ namespace Config
         std::string WriteDir                = "bwapi-data/write/";
         bool GasStealWithScout              = false;
         bool ScoutHarassEnemy               = true;
-        bool UseEnemySpecificOpening       = false;
+        bool UseEnemySpecificOpening       = true;
         bool FoundEnemySpecificOpening     = false;
     }
 
@@ -68,7 +68,7 @@ namespace Config
         bool DrawModuleTimers               = false;
         bool DrawReservedBuildingTiles      = false;
         bool DrawCombatSimulationInfo       = false;
-        bool DrawBuildingInfo               = false;
+        bool DrawBuildingInfo               = true;
         bool DrawMouseCursorInfo            = false;
         bool DrawEnemyUnitInfo              = false;
         bool DrawBWTAInfo                   = false;

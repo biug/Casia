@@ -197,12 +197,11 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 			_action->getBuildOrderList(queue);
 	}
 	else {
-		_actionZVZMutalisk.updateCurrentState(queue);
-		_actionZVPZerglingRush.updateCurrentState(queue);
+		_actionZVPZealot.updateCurrentState(queue);
 		if (_action == nullptr)
 		{
 			if (queue.empty())
-				_action = &_actionZVPZerglingRush;
+				_action = &_actionZVPZealot;
 		}
 		if (_action != nullptr)
 			_action->getBuildOrderList(queue);
