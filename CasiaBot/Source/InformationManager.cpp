@@ -224,8 +224,8 @@ bool InformationManager::beingZerglingRushed()
 
 void InformationManager::updateRush()
 {
-	if (getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Lurker, BWAPI::Broodwar->self()) > 0
-		|| getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Mutalisk, BWAPI::Broodwar->self()) > 0)
+	if (getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Lurker, BWAPI::Broodwar->self()) >= 2
+		|| getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Mutalisk, BWAPI::Broodwar->self()) >= 4)
 	{
 		_isEncounterRush = false;
 	}
