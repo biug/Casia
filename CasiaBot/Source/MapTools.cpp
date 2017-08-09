@@ -275,7 +275,9 @@ BWAPI::TilePosition MapTools::getNextExpansion(BWAPI::Player player)
 			// the base's distance from our main nexus
 			BWAPI::Position myBasePosition(player->getStartLocation());
 			BWAPI::Position thisTile = BWAPI::Position(tile);
-			double distanceFromHome = BWEM::Map::Instance().GetPathDistance(myBasePosition, thisTile);
+			double distanceFromHome =
+				BWEM::Map::Instance().GetPathDistance(myBasePosition, thisTile)
+				+ myBasePosition.getDistance(thisTile);
 
 			// if it is not connected, continue
 			if (!BWTA::isConnected(homeTile, tile) || distanceFromHome < 0)

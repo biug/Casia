@@ -180,7 +180,9 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk));
 	}
 	// lurker加入优先队列
-	if (hydralisk_completed > 0 && lurker_aspect_count > 0 && lurker_in_queue == 0)
+	if (hydralisk_completed > 0
+		&& BWAPI::Broodwar->self()->hasResearched(BWAPI::TechTypes::Lurker_Aspect)
+		&& lurker_in_queue == 0)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Lurker), true);
 	}
