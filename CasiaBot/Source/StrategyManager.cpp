@@ -98,6 +98,7 @@ void StrategyManager::addOpening(const std::string & name, Opening & opening)
 
 void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 {
+	/*
 	int currentFrame = BWAPI::Broodwar->getFrameCount();
 	if (_enemyRace == BWAPI::Races::Terran) {
 		_actionZVTBarracks.updateCurrentState(queue);
@@ -206,7 +207,10 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 		if (_action != nullptr)
 			_action->getBuildOrderList(queue);
 	}
+	*/
+	_actionZVPHydra.updateCurrentState(queue);
 	_action = &_actionZVPHydra;
+	_action->getBuildOrderList(queue);	
 }
 
 void StrategyManager::readOpeningResults()

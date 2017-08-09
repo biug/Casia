@@ -149,6 +149,7 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 	//being rushed
 	if (being_rushed && !able_defend)
 	{
+		BWAPI::Broodwar->drawTextScreen(200, 240, "We are rushed, with able defend %d", able_defend);
 		if (!isCreepColonyExist && !isSunkenColonyExist)
 		{
 			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
@@ -159,14 +160,17 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 		}
 		else
 		{
+			BWAPI::Broodwar->drawTextScreen(200, 260, "Here, for defend building %d, %d", 
+				sunken_colony_in_queue + sunken_colony_being_built, sunken_colony_count);
 			if (!isCreepColonyExist && isSunkenColonyExist)
 			{
-				if (sunken_colony_total < 6)
+				if (sunken_colony_in_queue + sunken_colony_being_built < 6)
 				{
+					BWAPI::Broodwar->drawTextScreen(200, 270, "Are we building Creep Colony?");
 					tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
-					if (drone_count + drone_in_queue < 13)
+					if (drone_count + drone_in_queue < 12)
 					{
-						tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+						tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone));
 					}
 				}
 			}
@@ -180,14 +184,17 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 			if (sunken_colony_in_queue + sunken_colony_being_built > 2 && 
 				zergling_count + zergling_in_queue > 3 && drone_count + drone_in_queue < 9)
 			{
+				BWAPI::Broodwar->drawTextScreen(200, 270, "Here, DRONE!");
 				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
 			}
 			else if (gas > 50 && hydralisk_den_count > 0) 
 			{
+				BWAPI::Broodwar->drawTextScreen(200, 270, "Here, Hydra!");
 				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Hydralisk), true);
 			}
-			else 
+			else if (zergling_count + zergling_in_queue < 10)
 			{
+				BWAPI::Broodwar->drawTextScreen(200, 270, "Here, Zergling!");
 				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Zergling), true);
 			}
 		}
@@ -195,6 +202,7 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 		able_defend = (sunken_colony_in_queue + sunken_colony_being_built) > 4 && mineralDequePositive;
 	}
 	else {
+		BWAPI::Broodwar->drawTextScreen(200, 250, "We are here, with able_defend %d", able_defend);
 		int extractorUpperBound = std::min(base_completed - 1, 3);
 		if (isExtractorExist && extractor_count + extractor_being_built + extractor_in_queue < extractorUpperBound && gas < 400)
 		{
@@ -207,7 +215,10 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 				{
 					tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Hydralisk_Den));
 				}
-				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Zergling));
+				if (zergling_in_queue < 3 && zergling_count < 20)
+				{
+					tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Zergling));
+				}
 			}
 			else if (isHydraliskDenExist)
 			{
@@ -223,6 +234,22 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 				}
 			}
 
+			if (gas > 300 && minerals > 500)
+			{
+				if (!muscular_argument_completing)
+				{
+					if (hydralisk_den_completed > 0 && hydralisk_count + hydralisk_in_queue > 7)
+					{
+						tryAddInQueue(queue, MetaType(BWAPI::UpgradeTypes::Muscular_Augments));
+					}
+				}
+				else if (!grooved_spines_completing) {
+					if (hydralisk_den_completed > 0 && hydralisk_count + hydralisk_in_queue > 12)
+					{
+						tryAddInQueue(queue, MetaType(BWAPI::UpgradeTypes::Muscular_Augments));
+					}
+				}
+			}
 		}
 		//build more bases
 		else if (larva_lacking && mineralDequePositive)
@@ -231,7 +258,8 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 		}
 		else if (opponent_has_expanded ||
 			drone_count + drone_in_queue >= InformationManager::Instance().getSelfBases().size() * 12 + extractor_count * 3
-			&& InformationManager::Instance().getSelfBases().size() < 4)
+			&& InformationManager::Instance().getSelfBases().size() < 1 + currentFrameCount / 4200
+			)
 		{
 			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Hatchery));
 		}
