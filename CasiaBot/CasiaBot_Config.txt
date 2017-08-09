@@ -94,12 +94,12 @@
         "UseEnemySpecificOpening"  : true,
         "EnemySpecificOpening"     :
         {
-            "LetaBot"               : "ZVP_5D"
+            "TyrProtoss"               : "ZVP_5D"
         },
         
         "Openings" :
         {
-            "ZVP_5D"        : { "OpeningBuildOrder" : ["Drone", "Spawning_Pool", "Drone", "Drone", "Zergling", "Zergling", "Zergling"] },
+            "ZVP_5D"        : { "OpeningBuildOrder" : ["Drone", "Spawning_Pool", "Drone", "Drone", "Zergling", "Zergling", "Zergling", "Overlord", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Overlord", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Overlord", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Overlord", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling"] },
 
             "ZVP_9D_Speed"  : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Spawning_Pool", "Drone", "Extractor", "Overlord", "Drone", "Zergling", "Zergling", "Zergling", "Metabolic_Boost", "Zergling"] },
 
