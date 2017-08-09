@@ -384,6 +384,8 @@ bool Squad::needsToRegroup()
 
 	sim.setCombatUnits(unitClosest->getPosition(), Config::Micro::CombatRegroupRadius);
 	score = sim.simulateCombat();
+	std::string info = "combat score is " + std::to_string(score);
+	BWAPI::Broodwar->drawTextScreen(480, 280, info.c_str());
 
 	bool retreat = score < 0;
 	int switchTime = 100;
