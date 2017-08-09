@@ -43,15 +43,15 @@ void WorkerManager::updateResourceStatus()
 		}
 		int mineral = BWAPI::Broodwar->self()->minerals();
 		int gas = BWAPI::Broodwar->self()->gas();
-		if (mineral < 50)
+		if (mineral < 200)
 		{
 			needMoreMineral = true;
 		}
-		if (gas > 448 && gasNotUsed)
+		if (gas > 224 && gasNotUsed)
 		{
 			needLessGas = true;
 		}
-		else if (gas < 100 || !gasNotUsed)
+		else if ((gas < 100 || !gasNotUsed) && !needMoreMineral)
 		{
 			needMoreGas = true;
 		}
@@ -154,7 +154,7 @@ void WorkerManager::handleGasWorkers()
 		// if that unit is a refinery
 		if (workerData.isRefinery(unit) && !isGasStealRefinery(unit))
 		{
-			if (needLessGas)
+			if (needLessGas || needMoreMineral)
 			{
 				BWAPI::Unit gasWorker = workerData.getRefineryWorker(unit);
 				if (gasWorker != nullptr && gasWorker->isMoving())
@@ -495,7 +495,7 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
         }
 
 		// mining worker check
-		if (worker->isCompleted() && (workerData.getWorkerJob(worker) == WorkerData::Minerals))
+		if (worker->isCompleted() && worker->getPosition().isValid() && (workerData.getWorkerJob(worker) == WorkerData::Minerals))
 		{
 			// if it is a new closest distance, set the pointer
 			if (!worker->isMoving()) continue;
@@ -507,7 +507,7 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 			}
 		}
 
-		if (worker->isCompleted() && (workerData.getWorkerJob(worker) == WorkerData::Gas))
+		if (worker->isCompleted() && worker->getPosition().isValid() && (workerData.getWorkerJob(worker) == WorkerData::Gas))
 		{
 			// if it is a new closest distance, set the pointer
 			if (!worker->isMoving()) continue;
@@ -520,7 +520,7 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 		}
 
 		// moving worker check
-		if (worker->isCompleted() && (workerData.getWorkerJob(worker) == WorkerData::Move))
+		if (worker->isCompleted() && worker->getPosition().isValid() && (workerData.getWorkerJob(worker) == WorkerData::Move))
 		{
 			// if it is a new closest distance, set the pointer
 			double distance = worker->getDistance(BWAPI::Position(b.finalPosition));

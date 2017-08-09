@@ -13,6 +13,7 @@ struct UnitInfo
     int             unitID;
     int             lastHealth;
     int             lastShields;
+	int				birthFrame;
     BWAPI::Player   player;
     BWAPI::Unit     unit;
     BWAPI::Position lastPosition;
@@ -22,6 +23,7 @@ struct UnitInfo
     UnitInfo()
         : unitID(0)
         , lastHealth(0)
+		, birthFrame(-1)
         , player(nullptr)
         , unit(nullptr)
         , lastPosition(BWAPI::Positions::None)

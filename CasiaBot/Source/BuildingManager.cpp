@@ -102,8 +102,21 @@ void BuildingManager::constructAssignedBuildings()
             continue;
         }
 
+		// if builder not valid
+		if (!b.builderUnit || !b.builderUnit->getPosition().isValid())
+		{
+			// free the previous location in reserved
+			BuildingPlacer::Instance().freeTiles(b.finalPosition, b.type.tileWidth(), b.type.tileHeight());
+
+			// nullify its current builder unit
+			b.builderUnit = nullptr;
+
+			// add the building back to be assigned
+			b.status = BuildingStatus::Unassigned;
+		}
+
         // if that worker is not currently constructing
-        if (!b.builderUnit->isConstructing())
+        else if (!b.builderUnit->isConstructing())
         {
             // if we haven't explored the build position, go there
             if (!isBuildingPositionExplored(b))

@@ -432,6 +432,8 @@ BWAPI::Unit BuildingPlacer::getDefenseBase()
 	const auto & bases = InformationManager::Instance().getSelfBases();
 	for (const auto & base : bases)
 	{
+		const auto & infos = InformationManager::Instance().getUnitInfo(BWAPI::Broodwar->self());
+		if (!base || infos.find(base) == infos.end()) continue;
 		// 寻找这个基地到对方家中的路径
 		auto path = MapPath::Instance().getPath({ base->getPosition(), BWAPI::Position(enemyP) });
 		if (path.empty())

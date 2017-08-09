@@ -202,11 +202,15 @@ ProductionItem ProductionQueue::popItem()
 	int larva_count = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Larva, BWAPI::Broodwar->self());
 	if (!_overlordQueue.empty())
 	{
+		_straightArmyCount = 0;
+		_straightWorkerCount = 0;
 		retItem = _overlordQueue.front();
 		_overlordQueue.pop_front();
 	}
 	else if (!_priorityQueue.empty())
 	{
+		_straightArmyCount = 0;
+		_straightWorkerCount = 0;
 		retItem = _priorityQueue.front();
 		_priorityQueue.pop_front();
 		ptype = Priority;
@@ -220,6 +224,8 @@ ProductionItem ProductionQueue::popItem()
 		case ProductionTypeID::BUILDING:
 			if (!_buildingQueue.empty())
 			{
+				_straightArmyCount = 0;
+				_straightWorkerCount = 0;
 				retItem = _buildingQueue.front();
 				_buildingQueue.pop_front();
 			}
@@ -227,49 +233,26 @@ ProductionItem ProductionQueue::popItem()
 		case ProductionTypeID::ARMY:
 			if (!_armyQueue.empty())
 			{
+				// 如果造了过多的army，并且卡住了worker
+				if (_straightArmyCount > 3 && !_workerQueue.empty())
+				{
+					break;
+				}
 				_straightWorkerCount = 0;
-				if (larva_count == 0 && _unitCount[BWAPI::UnitTypes::Zerg_Lurker.getID()] > 0)
-				{
-					std::deque<ProductionItem> items;
-					while (!_armyQueue.empty())
-					{
-						retItem = _armyQueue.front();
-						if (retItem._unit.getUnitType() == BWAPI::UnitTypes::Zerg_Lurker)
-						{
-							break;
-						}
-						items.push_back(retItem);
-						_armyQueue.pop_front();
-					}
-					if (_armyQueue.empty())
-					{
-						retItem = items.front();
-						items.pop_front();
-					}
-					else
-					{
-						retItem = _armyQueue.front();
-						_armyQueue.pop_front();
-						std::string info = "bad type is " + retItem._unit.getUnitType().getName();
-						CAB_ASSERT(retItem._unit.getUnitType() == BWAPI::UnitTypes::Zerg_Lurker,
-							info.c_str());
-					}
-					while (!items.empty())
-					{
-						_armyQueue.push_front(items.back());
-						items.pop_back();
-					}
-				}
-				else
-				{
-					retItem = _armyQueue.front();
-					_armyQueue.pop_front();
-				}
+				++_straightArmyCount;
+				retItem = _armyQueue.front();
+				_armyQueue.pop_front();
 			}
 			break;
 		case ProductionTypeID::WORKER:
 			if (!_workerQueue.empty())
 			{
+				if (_straightWorkerCount > 3 && !_armyQueue.empty())
+				{
+					break;
+				}
+				_straightArmyCount = 0;
+				++_straightWorkerCount;
 				retItem = _workerQueue.front();
 				_workerQueue.pop_front();
 			}
@@ -277,6 +260,8 @@ ProductionItem ProductionQueue::popItem()
 		case ProductionTypeID::TECH:
 			if (!_techUpgradeQueue.empty())
 			{
+				_straightArmyCount = 0;
+				_straightWorkerCount = 0;
 				retItem = _techUpgradeQueue.front();
 				_techUpgradeQueue.pop_front();
 			}

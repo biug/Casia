@@ -21,9 +21,11 @@ UnitData::UnitData()
 
 void UnitData::updateSelf(BWAPI::Unit unit)
 {
+	int frame = BWAPI::Broodwar->getFrameCount();
 	auto lastType = unitMap[unit].type;
 	if (lastType != unit->getType())
 	{
+		// start morphing
 		if (lastType != BWAPI::UnitTypes::Zerg_Egg
 			&& lastType != BWAPI::UnitTypes::Zerg_Lurker_Egg
 			&& lastType != BWAPI::UnitTypes::Zerg_Cocoon
@@ -42,24 +44,28 @@ void UnitData::updateSelf(BWAPI::Unit unit)
 			}
 
 			++numConstructedUnits[unit->getType().getID()];
+			unitMap[unit].birthFrame = frame;
 		}
 		// morphing lurker complete
 		else if (lastType == BWAPI::UnitTypes::Zerg_Lurker_Egg)
 		{
 			--numConstructingUnits[BWAPI::UnitTypes::Zerg_Lurker.getID()];
 			++numConstructedUnits[BWAPI::UnitTypes::Zerg_Lurker.getID()];
+			unitMap[unit].birthFrame = frame;
 		}
 		// morphing from mutalisk
 		else if (lastType == BWAPI::UnitTypes::Zerg_Cocoon)
 		{
 			--numConstructingUnits[unit->getType().getID()];
 			++numConstructedUnits[unit->getType().getID()];
+			unitMap[unit].birthFrame = frame;
 		}
 		// cancel building
 		else if (lastType.isBuilding())
 		{
 			--numConstructingUnits[lastType.getID()];
 			++numConstructedUnits[unit->getType().getID()];
+			unitMap[unit].birthFrame = frame;
 		}
 
 		// start morphing
@@ -71,15 +77,19 @@ void UnitData::updateSelf(BWAPI::Unit unit)
 			{
 				++numConstructingUnits[unit->getBuildType().getID()];
 			}
+			unitMap[unit].birthFrame = -1;
 		}
 		// start morphing lurker
 		else if (unit->getType() == BWAPI::UnitTypes::Zerg_Lurker_Egg)
 		{
 			++numConstructingUnits[BWAPI::UnitTypes::Zerg_Lurker.getID()];
+			unitMap[unit].birthFrame = -1;
 		}
+		// start morphing from mutalisk
 		else if (unit->getType() == BWAPI::UnitTypes::Zerg_Cocoon)
 		{
 			++numConstructingUnits[unit->getBuildType().getID()];
+			unitMap[unit].birthFrame = -1;
 		}
 		// constructing building
 		else if (unit->getType().isBuilding())
@@ -92,6 +102,7 @@ void UnitData::updateSelf(BWAPI::Unit unit)
 	{
 		--numConstructingUnits[unit->getType().getID()];
 		++numConstructedUnits[unit->getType().getID()];
+		unitMap[unit].birthFrame = frame;
 	}
 }
 
@@ -160,6 +171,10 @@ void UnitData::updateUnit(BWAPI::Unit unit)
 		else
 		{
 			++numConstructedUnits[unit->getType().getID()];
+		}
+		if (unit->isCompleted())
+		{
+			unitMap[unit].birthFrame = -1;
 		}
     }
 }
