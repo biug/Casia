@@ -24,6 +24,7 @@ public:
     bool                    isGasSteal;
 	bool					nexpHatchery;
 	bool                    buildCommandGiven;
+	bool					beCanceled;
 
 	Building() 
 		: desiredPosition   (BWAPI::TilePositions::None)
@@ -36,6 +37,7 @@ public:
         , buildCommandGiven (false)
         , isGasSteal        (false)
 		, nexpHatchery		(false)
+		, beCanceled		(false)
     {} 
 
 	// constructor we use most often
@@ -50,6 +52,7 @@ public:
         , buildCommandGiven (false)
         , isGasSteal        (false)
 		, nexpHatchery		(false)
+		, beCanceled		(false)
     {}
 
 	// equals operator

@@ -47,7 +47,10 @@ void BuildingManager::validateWorkersAndBuildings()
             continue;
         }
 
-        if (b.buildingUnit == nullptr || !b.buildingUnit->getType().isBuilding() || b.buildingUnit->getHitPoints() <= 0)
+        if (b.buildingUnit == nullptr
+			|| !b.buildingUnit->getType().isBuilding()
+			|| b.buildingUnit->getHitPoints() <= 0
+			|| !b.buildingUnit->exists())
         {
             toRemove.push_back(b);
         }
@@ -102,21 +105,8 @@ void BuildingManager::constructAssignedBuildings()
             continue;
         }
 
-		// if builder not valid
-		if (!b.builderUnit || !b.builderUnit->getPosition().isValid())
-		{
-			// free the previous location in reserved
-			BuildingPlacer::Instance().freeTiles(b.finalPosition, b.type.tileWidth(), b.type.tileHeight());
-
-			// nullify its current builder unit
-			b.builderUnit = nullptr;
-
-			// add the building back to be assigned
-			b.status = BuildingStatus::Unassigned;
-		}
-
         // if that worker is not currently constructing
-        else if (!b.builderUnit->isConstructing())
+        if (!b.builderUnit->isConstructing())
         {
             // if we haven't explored the build position, go there
             if (!isBuildingPositionExplored(b))
@@ -154,7 +144,7 @@ void BuildingManager::constructAssignedBuildings()
 				else
 				{
 					std::string flag = "build " + b.type.getName() + " failed";
-					CAB_ASSERT(false, flag.c_str());
+					BWAPI::Broodwar->printf(flag.c_str());
 					BWAPI::Broodwar->drawLineMap(b.builderUnit->getPosition(), BWAPI::Position(b.finalPosition), BWAPI::Colors::Orange);
 				}
             }
@@ -183,6 +173,14 @@ void BuildingManager::checkForStartedConstruction()
             }
         
             // check if the positions match
+			if (b.type.isRefinery())
+			{
+				auto pos = b.finalPosition;
+				if (buildingStarted->getType().isRefinery())
+				{
+					pos = buildingStarted->getTilePosition();
+				}
+			}
             if (b.finalPosition == buildingStarted->getTilePosition())
             {
                 // the resources should now be spent, so unreserve them
@@ -221,12 +219,32 @@ void BuildingManager::checkForConstructingBuildings()
             continue;       
         }
 
-        // if the unit has completed
-        if (b.buildingUnit->isBeingConstructed())
-        {
-            // remove this unit from the under construction vector
-            toRemove.push_back(b);
-        }
+        // if the unit is under construction and not refinery
+		float ratio =
+			(float)b.buildingUnit->getHitPoints()
+			/ (float)b.buildingUnit->getType().maxHitPoints();
+		BWAPI::Broodwar->drawTextMap(b.buildingUnit->getPosition(), ".2f", ratio);
+		if (!b.buildingUnit->getType().isRefinery())
+		{
+			// 普通建筑在80%时移除
+			if (b.buildingUnit->isBeingConstructed() && ratio > 0.2)
+			{
+				toRemove.push_back(b);
+				if (b.beCanceled) b.buildingUnit->cancelConstruction();
+			}
+		}
+		else
+		{
+			if (b.beCanceled)
+			{
+				b.buildingUnit->cancelConstruction();
+			}
+			// 气矿在80%时移除
+			if (b.buildingUnit->isBeingConstructed() && ratio > 0.8)
+			{
+				toRemove.push_back(b);
+			}
+		}
     }
 
     removeBuildings(toRemove);
@@ -273,6 +291,20 @@ void BuildingManager::addBuildingTask(BWAPI::UnitType type, BWAPI::TilePosition 
 
 	_buildings.push_back(b);
 	_numBuildings[b.type.getID()] += 1;
+}
+
+BWAPI::Unit BuildingManager::cancelBuildingTask(BWAPI::UnitType type)
+{
+	for (auto & itr = _buildings.rbegin(); itr < _buildings.rend(); ++itr)
+	{
+		auto & b = *itr;
+		if (itr->type == type)
+		{
+			itr->beCanceled = true;
+			return itr->buildingUnit;
+		}
+	}
+	return nullptr;
 }
 
 bool BuildingManager::isBuildingPositionExplored(const Building & b) const
@@ -322,7 +354,7 @@ void BuildingManager::drawBuildingInformation(int x,int y)
     //    BWAPI::Broodwar->drawTextMap(unit->getPosition().x,unit->getPosition().y+5,"\x07%d",unit->getID());
     //}
 
-    BWAPI::Broodwar->drawTextScreen(x,y,"\x04 Building Information:");
+    BWAPI::Broodwar->drawTextScreen(x,y,"\x04 Building Information(%d):", _buildings.size());
     BWAPI::Broodwar->drawTextScreen(x,y+20,"\x04 Name");
     BWAPI::Broodwar->drawTextScreen(x+150,y+20,"\x04 State");
 

@@ -133,7 +133,7 @@
 
             "ZVP_9D"  : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Spawning_Pool", "Drone", "Extractor", "Drone", "Extractor@Cancel", "Overlord", "Zergling", "Zergling", "Zergling"] },
 
-            "ZVT_11Hatch" : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Extractor", "Drone", "Extractor@Cancel", "Overlord", "Drone", "Hatchery", "Drone", "Spawning_Pool", "Drone", "Drone", "Zergling", "Zergling", "Zergling"] },
+            "ZVT_11Hatch" : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Extractor", "Drone", "Extractor@Cancel", "Overlord", "Hatchery", "Drone", "Spawning_Pool", "Drone", "Drone", "Zergling", "Zergling", "Zergling"] },
 
             "ZVT_3Hatch_Muta" : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Overlord", "Drone", "Drone", "Drone", "Hatchery", "Spawning_Pool", "Drone", "Drone", "Drone", "Hatchery@Main", "Extractor", "Zergling", "Zergling", "Drone", "Drone", "Drone", "Overlord", "Lair", "Zergling", "Drone", "Drone", "Metabolic_Boost", "Extractor", "Drone", "Zergling", "Drone", "Zergling", "Spire", "Zergling", "Drone", "Drone", "Overlord", "Drone", "Drone", "Drone", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Zergling", "Creep_Colony", "Creep_Colony", "Sunken_Colony", "Sunken_Colony", "Overlord@50%Spire", "Overlord", "Overlord", "Mutalisk", "Mutalisk", "Mutalisk", "Mutalisk", "Mutalisk", "Mutalisk", "Mutalisk", "Mutalisk", "Mutalisk", "Hydralisk_Den", "Mutalisk", "Mutalisk", "Overlord", "Evolution_Chamber@75%Hydralisk_Den", "Lurker_Aspect"] },
 

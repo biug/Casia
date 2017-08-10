@@ -33,7 +33,6 @@ class ProductionManager
 	void				create(BWAPI::Unit producer, ProductionItem & unit);
     void                manageBuildOrderQueue();
 	void				openingCheck();
-    void                performCommand(BWAPI::UnitCommandType t);
     bool                canMakeNow(BWAPI::Unit producer,MetaType t);
     void                predictWorkerMovement(const Building & b);
 

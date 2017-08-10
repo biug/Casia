@@ -20,8 +20,9 @@ namespace CasiaBot
 		void tryAddInQueue(CasiaBot::ProductionQueue &queue, const CasiaBot::ProductionItem & item, bool priority = false) override;
 
 	private:
-		int enemyTerranBarrackUnitsAmount = 0;
-		int enemyTerranFactoryUnitsAmount = 0;
-		double enemyTerranMechanizationRate = 0;
+		bool thirdBase;
+		int enemyTerranBarrackUnitsAmount;
+		int enemyTerranFactoryUnitsAmount;
+		double enemyTerranMechanizationRate;
 	};
 }

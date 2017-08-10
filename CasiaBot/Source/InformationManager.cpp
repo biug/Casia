@@ -62,30 +62,6 @@ void InformationManager::initializeRegionInformation()
 
 void InformationManager::updateBaseLocationInfo() 
 {
-	for (BWTA::BaseLocation * base : BWTA::getBaseLocations())
-	{
-		BWAPI::Position myBasePosition(BWAPI::Broodwar->self()->getStartLocation());
-		BWAPI::Position thisTile = BWAPI::Position(base->getTilePosition());
-		const auto & chokes = BWEM::Map::Instance().GetPath(myBasePosition, thisTile);
-		if (!chokes.empty())
-		{
-			for (int i = 0; i < chokes.size() - 1; ++i)
-			{
-				if (chokes[i] && chokes[i + 1])
-				{
-					BWAPI::Broodwar->drawLineMap(
-						BWAPI::Position(chokes[i]->Center()),
-						BWAPI::Position(chokes[i + 1]->Center()),
-						BWAPI::Colors::Blue);
-				}
-				else
-				{
-					BWAPI::Broodwar->printf("bad choke");
-				}
-			}
-		}
-	}
-
 	BWTA::Region * region;
 	_occupiedRegions[_self].clear();
 	_occupiedRegions[_enemy].clear();
@@ -781,7 +757,7 @@ bool InformationManager::checkBuildingLocation(const BWAPI::TilePosition & tp)
 			auto lastP = getLastPosition(b, BWAPI::Broodwar->enemy());
 			if (!lastP.isValid()) continue;
 			auto lastTP = BWAPI::TilePosition(lastP);
-			if (lastTP.getDistance(tp) < 10) return false;
+			if (lastTP.getDistance(tp) < 5) return false;
 		}
 	}
 	return true;

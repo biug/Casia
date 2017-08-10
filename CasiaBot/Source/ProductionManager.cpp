@@ -161,16 +161,13 @@ void ProductionManager::manageBuildOrderQueue()
 	// if we should cancel
 	if (item._unit.getCond().isCancel())
 	{
-		for (auto & unit : BWAPI::Broodwar->self()->getUnits())
+		if (unit.isUnit())
 		{
-			if (item._unit.isUnit() && unit->getType() == item._unit.getUnitType() && unit->isConstructing())
+			BWAPI::Broodwar->printf("cancel extractor");
+			auto u = BuildingManager::Instance().cancelBuildingTask(unit.getUnitType());
+			if (!u)
 			{
-				if (unit->getType().isRefinery())
-				{
-					WorkerManager::Instance().addCanceledRefineryLocation(unit->getTilePosition());
-				}
-				unit->cancelConstruction();
-				return;
+				BWAPI::Broodwar->printf("cancel fail");
 			}
 		}
 		return;
@@ -359,14 +356,6 @@ void ProductionManager::create(BWAPI::Unit producer, ProductionItem & item)
     {
         // if the race is zerg, morph the unit
 		producer->morph(unit.getUnitType());
-		if (unit.getUnitType() == BWAPI::UnitTypes::Zerg_Lair)
-		{
-			BWAPI::Broodwar->printf("morph lair");
-		}
-		if (unit.getUnitType() == BWAPI::UnitTypes::Zerg_Sunken_Colony)
-		{
-			BWAPI::Broodwar->printf("morph sunken");
-		}
     }
     // if we're dealing with a tech research
 	else if (unit.isTech())
@@ -469,27 +458,6 @@ void ProductionManager::predictWorkerMovement(const Building & b)
 
 		// tell the worker manager to move this worker
 		WorkerManager::Instance().setWorkerMoving(mineralsRequired, gasRequired, walkToPosition);
-	}
-}
-
-void ProductionManager::performCommand(BWAPI::UnitCommandType t) 
-{
-	// if it is a cancel construction, it is probably the extractor trick
-	if (t == BWAPI::UnitCommandTypes::Cancel_Construction)
-	{
-		BWAPI::Unit extractor = nullptr;
-		for (auto & unit : BWAPI::Broodwar->self()->getUnits())
-		{
-			if (unit->getType() == BWAPI::UnitTypes::Zerg_Extractor)
-			{
-				extractor = unit;
-			}
-		}
-
-		if (extractor)
-		{
-			extractor->cancelConstruction();
-		}
 	}
 }
 
