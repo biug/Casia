@@ -356,14 +356,6 @@ void ProductionManager::create(BWAPI::Unit producer, ProductionItem & item)
     {
         // if the race is zerg, morph the unit
 		producer->morph(unit.getUnitType());
-		if (unit.getUnitType() == BWAPI::UnitTypes::Zerg_Lair)
-		{
-			BWAPI::Broodwar->printf("morph lair");
-		}
-		if (unit.getUnitType() == BWAPI::UnitTypes::Zerg_Sunken_Colony)
-		{
-			BWAPI::Broodwar->printf("morph sunken");
-		}
     }
     // if we're dealing with a tech research
 	else if (unit.isTech())

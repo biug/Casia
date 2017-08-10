@@ -38,10 +38,10 @@ private:
 	BWAPI::Unitset emptyset;
 	std::set<BWAPI::TilePosition> canceledRefineryLocations;
 
-	std::hash_map<BWAPI::Unit, enum WorkerJob>				workerJobMap;
-	std::hash_map<BWAPI::Unit, BWAPI::Unit>					workerRepairMap;
-	std::hash_map<BWAPI::Unit, WorkerMoveData>				workerMoveMap;
-	std::hash_map<BWAPI::Unit, BWAPI::UnitType>				workerBuildingTypeMap;
+	std::hash_map<BWAPI::Unit, std::pair<enum WorkerJob, int>>	workerJobMap;
+	std::hash_map<BWAPI::Unit, BWAPI::Unit>						workerRepairMap;
+	std::hash_map<BWAPI::Unit, WorkerMoveData>					workerMoveMap;
+	std::hash_map<BWAPI::Unit, BWAPI::UnitType>					workerBuildingTypeMap;
 
 	std::hash_map<BWAPI::Unit, BWAPI::Unit>					workerMineralBaseMap;
 	std::hash_map<BWAPI::Unit, BWAPI::Unitset>				mineralBaseWorkersMap;
@@ -61,7 +61,7 @@ public:
 
 	WorkerData();
 
-	void					checkResources();
+	void					checkWorkersStatus();
 	void					workerDestroyed(BWAPI::Unit worker);
 	void					addMineralBase(BWAPI::Unit mineralBase);
 	void					addRefinery(BWAPI::Unit refinery);

@@ -81,26 +81,8 @@ void WorkerManager::updateResourceStatus()
 
 void WorkerManager::updateWorkerStatus() 
 {
-	for (auto & unit : BWAPI::Broodwar->self()->getUnits())
-	{
-		// add the depot if it exists
-		if (workerData.isMineralBase(unit))
-		{
-			workerData.addMineralBase(unit);
-		}
-
-		if (workerData.isRefinery(unit))
-		{
-			workerData.addRefinery(unit);
-		}
-
-		// if something morphs into a worker, add it
-		if (unit->getType().isWorker() && unit->getHitPoints() > 0)
-		{
-			//BWAPI::Broodwar->printf("A worker was shown %d", unit->getID());
-			workerData.addWorker(unit);
-		}
-	}
+	// check workers
+	workerData.checkWorkersStatus();
 	// for each of our Workers
 	for (auto & worker : workerData.getWorkers())
 	{

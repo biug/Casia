@@ -500,7 +500,6 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 	// 第一个地堡
 	if (numColony == 0)
 	{
-		BWAPI::Broodwar->printf("first");
 		// 寻找这个基地到对方家中的路径
 		auto path = MapPath::Instance().getPath({ base->getPosition(), BWAPI::Position(enemyP) });
 		if (path.empty())
@@ -562,7 +561,6 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 	}
 	else
 	{
-		BWAPI::Broodwar->printf("not first");
 		auto & creepSet = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Creep_Colony);
 		auto & sunkenSet = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Sunken_Colony);
 		BWAPI::Unitset creeps;
