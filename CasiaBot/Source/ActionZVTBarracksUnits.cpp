@@ -45,34 +45,16 @@ bool ActionZVTBarracksUnits::tick()
 void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 {
 	being_rushed = InformationManager::Instance().isEncounterRush();
+	BWAPI::Broodwar->drawTextScreen(480, 260, being_rushed ? "rush" : "not rush");
 	// 当前帧数（累计）
 	int gas = BWAPI::Broodwar->self()->gas();
 	int minerals = BWAPI::Broodwar->self()->minerals();
 	int currentFrameCount = BWAPI::Broodwar->getFrameCount();
 
-	//if (base_count + base_in_queue + base_being_built <= 1)
-	//{
-	//	if ((spawning_pool_count > 0 && drone_count >= 12) || minerals > 320)
-	//	{
-	//		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hatchery), true);
-	//	}
-	//}
-
-	if (BWAPI::Broodwar->self()->minerals() > 500 && base_in_queue + base_being_built < 1
-		&& base_count + base_in_queue + base_being_built < 5)
-	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hatchery));
-	}
-
-	// 判断前提建筑是否存在
-	bool isSpawningPoolExist = spawning_pool_being_built + spawning_pool_count + spawning_pool_in_queue > 0;
-	if (!isSpawningPoolExist)
-	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Spawning_Pool), true);
-	}
-
-	int creep_need = std::min(5, std::max(2, enemy_marine_count / 6));
-	if (spawning_pool_count > 0 && creep_colony_being_built + creep_colony_in_queue == 0
+	// 防rush放地堡
+	int creep_need = std::min(4, std::max(2, enemy_marine_count / 6));
+	if (spawning_pool_count > 0	// 存在血池
+		&& creep_colony_being_built + creep_colony_in_queue == 0	// 队列中没有地堡
 		&& creep_colony_count + creep_colony_being_built + creep_colony_in_queue +
 		sunken_colony_count + sunken_colony_being_built + sunken_colony_in_queue < (being_rushed ? creep_need : 0))
 	{
@@ -80,29 +62,50 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 	}
 
 	if (creep_colony_completed > 0 && spawning_pool_completed > 0 &&
-		sunken_colony_being_built + sunken_colony_in_queue < creep_colony_completed)
+		sunken_colony_being_built + sunken_colony_in_queue < creep_colony_completed)	//如果有creep就变地堡
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony), true);
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone), true);	// 补地堡也要补农民
 	}
 
+	// 判断血池是否存在
+	bool isSpawningPoolExist = spawning_pool_being_built + spawning_pool_count + spawning_pool_in_queue > 0;
+	if (!isSpawningPoolExist)
+	{
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Spawning_Pool), true);
+	}
+
+	// 判断第一个气矿是否存在
 	bool isExtractorExist = extractor_being_built + extractor_count + extractor_in_queue > 0;
 	if (!isExtractorExist && drone_count >= 10 && spawning_pool_count > 0)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Extractor));
 	}
 
+	// 判断刺蛇洞是否存在
 	bool isHydraliskDenExist = hydralisk_den_being_built + hydralisk_den_count + hydralisk_den_in_queue > 0;
 	if (!isHydraliskDenExist && gas >= 50 && lair_count > 0)
 	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk_Den), true);
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk_Den, "50%Lair"));
 	}
 
-	if (lair_count + lair_being_built + lair_in_queue == 0
-		&& spawning_pool_completed > 0 && gas >= 100
+	// 判断是否二本
+	if (lair_count + lair_being_built + lair_in_queue == 0	// 没有多造
+		&& spawning_pool_completed > 0 && gas >= 100		// 资源和前置条件
+		&& (being_rushed ? (sunken_colony_count >= 2) : true)// 被rush要地堡优先
 		&& currentFrameCount > 3600)
 	{
-			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Lair), true);
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Lair), true);	// 二本优先
 	}
+
+	// 开分矿
+	if (BuildingManager::Instance().getReservedGas() > 400 && base_in_queue + base_being_built == 0)
+	{
+		BWAPI::Broodwar->printf("add a hatchery");
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hatchery));
+	}
+
+	// 三本
 	if (lair_completed > 0)
 	{
 		if (queens_nest_count + queens_nest_being_built + queens_nest_in_queue == 0)
@@ -124,95 +127,65 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 		}
 	}
 
+	// lurker科技
+	if (hydralisk_den_completed > 0 && lair_completed > 0 && lurker_aspect_count == 0)
+	{
+		queue.add(MetaType(BWAPI::TechTypes::Lurker_Aspect), true);
+	}
+	// 小狗科技
 	if (spawning_pool_completed > 0 && metabolic_boost_count == 0)
 	{
 		queue.add(MetaType(BWAPI::UpgradeTypes::Metabolic_Boost));
-	}
-	if (hydralisk_den_completed > 0 && lair_completed > 0 && lurker_aspect_count == 0 && gas >= 125)
-	{
-		queue.add(MetaType(BWAPI::TechTypes::Lurker_Aspect), true);
 	}
 	if (hive_completed > 0 && adrenal_glands_count == 0)
 	{
 		queue.add(MetaType(BWAPI::UpgradeTypes::Adrenal_Glands));
 	}
 
-	bool notEnoughDrone = false;
-	if (base_count == 1)
+	// 计算需要的农民数量
+	int numTotalPatch = 0;
+	for (const auto & base : InformationManager::Instance().getSelfBases())
 	{
-		if (drone_count + drone_in_queue < 15)
-			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone), drone_count + drone_in_queue < 12);
-		notEnoughDrone = (drone_count + drone_in_queue) < 10;
+		numTotalPatch += WorkerManager::Instance().getMineralPatches(base).size();
 	}
-	else
+	// 如果农民不足，需要加入优先队列
+	bool notEnoughDrone = (drone_count + drone_in_queue) < (int)((float)numTotalPatch * 1.3);
+	if (drone_count + drone_in_queue < numTotalPatch * Config::Macro::WorkersPerMineralPatch)
 	{
-		if (drone_count + drone_in_queue < base_count * 10)
-		{
-			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone));
-		}
-		notEnoughDrone = ((drone_count + drone_in_queue) < 6 * base_count);
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone), notEnoughDrone);
+	}
+
+	// 分矿的气矿
+	int extractorNeed = std::min(base_completed, 3);
+	if (!notEnoughDrone
+		&& extractor_count + extractor_being_built + extractor_in_queue < extractorNeed)
+	{
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Extractor));
+		// 补一个农民
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone));
 	}
 
 	// 判断需要建造多少部队
-	int need_zergling_count = zergling_count + zergling_in_queue < 18 ? 2 : 0;
-
-	int need_lurker_count = (int)(enemyTerranBarrackUnitsAmount * 0.75) - lurker_count - lurker_in_queue;
-	if (need_lurker_count <= 0 && lurker_count + lurker_in_queue < 5)
+	// 小狗
+	int zerglingMax = being_rushed || currentFrameCount < 6400 ? 12 : 48;
+	int zerglingNeed = (zerglingMax - zergling_count - zergling_in_queue) / 2;
+	if (zerglingNeed > 0)
 	{
-		need_lurker_count = 1;
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Zergling));
 	}
 
-	if (notEnoughDrone)
+	// 刺蛇
+	if (hydralisk_count + hydralisk_in_queue < 3)
 	{
-		need_lurker_count = lurker_count + lurker_in_queue < 3 ? 1 : 0;
-		need_zergling_count = zergling_count + zergling_in_queue < 6 ? 2 : 0;
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk));
 	}
-
-	if (being_rushed && hydralisk_completed == 0)
+	// lurker加入优先队列
+	if (hydralisk_completed > 0
+		&& BWAPI::Broodwar->self()->hasResearched(BWAPI::TechTypes::Lurker_Aspect)
+		&& lurker_in_queue == 0)
 	{
-		need_zergling_count = 0;
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Lurker), true);
 	}
-
-	// 穿插建造Zergling和Lurker
-	do
-	{
-		if (need_zergling_count > 0)
-		{
-			// 2个Zergling
-			if (spawning_pool_count > 0)
-			{
-				queue.add(MetaType(BWAPI::UnitTypes::Zerg_Zergling));
-			}
-			need_zergling_count -= 2;
-		}
-		if (need_lurker_count > 0)
-		{
-			if (hydralisk_den_completed > 0
-				&& (hydralisk_count + hydralisk_in_queue) <= 5)
-			{
-				queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk), enemyTerranBarrackUnitsAmount > 15);
-			}
-			if (BWAPI::Broodwar->self()->hasResearched(BWAPI::TechTypes::Lurker_Aspect)
-				&& lurker_count + lurker_in_queue < hydralisk_completed)
-			{
-				queue.add(MetaType(BWAPI::UnitTypes::Zerg_Lurker), enemyTerranBarrackUnitsAmount > 15);
-			}
-			need_lurker_count--;
-		}
-		if (need_zergling_count <= 0 && need_lurker_count <= 0)
-		{
-			break;
-		}
-
-	} while (0);
-
-	int extractorUpperBound = std::min(base_completed, 3);
-	if (isExtractorExist
-		&& extractor_count + extractor_being_built + extractor_in_queue < extractorUpperBound)
-	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Extractor));
-	}
-
 }
 
 void ActionZVTBarracksUnits::updateCurrentState(ProductionQueue &queue)

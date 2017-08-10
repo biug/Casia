@@ -103,7 +103,7 @@ namespace Config
     namespace Macro
     {
         int WorkersPerRefinery              = 3;
-        int WorkersPerMineralPatch          = 3;
+        int WorkersPerMineralPatch          = 2;
         int BuildingSpacing                 = 1;
         int PylonSpacing                    = 3;
     }

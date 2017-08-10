@@ -71,11 +71,76 @@ void ProductionManager::onUnitDestroy(BWAPI::Unit unit)
 	}
 }
 
+void ProductionManager::openingCheck()
+{
+	// check overlord
+	if (_openingQueue.empty()) return;
+	auto & item = _openingQueue.front();
+	// if we create overlord, continue
+	if (item._unit.isUnit() && item._unit.getUnitType() == BWAPI::UnitTypes::Zerg_Overlord)
+	{
+		return;
+	}
+	// if we building, continue
+	if (item._unit.isBuilding())
+	{
+		return;
+	}
+	// calculate supply
+	int supply =
+		InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Overlord, BWAPI::Broodwar->self()) * 8
+		+ InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Hatchery, BWAPI::Broodwar->self())
+		+ InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Lair, BWAPI::Broodwar->self())
+		+ InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Hive, BWAPI::Broodwar->self());
+
+	int supplyUsed = 1;
+	for (BWAPI::Unit unit : BWAPI::Broodwar->self()->getUnits()) {
+		if (unit->getType() == BWAPI::UnitTypes::Zerg_Egg)
+		{
+			if (unit->getBuildType() == BWAPI::UnitTypes::Zerg_Zergling
+				|| unit->getBuildType() == BWAPI::UnitTypes::Zerg_Scourge)
+			{
+				supplyUsed += 2;
+			}
+			else
+			{
+				supplyUsed += unit->getBuildType().supplyRequired();
+			}
+		}
+		else if (unit->getType() == BWAPI::UnitTypes::Zerg_Lurker_Egg)
+		{
+			supplyUsed += unit->getBuildType().supplyRequired();
+		}
+		else
+		{
+			supplyUsed += unit->getType().supplyRequired();
+		}
+	}
+	supplyUsed /= 2;
+
+	if (supplyUsed > supply)
+	{
+		MetaType meta(BWAPI::UnitTypes::Zerg_Overlord);
+		ProductionItem item(meta);
+		_openingQueue.push_front(item);
+		BWAPI::Broodwar->printf("used %d total %d", supplyUsed, supply);
+		BWAPI::Broodwar->printf("add one");
+	}
+}
+
 void ProductionManager::manageBuildOrderQueue() 
 {
 	bool useQueue = _openingQueue.empty();
-	_queue.checkSupply();
-	_queue.popReserve();
+	if (useQueue)
+	{
+		_queue.checkSupply();
+		_queue.popReserve();
+	}
+	else
+	{
+		// check opening queue
+		openingCheck();
+	}
 	ProductionItem item = useQueue ? _queue.popItem() : _openingQueue.front();
 	int freem = getFreeMinerals();
 	int freeg = getFreeGas();
