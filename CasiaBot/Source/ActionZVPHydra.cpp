@@ -165,7 +165,7 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 				creep_colony_in_queue + creep_colony_being_built, creep_colony_count);
 			if (sunken_colony_total < 4)
 			{
-				if (creep_colony_in_queue + creep_colony_being_built + creep_colony_count + sunken_colony_count< 5 
+				if (creep_colony_in_queue + creep_colony_being_built + creep_colony_count + sunken_colony_total< 4 
 					&& creep_colony_in_queue < 2)
 				{
 					BWAPI::Broodwar->drawTextScreen(200, 280, "Are we building Creep Colony?");
@@ -212,7 +212,7 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Extractor));
 		}
 
-		if (enemy_army_supply > army_supply * 1.1) {
+		if (enemy_army_supply > army_supply * 1.1 && larva_count > 0) {
 			BWAPI::Broodwar->drawTextScreen(200, 290, "too few army");
 			if (!isHydraliskDenExist) {
 				if (isExtractorExist && gas > 50)
@@ -227,10 +227,14 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 			else if (isHydraliskDenExist)
 			{
 				BWAPI::Broodwar->drawTextScreen(250, 290, "more hydralisks");
-				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Hydralisk));
+				if (hydralisk_in_queue < 3)
+				{
+					tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Hydralisk));
+				}
 				if (lurker_aspect_count > 0 && gas > 100 && lurker_count * 5 < hydralisk_count
 					&& enemy_air_army_supply < 10)
 				{
+					BWAPI::Broodwar->drawTextScreen(350, 300, "want lurkers");
 					tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Lurker));
 				}
 				else if (lurker_aspect_count == 0 && hydralisk_count > 15 && 
@@ -246,14 +250,18 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 				BWAPI::Broodwar->drawTextScreen(200, 300, "update tech");
 				if (!muscular_argument_completing)
 				{
+					BWAPI::Broodwar->drawTextScreen(300, 300, "no speed");
 					if (hydralisk_den_completed > 0 && hydralisk_count + hydralisk_in_queue > 7)
 					{
+						BWAPI::Broodwar->drawTextScreen(400, 300, "update speed");
 						tryAddInQueue(queue, MetaType(BWAPI::UpgradeTypes::Muscular_Augments));
 					}
 				}
 				else if (!grooved_spines_completing) {
+					BWAPI::Broodwar->drawTextScreen(300, 300, "no range");
 					if (hydralisk_den_completed > 0 && hydralisk_count + hydralisk_in_queue > 12)
 					{
+						BWAPI::Broodwar->drawTextScreen(400, 300, "update range");
 						tryAddInQueue(queue, MetaType(BWAPI::UpgradeTypes::Muscular_Augments));
 					}
 				}
@@ -273,17 +281,19 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 		}
 		//train more workers
 		else if (drone_count + drone_in_queue < InformationManager::Instance().getSelfBases().size() * 12 + extractor_count * 3
-			&& drone_in_queue < 2 &&
-			(larva_count) / InformationManager::Instance().getSelfBases().size() > 1)
+			&& drone_in_queue < 2)
 		{
+			BWAPI::Broodwar->drawTextScreen(200, 330, "more drones! %d", 
+				(larva_count) / InformationManager::Instance().getSelfBases().size() > 1);
 			tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Drone));
 		}
 		//train more army & upgrade tech
 		else
 		{
+			BWAPI::Broodwar->drawTextScreen(200, 320, "tech is first power");
 			if (!muscular_argument_completing)
 			{
-				if (hydralisk_den_completed > 0 && gas >= 150 && hydralisk_count + hydralisk_in_queue > 7)
+				if (hydralisk_den_completed > 0 && minerals > 150 && gas >= 150 && hydralisk_count + hydralisk_in_queue > 7)
 				{
 					tryAddInQueue(queue, MetaType(BWAPI::UpgradeTypes::Muscular_Augments));
 				}
@@ -294,10 +304,14 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 					tryAddInQueue(queue, MetaType(BWAPI::UpgradeTypes::Grooved_Spines));
 				}
 			}
-			else if (!isHiveExist)	// Èô·ä³²²»´æÔÚ
+			
+			//base tech
+			if (!isHiveExist && 
+				(mineralDequePositive && gasDequePositive || (minerals > 400 && gas > 200)))	// Èô·ä³²²»´æÔÚ
 			{
 				if (isQueenNestExist)	// Èô»Êºó³²´æÔÚ
 				{
+					BWAPI::Broodwar->drawTextScreen(200, 340, "for the queen");
 					if (currentFrameCount > 10800 && army_supply > 40)
 					{
 						tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Hive));
@@ -305,6 +319,7 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 				}
 				else	// Èô»Êºó³²²»´æÔÚ
 				{
+					BWAPI::Broodwar->drawTextScreen(200, 340, "Long live the king");
 					if (isLairExist)	// ÈôÊÞÑ¨´æÔÚ
 					{
 						if (currentFrameCount > 9000 && army_supply > 20)
@@ -312,15 +327,21 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 							tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Queens_Nest));
 						}
 					}
-					else if (currentFrameCount > 4800 && hydralisk_count > 15)	// ÈôÊÞÑ¨²»´æÔÚ
+					else if (currentFrameCount > 4800 && hydralisk_count > 12)	// ÈôÊÞÑ¨²»´æÔÚ
 					{
+						BWAPI::Broodwar->drawTextScreen(200, 320, "lion lair");
 						tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Lair));
 					}
 				}
 			}
 
+			//TODO
+			//gongfang
+
+
 			if (hydralisk_in_queue < 3)
 			{
+				BWAPI::Broodwar->drawTextScreen(200, 310, "why not more hydras");
 				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Hydralisk));
 			}
 
@@ -331,8 +352,10 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 			}
 
 			//²¹Æø¿ó
-			int extractorUpperBound = std::min(base_completed - 1, 3);
-			if (isExtractorExist && extractor_count + extractor_being_built + extractor_in_queue < extractorUpperBound && gas < 300)
+			int extractorUpperBound = std::min(base_completed, 3);
+			if (isExtractorExist &&
+				extractor_count + extractor_being_built + extractor_in_queue < extractorUpperBound &&
+				(gas < 300 && minerals > 600))
 			{
 				tryAddInQueue(queue, MetaType(BWAPI::UnitTypes::Zerg_Extractor));
 			}
@@ -730,7 +753,7 @@ void ActionZVPHydra::tryAddInQueue(ProductionQueue & queue, const ProductionItem
 	}
 	else if (unitType == BWAPI::UnitTypes::Zerg_Hydralisk)
 	{
-		if (hydralisk_den_count > 0 && hydralisk_count + hydralisk_in_queue < hydraliskLimit)
+		if (hydralisk_den_count > 0)
 		{
 			queue.add(item, priority);
 			hydralisk_in_queue++;

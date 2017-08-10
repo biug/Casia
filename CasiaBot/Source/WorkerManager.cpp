@@ -43,7 +43,7 @@ void WorkerManager::updateResourceStatus()
 		}
 		int mineral = BWAPI::Broodwar->self()->minerals();
 		int gas = BWAPI::Broodwar->self()->gas();
-		if (mineral < 200)
+		if (mineral < 200 && gas > 150)
 		{
 			needMoreMineral = true;
 		}
