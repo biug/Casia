@@ -59,6 +59,9 @@ namespace CasiaBot
 		bool                        unitNearEnemy(BWAPI::Unit unit);
 		bool                        needsToRegroup();
 		int                         squadUnitsNear(BWAPI::Position p);
+		float						groundForceScore(BWAPI::UnitType type);
+		float						airForceScore(BWAPI::UnitType type);
+		bool						terranRetreat(BWAPI::Position center);
 
 	public:
 

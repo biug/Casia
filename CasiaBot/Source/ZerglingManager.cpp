@@ -1,5 +1,6 @@
 ﻿#include "ZerglingManager.h"
 #include "UnitUtil.h"
+#include "BuildingPlacer.h"
 
 using namespace CasiaBot;
 
@@ -18,44 +19,30 @@ void ZerglingManager::execute(const SquadOrder & inputOrder)
 	else
 	{
 		//BWAPI::Broodwar->printf("being rushed");
+		// find defense base
+		BWAPI::Unit base = BuildingPlacer::Instance().getDefenseBase();
+		if (!base) return;
+		auto baseP = base->getPosition();
 		// find a sunken
 		const auto & sunkens = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Sunken_Colony);
 		const auto & creeps = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Creep_Colony);
 		BWAPI::Unitset creepsunken;
 		creepsunken.insert(sunkens.begin(), sunkens.end());
 		creepsunken.insert(creeps.begin(), creeps.end());
-		if (creepsunken.empty()) return;
-		auto center = creepsunken.getPosition();
-		// find sunken region
-		auto bases = InformationManager::Instance().getSelfBases();
-		BWAPI::Position baseP = BWAPI::Positions::None;
-		for (const auto & b : bases)
-		{
-			if (b->getDistance(center) < 300)
-			{
-				baseP = b->getPosition();
-				break;
-			}
-		}
-		if (!baseP.isValid())
-		{
-			baseP = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
-		}
-		const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
-		if (!center.isValid() || ebases.empty()) center = baseP;
-		auto path = MapPath::Instance().getPath({ baseP, ebases.front().lastPosition });
-		if (path.empty())
-		{
-			MapPath::Instance().insert({ baseP, ebases.front().lastPosition });
-			return;
-		}
+		auto center = baseP;
+		if (!creepsunken.empty()) center = creepsunken.getPosition();
 		// 集结在地堡和基地的中间
 		auto groupP = (center + baseP) / 2;
 
 		BWAPI::Unitset nearbyEnemies;
 		const BWAPI::Unitset & meleeUnits = getUnits();
+		auto meleeCenter = meleeUnits.getPosition();
 		MapGrid::Instance().GetUnits(nearbyEnemies, center, 160, false, true);
-		if (nearbyEnemies.empty())
+		if (creepsunken.empty())
+		{
+			MapGrid::Instance().GetUnits(nearbyEnemies, meleeCenter, 160, false, true);
+		}
+		if (nearbyEnemies.empty() || meleeCenter.getDistance(groupP) > 480)
 		{
 			for (auto & meleeUnit : meleeUnits)
 			{

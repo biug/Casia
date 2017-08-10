@@ -29,12 +29,12 @@ void WorkerManager::update()
 
 void WorkerManager::updateResourceStatus()
 {
-	if (BWAPI::Broodwar->getFrameCount() % 10 == 0)
+	if (BWAPI::Broodwar->getFrameCount() % 15 == 0)
 	{
 		needLessGas = needMoreGas = needLessMineral = needMoreMineral = false;
 		gasNotUsed = false;
 		gasUsed.push_back(BWAPI::Broodwar->self()->spentGas());
-		if (gasUsed.size() >= 20)
+		if (gasUsed.size() >= 30)
 		{
 			if (gasUsed.front() == gasUsed.back()) {
 				gasNotUsed = true;
@@ -43,15 +43,36 @@ void WorkerManager::updateResourceStatus()
 		}
 		int mineral = BWAPI::Broodwar->self()->minerals();
 		int gas = BWAPI::Broodwar->self()->gas();
+		int spentMineral = BWAPI::Broodwar->self()->spentMinerals();
+		int spentGas = BWAPI::Broodwar->self()->spentGas();
+		int numHydra =
+			InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Hydralisk, BWAPI::Broodwar->self());
+		int numMuta =
+			InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Mutalisk, BWAPI::Broodwar->self());
+		// 晶矿不多时
 		if (mineral < 200)
 		{
-			needMoreMineral = true;
+			// 如果已经消耗很多气
+			if (spentGas >= 600)
+			{
+				// 晶矿不足阈值降低
+				if (mineral < 100)
+				{
+					needMoreMineral = true;
+				}
+			}
+			else
+			{
+				needMoreMineral = true;
+			}
 		}
-		if (gas > 224 && gasNotUsed)
+		// 如果很长一段时间没有用气，并且还没有出刺蛇/飞龙，那么停止采气
+		if (gas > 200 && gasNotUsed && numHydra == 0 && numMuta == 0)
 		{
 			needLessGas = true;
 		}
-		else if ((gas < 100 || !gasNotUsed) && !needMoreMineral)
+		// 如果不需要更多的矿，并且气体不足
+		else if (!needMoreMineral)
 		{
 			needMoreGas = true;
 		}
@@ -148,7 +169,6 @@ void WorkerManager::stopRepairing(BWAPI::Unit worker)
 void WorkerManager::handleGasWorkers()
 {
 	// for each unit we have
-	bool firstRefinery = true;
 	for (auto & unit : BWAPI::Broodwar->self()->getUnits())
 	{
 		// if that unit is a refinery
@@ -167,7 +187,6 @@ void WorkerManager::handleGasWorkers()
 				// get the number of workers currently assigned to it
 				int workersNeeded = Config::Macro::WorkersPerRefinery
 					- workerData.getNumRefineryWorkers(unit);
-				if (!firstRefinery && !needMoreGas) workersNeeded = 0;
 
 				// if it's less than we want it to be, fill 'er up
 				for (int i = 0; i < workersNeeded; ++i)
@@ -178,7 +197,6 @@ void WorkerManager::handleGasWorkers()
 						setWorkerGatheringGas(gasWorker);
 					}
 				}
-				firstRefinery = false;
 			}
 		}
 	}

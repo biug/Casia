@@ -325,51 +325,68 @@ void BuildingPlacer::freeTiles(BWAPI::TilePosition position, int width, int heig
 
 BWAPI::TilePosition BuildingPlacer::getRefineryPosition()
 {
-	BWAPI::Unit bestgeyser = nullptr;
     BWAPI::TilePosition closestGeyser = BWAPI::TilePositions::None;
     double minGeyserDistanceFromHome = std::numeric_limits<double>::max();
-    BWAPI::Position homePosition = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
 	BWAPI::TilePosition homeTilePosition = BWAPI::Broodwar->self()->getStartLocation();
-	BWAPI::Unit depot = nullptr;
 
     // for each geyser
-    for (const auto & geyser : BWAPI::Broodwar->getGeysers())
-    {
-        if (geyser->getType() != BWAPI::UnitTypes::Resource_Vespene_Geyser)
-        {
-            continue;
-        }
+	const auto & bases = InformationManager::Instance().getSelfBases();
+	const auto & extractors = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Extractor);
+	for (const auto & geyser : BWEM::Map::Instance().Geysers())
+	{
+		BWAPI::Broodwar->drawCircleMap(geyser->Pos(), 10, BWAPI::Colors::Red, true);
 
-        BWAPI::Position geyserPos = geyser->getInitialPosition();
-        BWAPI::TilePosition geyserTilePos = geyser->getInitialTilePosition();
-
-		if (!geyserTilePos.isValid())
+		// invalid geyser
+		if (!geyser->IsGeyser())
 		{
 			continue;
 		}
 
-        // check to see if it's next to one of our depots
-        bool nearDepot = false;
-        for (auto & unit : BWAPI::Broodwar->self()->getUnits())
-        {
-            if (unit->getType().isResourceDepot() && unit->isCompleted() && unit->getDistance(geyserPos) < 300)
-            {
-                nearDepot = true;
-            }
-        }
+		auto geyserTP = geyser->TopLeft();
 
-        if (nearDepot)
-        {
-            double homeDistance = geyser->getDistance(homePosition);
+		// invalid position
+		if (!geyserTP.isValid())
+		{
+			continue;
+		}
 
-            if (homeDistance < minGeyserDistanceFromHome)
-            {
-				bestgeyser = geyser;
-                minGeyserDistanceFromHome = homeDistance;
-                closestGeyser = geyser->getInitialTilePosition();
-            }
-        }
-    }
+		// not used by self
+		bool haveUsed = false;
+		for (const auto & extractor : extractors)
+		{
+			if (extractor->getTilePosition() == geyserTP)
+			{
+				haveUsed = true;
+				break;
+			}
+		}
+		if (haveUsed)
+		{
+			continue;
+		}
+
+		// check to see if it's next to one of our depots
+		bool nearDepot = false;
+		for (const auto base : bases)
+		{
+			if (base && base->isCompleted() && geyserTP.getDistance(base->getTilePosition()) < 10)
+			{
+				nearDepot = true;
+			}
+		}
+
+		// find nearest resource
+		if (nearDepot)
+		{
+			double homeDistance = geyserTP.getDistance(homeTilePosition);
+
+			if (homeDistance < minGeyserDistanceFromHome)
+			{
+				minGeyserDistanceFromHome = homeDistance;
+				closestGeyser = geyserTP;
+			}
+		}
+	}
 	if (!closestGeyser.isValid())
 	{
 		minGeyserDistanceFromHome = std::numeric_limits<double>::max();
@@ -387,6 +404,7 @@ BWAPI::TilePosition BuildingPlacer::getRefineryPosition()
 	}
 	if (InformationManager::Instance().checkBuildingLocation(closestGeyser))
 	{
+		//BWAPI::Broodwar->printf("find one refinery at (%d, %d)", closestGeyser.x, closestGeyser.y);
 		return closestGeyser;
 	}
 	return BWAPI::TilePositions::None;
@@ -527,9 +545,10 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 					if (drones.size() > 0) b.builderUnit = *drones.begin();
 					if (canBuildHere(targetTP, b))
 					{
-						double disA = std::sqrt(std::pow(x - chokeTP.x, 2) + std::pow(y - chokeTP.y, 2));
-						double disB = std::sqrt(std::pow(x - baseTP.x, 2) + std::pow(y - baseTP.y, 2));
-						double score = disA / disB + 0.08 * (disA + disB);
+						double disA = targetTP.getDistance(chokeTP);
+						double disB = targetTP.getDistance(baseTP);
+						double score = disB < 0.1 ? 0.08 * disA : disA / disB + 0.08 * (disA + disB);
+						// 尽可能远离中心又靠近路口
 						if (score < bestTargetScore)
 						{
 							bestTargetScore = score;
@@ -549,10 +568,30 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 		BWAPI::Unitset creeps;
 		creeps.insert(creepSet.begin(), creepSet.end());
 		creeps.insert(sunkenSet.begin(), sunkenSet.end());
+		//找到地堡中心
 		auto center = BWAPI::TilePosition(creeps.getPosition());
+		// 寻找这个基地到对方家中的路径
+		auto path = MapPath::Instance().getPath({ base->getPosition(), BWAPI::Position(enemyP) });
+		if (path.empty())
+		{
+			MapPath::Instance().insert({ base->getPosition(), BWAPI::Position(enemyP) });
+			return BWAPI::TilePositions::None;
+		}
+		// 找路口
+		const auto & chokes = BWEM::Map::Instance().GetPath(creeps.getPosition(), enemyP);
+		auto chokeTP = BWAPI::TilePositions::None;
+		if (!chokes.empty() && chokes[0] != nullptr)
+		{
+			chokeTP = BWAPI::TilePosition(chokes[0]->Center());
+		}
+		if (!chokeTP.isValid())
+		{
+			chokeTP = path.size() > 20 ? path[20] : path.back();
+		}
 		int radius = 3;
-		int bestDist = 100000;
+		double bestTargetScore = 100000;
 		BWAPI::TilePosition bestTile = BWAPI::TilePositions::None;
+		// 中心半径为3的区域内找位置
 		for (int x = center.x - radius; x <= center.x + radius; ++x)
 		{
 			for (int y = center.y - radius; y <= center.y + radius; ++y)
@@ -564,10 +603,14 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 				if (drones.size() > 0) b.builderUnit = *drones.begin();
 				if (canBuildHere(tile, b))
 				{
-					if (!bestTile.isValid() || bestDist > tile.getDistance(center))
+					double disA = tile.getDistance(chokeTP);
+					double disB = tile.getDistance(center);
+					double score = disA + disB;
+					// 既靠近中心又靠近路口
+					if (!bestTile.isValid() || score < bestTargetScore)
 					{
+						bestTargetScore = score;
 						bestTile = tile;
-						bestDist = tile.getDistance(center);
 					}
 				}
 			}

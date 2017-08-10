@@ -8,6 +8,10 @@ using namespace CasiaBot::ActionHelper;
 using namespace std;
 
 ActionZVTBarracksUnits::ActionZVTBarracksUnits()
+	: thirdBase(true)
+	, enemyTerranBarrackUnitsAmount(0)
+	, enemyTerranFactoryUnitsAmount(0)
+	, enemyTerranMechanizationRate(0.0)
 {
 }
 
@@ -44,12 +48,16 @@ bool ActionZVTBarracksUnits::tick()
 
 void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 {
+	int currentFrameCount = BWAPI::Broodwar->getFrameCount();
+	int freeMineral =
+		BWAPI::Broodwar->self()->minerals()
+		- BuildingManager::Instance().getReservedMinerals();
+	int freeGas =
+		BWAPI::Broodwar->self()->gas()
+		- BuildingManager::Instance().getReservedGas();
 	being_rushed = InformationManager::Instance().isEncounterRush();
 	BWAPI::Broodwar->drawTextScreen(480, 260, being_rushed ? "rush" : "not rush");
 	// 当前帧数（累计）
-	int gas = BWAPI::Broodwar->self()->gas();
-	int minerals = BWAPI::Broodwar->self()->minerals();
-	int currentFrameCount = BWAPI::Broodwar->getFrameCount();
 
 	// 防rush放地堡
 	int creep_need = std::min(4, std::max(2, enemy_marine_count / 6));
@@ -84,22 +92,36 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 
 	// 判断刺蛇洞是否存在
 	bool isHydraliskDenExist = hydralisk_den_being_built + hydralisk_den_count + hydralisk_den_in_queue > 0;
-	if (!isHydraliskDenExist && gas >= 50 && lair_count > 0)
+	if (!isHydraliskDenExist && freeGas >= 50 && lair_count > 0)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk_Den, "50%Lair"));
 	}
 
 	// 判断是否二本
 	if (lair_count + lair_being_built + lair_in_queue == 0	// 没有多造
-		&& spawning_pool_completed > 0 && gas >= 100		// 资源和前置条件
+		&& spawning_pool_completed > 0 && freeGas >= 100		// 资源和前置条件
 		&& (being_rushed ? (sunken_colony_count >= 2) : true)// 被rush要地堡优先
 		&& currentFrameCount > 3600)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Lair), true);	// 二本优先
 	}
 
+	// 内双
+	if (lurker_count > 0
+		&& freeMineral > 300
+		&& base_in_queue + base_being_built == 0
+		&& thirdBase)
+	{
+		// 内双优先
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hatchery, "Main"), true);
+		thirdBase = false;
+	}
+
 	// 开分矿
-	if (BuildingManager::Instance().getReservedGas() > 400 && base_in_queue + base_being_built == 0)
+	if (freeMineral > 400
+		&& base_in_queue + base_being_built == 0
+		&& base_count < 5
+		&& lurker_count > 0)
 	{
 		BWAPI::Broodwar->printf("add a hatchery");
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hatchery));
@@ -119,10 +141,7 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 		{
 			if (hive_count + hive_being_built + hive_in_queue == 0)
 			{
-				if (currentFrameCount > 17280)
-				{
-					queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hive));
-				}
+				queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hive));
 			}
 		}
 	}
@@ -167,15 +186,16 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 
 	// 判断需要建造多少部队
 	// 小狗
-	int zerglingMax = being_rushed || currentFrameCount < 6400 ? 12 : 48;
+	int zerglingMax = being_rushed || currentFrameCount < 6400 ? 16 : 48;
 	int zerglingNeed = (zerglingMax - zergling_count - zergling_in_queue) / 2;
-	if (zerglingNeed > 0)
+	if (zerglingNeed > 0 && zergling_in_queue <= 6)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Zergling));
 	}
 
 	// 刺蛇
-	if (hydralisk_count + hydralisk_in_queue < 3)
+	if (hydralisk_den_completed > 0
+		&& hydralisk_count + hydralisk_in_queue < 3)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk));
 	}

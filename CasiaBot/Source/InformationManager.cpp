@@ -781,7 +781,7 @@ bool InformationManager::checkBuildingLocation(const BWAPI::TilePosition & tp)
 			auto lastP = getLastPosition(b, BWAPI::Broodwar->enemy());
 			if (!lastP.isValid()) continue;
 			auto lastTP = BWAPI::TilePosition(lastP);
-			if (lastTP.getDistance(tp) < 10) return false;
+			if (lastTP.getDistance(tp) < 5) return false;
 		}
 	}
 	return true;
