@@ -80,7 +80,7 @@
     
     "Opening" :
     {        
-        "ZVP"                       : "ZVP_10Hatch",
+        "ZVP"                       : "ZVP_12Hatch",
         "ZVT"                       : "ZVT_11Hatch",
         "ZVZ"                       : "ZVZ_9D",
         "Random"                    : "ZVP_10D",
@@ -110,6 +110,8 @@
             "ZVP_Overpool"  : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Overlord", "Spawning_Pool", "Drone", "Drone", "Drone", "Zergling", "Zergling", "Zergling", "Hatchery", "Hatchery"] },
 
             "ZVP_10Hatch"  : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Extractor", "Drone", "Extractor@Cancel", "Hatchery", "Spawning_Pool", "Drone", "Overlord", "Extractor", "Drone", "Extractor@Cancel", "Hatchery", "Zergling", "Zergling", "Zergling", "Zergling", "Overlord"] },
+
+            "ZVP_12Hatch" : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Overlord", "Drone", "Drone", "Drone", "Hatchery", "Spawning_Pool"] },
 
             "ZVP_3Hatch"  : { "OpeningBuildOrder" : ["Drone", "Drone", "Drone", "Drone", "Drone", "Overlord", "Drone", "Drone", "Drone", "Hatchery", "Spawning_Pool", "Drone", "Drone", "Drone", "Drone", "Hatchery", "Zergling", "Zergling", "Zergling", "Zergling", "Extractor", "Overlord", "Hydralisk_Den", "Muscular_Augments", "Extractor", "Hydralisk", "Hydralisk", "Hydralisk", "Hydralisk", "Grooved_Spines"] },
 

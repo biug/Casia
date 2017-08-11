@@ -75,7 +75,7 @@ void CasiaBotModule::onStart()
 	}
 	catch (const std::exception & e)
 	{
-		BWAPI::Broodwar->printf("Exception %s", e.what());
+		BWAPI::Broodwar->printf("BWEM Exception %s", e.what());
 	}
 }
 
