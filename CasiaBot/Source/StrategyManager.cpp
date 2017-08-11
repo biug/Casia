@@ -19,6 +19,7 @@ StrategyManager::StrategyManager()
 	_actionZVPZealot.init();
 	_actionZVPDragoon.init();
 	_actionZVPZerglingRush.init();
+	_actionZVPHydra.init();
 }
 
 // get an instance of this
@@ -97,6 +98,7 @@ void StrategyManager::addOpening(const std::string & name, Opening & opening)
 
 void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 {
+	/*
 	int currentFrame = BWAPI::Broodwar->getFrameCount();
 	if (_enemyRace == BWAPI::Races::Terran) {
 		_actionZVTBarracks.updateCurrentState(queue);
@@ -161,6 +163,7 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 		_actionZVPZealot.updateCurrentState(queue);
 		_actionZVPDragoon.updateCurrentState(queue);
 		_actionZVPZerglingRush.updateCurrentState(queue);
+		_actionZVPHydra.updateCurrentState(queue);
 
 		//to do
 		if (_action == nullptr) {
@@ -187,6 +190,7 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 				else if (useZergling) {
 					_action = &_actionZVPZerglingRush;
 				}
+				
 			}
 		}
 		if (_action != nullptr)
@@ -202,6 +206,10 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 		if (_action != nullptr)
 			_action->getBuildOrderList(queue);
 	}
+	*/
+	_actionZVPHydra.updateCurrentState(queue);
+	_action = &_actionZVPHydra;
+	_action->getBuildOrderList(queue);	
 }
 
 void StrategyManager::readOpeningResults()

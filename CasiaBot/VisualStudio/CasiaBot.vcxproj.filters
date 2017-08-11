@@ -255,6 +255,9 @@
     <ClCompile Include="..\Source\bwem\EasyBMP_1.06\EasyBMP.cpp">
       <Filter>bwem</Filter>
     </ClCompile>
+    <ClCompile Include="..\Source\ActionZVPHydra.cpp">
+      <Filter>game\action</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\CombatCommander.h">
@@ -487,6 +490,9 @@
     </ClInclude>
     <ClInclude Include="..\Source\bwem\EasyBMP_1.06\EasyBMP_VariousBMPutilities.h">
       <Filter>bwem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ActionZVPHydra.h">
+      <Filter>game\action</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
