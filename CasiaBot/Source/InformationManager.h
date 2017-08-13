@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Common.h"
-#include "BWTA.h"
 
 #include "UnitData.h"
 
@@ -19,12 +18,15 @@ class InformationManager
     BWAPI::Player       _self;
     BWAPI::Player       _enemy;
 
-    std::hash_map<BWAPI::Player, UnitData>              _unitData;
-	std::vector<BWAPI::Unit>							_selfBases;
-	std::vector<UnitInfo>								_enemyBaseInfos;
-    std::map<BWAPI::Player, std::set<BWTA::Region *> >  _occupiedRegions;
+    std::hash_map<BWAPI::Player, UnitData>						_unitData;
+	std::vector<BWAPI::Unit>									_selfBases;
+	std::vector<UnitInfo>										_enemyBaseInfos;
+	std::vector<BWAPI::TilePosition>							_baseTiles;
+	std::map<std::pair<BWAPI::TilePosition, BWAPI::TilePosition> , std::vector<BWAPI::Position>> _basePaths;
+	std::vector<BWAPI::Position>								_emptyPath;
 
 	bool					_isEncounterRush;
+	bool					_isBasePathFound;
 
     int                     getIndex(BWAPI::Player player) const;
 
@@ -33,7 +35,6 @@ class InformationManager
     void                    initializeBaseInfoVector();
     void                    updateUnitInfo();
     void                    updateBaseLocationInfo();
-    void                    updateOccupiedRegions(BWTA::Region * region,BWAPI::Player player);
     bool                    isValidUnit(BWAPI::Unit unit);
 	void					updateRush();
 
@@ -60,7 +61,6 @@ public:
     void					onUnitRenegade(BWAPI::Unit unit)    { updateUnit(unit); }
     void					onUnitDestroy(BWAPI::Unit unit);
 
-    bool					isEnemyBuildingInRegion(BWTA::Region * region);
     int						getNumUnits(BWAPI::UnitType type,BWAPI::Player player);
 	int						getNumConstructedUnits(BWAPI::UnitType type, BWAPI::Player player);
 	int						getNumConstructingUnits(BWAPI::UnitType type, BWAPI::Player player);
@@ -71,16 +71,16 @@ public:
 
     const UIMap &           getUnitInfo(BWAPI::Player player) const;
 
-    std::set<BWTA::Region *> &  getOccupiedRegions(BWAPI::Player player);
-    const std::vector<BWAPI::Unit> &  getSelfBases() const;
-	const std::vector<UnitInfo> &  getEnemyBaseInfos() const;
-	BWAPI::Position			getLastPosition(BWAPI::Unit unit, BWAPI::Player player) const;
+    const std::vector<BWAPI::Unit> &			getSelfBases() const;
+	const std::vector<UnitInfo> &				getEnemyBaseInfos() const;
+	const std::vector<BWAPI::TilePosition> &	getBaseTiles() const;
+	BWAPI::Position	getLastPosition(BWAPI::Unit unit, BWAPI::Player player) const;
+	const std::vector<BWAPI::Position> & getBasePath(BWAPI::TilePosition base1, BWAPI::TilePosition base2, int * length) const;
 
     bool                    enemyHasCloakedUnits();
 
     void                    drawExtendedInterface();
     void                    drawUnitInformation(int x,int y);
-    void                    drawMapInformation();
 	void					PrintInfo(int x, int y);
 
 	bool					isEncounterRush();

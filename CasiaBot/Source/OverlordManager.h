@@ -9,8 +9,8 @@ class OverlordManager : public MicroManager
 {
 protected:
 	bool needDetect[3];
+	BWAPI::TilePosition startBase[3];
 	bool initializeFlag;
-	BWTA::BaseLocation *startBase[3];
 public:
 
 	OverlordManager();

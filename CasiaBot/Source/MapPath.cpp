@@ -48,9 +48,14 @@ void MapPath::calcPath(PosRect rect)
 	_pathmtx.unlock();
 
 	// calculate
-	auto path = BWTA::getShortestPath(BWAPI::TilePosition(rect.first), BWAPI::TilePosition(rect.second));
+	auto path = BWEM::Map::Instance().GetPath(rect.first, rect.second);
+	std::vector<BWAPI::Position> nodes;
+	for (const auto & node : path)
+	{
+		nodes.emplace_back(BWAPI::Position(node->Center()));
+	}
 	_betapathmtx.lock();
-	_betaPaths.push_back({ rect, path });
+	_betaPaths.push_back({ rect, nodes });
 	_betapathmtx.unlock();
 }
 
@@ -96,9 +101,9 @@ void MapPath::insert(PosRect rect)
 	ThreadManager::Instance().enqueue(std::mem_fn(&MapPath::calcPath), this, rect);
 }
 
-std::vector<BWAPI::TilePosition> MapPath::getPath(PosRect rect)
+std::vector<BWAPI::Position> MapPath::getPath(PosRect rect)
 {
-	std::vector<BWAPI::TilePosition> result;
+	std::vector<BWAPI::Position> result;
 	result.clear();
 	if (_pathmtx.try_lock())
 	{

@@ -102,6 +102,7 @@ public:
 
 
 	const CPPath &				GetPath(const BWAPI::Position & a, const BWAPI::Position & b, int * pLength = nullptr) const override { return m_Graph.GetPath(a, b, pLength); }
+	const CPPath &				GetPath(const Area * a, const Area * b, int * pLength = nullptr) const override { return m_Graph.GetPath(a, b, pLength); }
 	const double				GetPathDistance(const BWAPI::Position & a, const BWAPI::Position & b) const;
 
 	const class Graph &			GetGraph() const										{ return m_Graph; }

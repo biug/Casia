@@ -173,53 +173,41 @@ void ScoutManager::moveScouts()
         _scoutStatus = "Enemy base unknown, exploring";
 
 		//ÄæÊ±ÕëÌ½Â·
-		auto bs = BWTA::getStartLocations();
-		std::vector<BWTA::BaseLocation *> bv(bs.begin(), bs.end());
-		auto cmp = [](const BWTA::BaseLocation *pb1, const BWTA::BaseLocation *pb2) {
+		auto baseTPs = BWEM::Map::Instance().StartingLocations();
+		auto cmp = [](const BWAPI::TilePosition baseTP1, const BWAPI::TilePosition baseTP2) {
 			BWAPI::Position center(BWAPI::Broodwar->mapWidth() / 2, BWAPI::Broodwar->mapHeight() / 2);
-			int dx1 = pb1->getPosition().x - center.x, dy1 = pb1->getPosition().y - center.y;
-			int dx2 = pb2->getPosition().x - center.x, dy2 = pb2->getPosition().y - center.y;
-			double theta1, theta2;
-			if (dx1 == 0)
-			{
-				if (dy1 > 0)
-					theta1 = M_PI / 2;
-				else
-					theta1 = M_PI * 3 / 2;
-			}
-			else
-			{
-				theta1 = std::atan2(dy1, dx1);
-			}
-
-			if (dx2 == 0)
-			{
-				if (dy2 > 0)
-					theta2 = M_PI / 2;
-				else
-					theta2 = M_PI * 3 / 2;
-			}
-			else
-			{
-				theta2 = std::atan2(dy2, dx2);
-			}
+			BWAPI::Position baseP1(baseTP1), baseP2(baseTP2);
+			int dx1 = baseP1.x - center.x, dy1 = baseP1.y - center.y;
+			int dx2 = baseP2.x - center.x, dy2 = baseP2.y - center.y;
+			double theta1 =
+				dx1 == 0 ?
+					theta1 = dy1 > 0 ?
+						M_PI / 2.0 :
+						M_PI * 3.0 / 2.0 :
+					std::atan2(dy1, dx1);
+			double theta2 =
+				dx2 == 0 ?
+					theta1 = dy2 > 0 ?
+						M_PI / 2.0 :
+						M_PI * 3.0 / 2.0 :
+					std::atan2(dy2, dx2);
 			//½µÐòÁÐ->ÄæÊ±Õë
 			return theta1 > theta2;
 		};
 
-		std::sort(bv.begin(), bv.end(), cmp);
-		auto iter = std::find(bv.begin(), bv.end(), BWTA::getStartLocation(BWAPI::Broodwar->self()));
-		std::reverse(bv.begin(), iter);
-		std::reverse(iter, bv.end());
-		std::reverse(bv.begin(), bv.end());
+		std::sort(baseTPs.begin(), baseTPs.end(), cmp);
+		auto iter = std::find(baseTPs.begin(), baseTPs.end(), BWAPI::Broodwar->self()->getStartLocation());
+		std::reverse(baseTPs.begin(), iter);
+		std::reverse(iter, baseTPs.end());
+		std::reverse(baseTPs.begin(), baseTPs.end());
 
-		for (BWTA::BaseLocation * startLocation : bv) 
+		for (const auto baseTP : baseTPs)
 		{
 			// if we haven't explored it yet
-			if (!BWAPI::Broodwar->isExplored(startLocation->getTilePosition())) 
+			if (!BWAPI::Broodwar->isExplored(baseTP))
 			{
 				// assign a zergling to go scout it
-				Micro::SmartMove(_workerScout, BWAPI::Position(startLocation->getTilePosition()));
+				Micro::SmartMove(_workerScout, BWAPI::Position(baseTP));
 				return;
 			}
 		}
@@ -434,10 +422,10 @@ void ScoutManager::calculateEnemyRegionVertices()
         return;
     }
 
-    BWTA::Region * enemyRegion = BWTA::getRegion(ebases.front().lastPosition);
+    const auto area = BWEM::Map::Instance().GetNearestArea(BWAPI::TilePosition(ebases.front().lastPosition));
     //CAB_ASSERT_WARNING(enemyRegion, "We should have an enemy region if we are fleeing");
 
-    if (!enemyRegion)
+    if (!area)
     {
         return;
     }
@@ -450,9 +438,11 @@ void ScoutManager::calculateEnemyRegionVertices()
     // check each tile position
     for (size_t i(0); i < closestTobase.size(); ++i)
     {
+		auto & map = BWEM::Map::Instance();
+
         const BWAPI::TilePosition & tp = closestTobase[i];
 
-        if (BWTA::getRegion(tp) != enemyRegion)
+        if (map.GetNearestArea(tp) != area)
         {
             continue;
         }
@@ -461,10 +451,10 @@ void ScoutManager::calculateEnemyRegionVertices()
         // 1) in all 4 directions there's a tile position in the current region
         // 2) in all 4 directions there's a buildable tile
         bool surrounded = true;
-        if (BWTA::getRegion(BWAPI::TilePosition(tp.x+1, tp.y)) != enemyRegion || !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x+1, tp.y))
-            || BWTA::getRegion(BWAPI::TilePosition(tp.x, tp.y+1)) != enemyRegion || !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x, tp.y+1))
-            || BWTA::getRegion(BWAPI::TilePosition(tp.x-1, tp.y)) != enemyRegion || !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x-1, tp.y))
-            || BWTA::getRegion(BWAPI::TilePosition(tp.x, tp.y-1)) != enemyRegion || !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x, tp.y -1))) 
+        if (map.GetNearestArea(BWAPI::TilePosition(tp.x+1, tp.y)) != area || !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x+1, tp.y))
+            || map.GetNearestArea(BWAPI::TilePosition(tp.x, tp.y+1)) != area || !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x, tp.y+1))
+            || map.GetNearestArea(BWAPI::TilePosition(tp.x-1, tp.y)) != area || !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x-1, tp.y))
+            || map.GetNearestArea(BWAPI::TilePosition(tp.x, tp.y-1)) != area || !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x, tp.y -1)))
         { 
             surrounded = false; 
         }

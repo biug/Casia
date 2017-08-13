@@ -19,7 +19,6 @@ MapTools::MapTools()
     _fringe = std::vector<int>(_rows*_cols,0);
 
     setBWAPIMapData();
-	BWTA::buildChokeNodes();
 }
 
 // return the index of the 1D array from (row,col)
@@ -211,9 +210,32 @@ BWAPI::TilePosition MapTools::getTilePosition(int index)
 	return BWAPI::TilePosition(index % _cols, index / _cols);
 }
 
-BWAPI::TilePosition MapTools::getNextExpansion()
+double MapTools::getBasePathDistance(BWAPI::TilePosition base)
 {
-	return getNextExpansion(BWAPI::Broodwar->self());
+	int len = 1;
+	auto homeTile = BWAPI::Broodwar->self()->getStartLocation();
+	const auto & basePath = InformationManager::Instance().getBasePath(homeTile, base, &len);
+	if (len < 0) return -1;
+	return getPathDistance(
+		BWAPI::Position(homeTile)
+		, BWAPI::Position(base)
+		, basePath);
+}
+
+double MapTools::getPathDistance(BWAPI::Position s, BWAPI::Position e, const std::vector<BWAPI::Position> & path)
+{
+	if (path.empty()) return s.getDistance(e);
+	else
+	{
+		double distanceFromHome = 0.0;
+		distanceFromHome = s.getDistance(BWAPI::Position(path.front()));
+		for (int i = 0; i < path.size() - 1; ++i)
+		{
+			distanceFromHome += path[i].getDistance(path[i + 1]);
+		}
+		distanceFromHome += e.getDistance(BWAPI::Position(path.back()));
+		return distanceFromHome;
+	}
 }
 
 void MapTools::drawHomeDistanceMap()
@@ -229,94 +251,6 @@ void MapTools::drawHomeDistanceMap()
 
 			BWAPI::Broodwar->drawTextMap(pos + BWAPI::Position(16, 16), "%d", dist);
 		}
-	}
-}
-
-BWAPI::TilePosition MapTools::getNextExpansion(BWAPI::Player player)
-{
-	BWAPI::TilePosition closestMineBase = BWAPI::TilePositions::None;
-	BWAPI::TilePosition closestGasBase = BWAPI::TilePositions::None;
-	double minMineDistance = 100000;
-	double minGasDistance = 100000;
-
-	BWAPI::TilePosition homeTile = player->getStartLocation();
-
-	// for each base location
-	for (const auto & area : BWEM::Map::Instance().Areas())
-	{
-		for (const auto & base : area.Bases())
-		{
-			// get the tile position of the base
-			BWAPI::TilePosition tile = base.Location();
-			bool buildingInTheWay = false;
-
-			for (int x = 0; x < BWAPI::Broodwar->self()->getRace().getCenter().tileWidth(); ++x)
-			{
-				for (int y = 0; y < BWAPI::Broodwar->self()->getRace().getCenter().tileHeight(); ++y)
-				{
-					BWAPI::TilePosition tp(tile.x + x, tile.y + y);
-
-					for (auto & unit : BWAPI::Broodwar->getUnitsOnTile(tp))
-					{
-						if (unit->getType().isBuilding() && !unit->isFlying())
-						{
-							buildingInTheWay = true;
-							break;
-						}
-					}
-				}
-			}
-
-			if (buildingInTheWay)
-			{
-				continue;
-			}
-
-			// the base's distance from our main nexus
-			BWAPI::Position myBasePosition(player->getStartLocation());
-			BWAPI::Position thisTile = BWAPI::Position(tile);
-			double distanceFromHome =
-				BWEM::Map::Instance().GetPathDistance(myBasePosition, thisTile)
-				+ myBasePosition.getDistance(thisTile);
-
-			// if it is not connected, continue
-			if (!BWTA::isConnected(homeTile, tile) || distanceFromHome < 0)
-			{
-				continue;
-			}
-
-			if (base.Geysers().empty())
-			{
-				if (!closestMineBase || distanceFromHome < minMineDistance)
-				{
-					closestMineBase = base.Location();
-					minMineDistance = distanceFromHome;
-				}
-			}
-			else
-			{
-				if (!closestGasBase || distanceFromHome < minGasDistance)
-				{
-					closestGasBase = base.Location();
-					minGasDistance = distanceFromHome;
-				}
-			}
-		}
-	}
-
-	if (closestGasBase
-		&& InformationManager::Instance().checkBuildingLocation(closestGasBase))
-	{
-		return closestGasBase;
-	}
-	else if (closestMineBase
-		&& InformationManager::Instance().checkBuildingLocation(closestMineBase))
-	{
-		return closestMineBase;
-	}
-	else
-	{
-		return BWAPI::TilePositions::None;
 	}
 }
 

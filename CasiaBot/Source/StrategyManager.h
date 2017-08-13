@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Common.h"
-#include "BWTA.h"
 #include "BuildOrderQueue.h"
 #include "InformationManager.h"
 #include "WorkerManager.h"
@@ -73,7 +72,6 @@ class StrategyManager
 	        void	                writeResults();
 	const	int					    getScore(BWAPI::Player player) const;
 	const	double				    getUCBValue(const size_t & strategy) const;
-	const	bool				    shouldExpandNow() const;
 
 public:
     

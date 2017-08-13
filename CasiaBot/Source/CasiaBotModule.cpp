@@ -51,9 +51,6 @@ void CasiaBotModule::onStart()
     // Call BWTA to read and analyze the current map
     if (Config::Modules::UsingGameCommander)
 	{
-		//BWTA::readMap();
-		BWTA::analyze();
-
         if (Config::Modules::UsingOpeningIO)
         {
             StrategyManager::Instance().readOpeningResults();

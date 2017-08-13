@@ -130,7 +130,6 @@ void ActionZergBase::updateCurrentState(ProductionQueue &queue)
 	nydus_canal_being_built = BuildingManager::Instance().numBeingBuilt(BWAPI::UnitTypes::Zerg_Nydus_Canal);
 	ultralisk_cavern_being_built = BuildingManager::Instance().numBeingBuilt(BWAPI::UnitTypes::Zerg_Ultralisk_Cavern);
 	
-	
 	//军事力量
 	army_supply = 0.0;
 	air_army_supply = 0.0;
@@ -224,80 +223,69 @@ void ActionZergBase::updateCurrentState(ProductionQueue &queue)
 	enemy_gas_count = 0;
 
 	//我方
-	resDepots.clear();
-	std::set<BWTA::BaseLocation *> base_set;
-
-	for (auto &unit : BWAPI::Broodwar->self()->getUnits()) {
-		if (!unit->getType().isWorker() && !unit->getType().isBuilding()) {
-			if (unit->getType().isFlyer()) {
-				air_army_supply += unit->getType().supplyRequired();
-			}
-			else {
-				ground_army_supply += unit->getType().supplyRequired();
-			}
-			army_supply += unit->getType().supplyRequired();
-		}
-		
-		if (unit->getType() == BWAPI::UnitTypes::Zerg_Hatchery
-			|| unit->getType() == BWAPI::UnitTypes::Zerg_Lair
-			|| unit->getType() == BWAPI::UnitTypes::Zerg_Hive) {
-
-			if (unit->isCompleted())
-				resDepots.insert(unit);
-
-			BWTA::BaseLocation *nearest;
-			double dis = -1.0, curl;
-			for (auto &base : BWTA::getBaseLocations()) {
-				curl = (unit->getPosition() - base->getPosition()).getLength();
-				if (dis < 0 || curl < dis) {
-					dis = curl;
-					nearest = base;
-				}
-			}
-			base_set.insert(nearest);
-		}
-	}
-	real_base_count = base_set.size();
+	real_base_count = WorkerManager::Instance().getMineralBases().size();
 
 	//敌方
-	for (auto &unit : BWAPI::Broodwar->enemy()->getUnits()) {
-		if (unit->getType().getRace() == BWAPI::Races::Terran)
+	for (const auto & u : InformationManager::Instance().getUnitInfo(BWAPI::Broodwar->enemy()))
+	{
+		auto info = u.second;
+		auto type = info.type;
+		switch (type.getRace().getID())
+		{
+		case BWAPI::Races::Enum::Terran:
 			++enemy_terran_unit_count;
-		if (unit->getType().getRace() == BWAPI::Races::Protoss)
+			break;
+		case BWAPI::Races::Enum::Protoss:
 			++enemy_protos_unit_count;
-		if (unit->getType().getRace() == BWAPI::Races::Zerg)
+			break;
+		case BWAPI::Races::Enum::Zerg:
 			++enemy_zerg_unit_count;
+			break;
+		}
 
 		//军事力量
-		if (!unit->getType().isWorker() && !unit->getType().isBuilding()) {
-			if (unit->getType().isFlyer()) {
-				enemy_air_army_supply += unit->getType().supplyRequired();
+		if (!type.isWorker() && !type.isBuilding()) {
+			if (type.isFlyer()) {
+				enemy_air_army_supply += type.supplyRequired();
 			}
 			else {
-				enemy_ground_army_supply += unit->getType().supplyRequired();
-				if (unit->getType().size() == BWAPI::UnitSizeTypes::Large)
-					enemy_ground_large_army_supply += unit->getType().supplyRequired();
-				if (unit->getType().size() == BWAPI::UnitSizeTypes::Small)
-					enemy_ground_small_army_supply += unit->getType().supplyRequired();
+				enemy_ground_army_supply += type.supplyRequired();
+				switch (type.getID())
+				{
+				case BWAPI::UnitSizeTypes::Enum::Large:
+					enemy_ground_large_army_supply += type.supplyRequired();
+					break;
+				case BWAPI::UnitSizeTypes::Enum::Small:
+					enemy_ground_small_army_supply += type.supplyRequired();
+					break;
+				}
 			}
-			enemy_army_supply += unit->getType().supplyRequired();
-			if (unit->getType().airWeapon())
-				enemy_anti_air_army_supply += unit->getType().supplyRequired();
-			if (unit->getType().isOrganic())
-				enemy_biological_army_supply += unit->getType().supplyRequired();
+			enemy_army_supply += type.supplyRequired();
+			if (type.airWeapon())
+				enemy_anti_air_army_supply += type.supplyRequired();
+			if (type.isOrganic())
+				enemy_biological_army_supply += type.supplyRequired();
 
 		}
-		if (unit->getType() == BWAPI::UnitTypes::Terran_Missile_Turret)
+		switch (type.getID())
+		{
+		case BWAPI::UnitTypes::Enum::Terran_Missile_Turret:
 			++enemy_static_defence_count;
-		if (unit->getType() == BWAPI::UnitTypes::Protoss_Photon_Cannon)
+			break;
+		case BWAPI::UnitTypes::Enum::Protoss_Photon_Cannon:
 			++enemy_static_defence_count;
-		if (unit->getType() == BWAPI::UnitTypes::Zerg_Spore_Colony)
+			break;
+		case BWAPI::UnitTypes::Enum::Zerg_Spore_Colony:
 			++enemy_static_defence_count;
-		if (unit->getType() == BWAPI::UnitTypes::Zerg_Sunken_Colony)
+			break;
+		case BWAPI::UnitTypes::Enum::Zerg_Sunken_Colony:
 			++enemy_static_defence_count;
-		if (unit->getType().isWorker())
+			break;
+
+		}
+		if (type.isWorker())
 			++enemy_worker_count;
-		if (unit->getType().isRefinery() || unit->getType() == BWAPI::UnitTypes::Resource_Vespene_Geyser)
+		if (type.isRefinery() || type == BWAPI::UnitTypes::Resource_Vespene_Geyser)
 			++enemy_gas_count;
 	}
 }

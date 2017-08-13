@@ -20,7 +20,6 @@
 #include <hash_map>
 
 #include <BWAPI.h>
-#include <BWTA.h>
 #include "bwem/src/bwem.h"
 #include "Logger.h"
 

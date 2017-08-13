@@ -16,22 +16,11 @@ void LurkerManager::executeMicro(const BWAPI::Unitset & targets)
 	std::copy_if(targets.begin(), targets.end(), std::inserter(lurkerTargets, lurkerTargets.end()),
 		[](BWAPI::Unit u){ return u->isVisible() && !u->isFlying(); });
 
-	int lurkerRange = BWAPI::UnitTypes::Zerg_Lurker.groundWeapon().maxRange() - 32;
+	int lurkerRange = BWAPI::UnitTypes::Zerg_Lurker.groundWeapon().maxRange();
 
 	// for each lurker
 	for (auto & lurker : lurkers)
 	{
-
-		bool lurkerNearChokepoint = false;
-		for (auto & choke : BWTA::getChokepoints())
-		{
-			if (choke->getCenter().getDistance(lurker->getPosition()) < 64)
-			{
-				lurkerNearChokepoint = true;
-				break;
-			}
-		}
-
 		// if the order is to attack or defend
 		if (order.getType() == SquadOrderTypes::Attack || order.getType() == SquadOrderTypes::Defend)
 		{
@@ -74,7 +63,7 @@ void LurkerManager::executeMicro(const BWAPI::Unitset & targets)
 					}
 
 					// if we are within attack range, burrow
-					if (lurker->getDistance(target) < lurkerRange && lurker->canBurrow() && !lurkerNearChokepoint)
+					if (lurker->getDistance(target) < lurkerRange && lurker->canBurrow())
 					{
 						lurker->burrow();
 					}

@@ -89,11 +89,7 @@ bool BuildingPlacer::canBuildHere(BWAPI::TilePosition position,const Building & 
 		}
 	}
 
-	// if it overlaps a base location return false
-	if (tileOverlapsBaseLocation(position, b.type))
-	{
-		return false;
-	}
+	// check base
 
 	return true;
 }
@@ -172,23 +168,6 @@ BWAPI::TilePosition BuildingPlacer::getBuildLocationNear(const Building & b, int
 		return BWAPI::TilePositions::None;
 	}
 
-	BWAPI::Position toward = BWAPI::Position(b.desiredPosition);
-	BWTA::Region * region = BWTA::getRegion(b.desiredPosition);
-	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
-	if (region != nullptr && !ebases.empty())
-	{
-		int minD = -1;
-		for (auto pChoke : region->getChokepoints())
-		{
-			int d = MapTools::Instance().getGroundDistance(pChoke->getCenter(), ebases.front().lastPosition);
-			if (minD == -1 || d < minD)
-			{
-				minD = d;
-				toward = pChoke->getCenter();
-			}
-		}
-	}
-
 	// iterate through the list until we've found a suitable location
 	for (size_t i(0); i < closestToBuilding.size(); ++i)
 	{
@@ -204,43 +183,6 @@ BWAPI::TilePosition BuildingPlacer::getBuildLocationNear(const Building & b, int
     //BWAPI::Broodwar->printf("Building Placer Took %lf ms", ms);
 
     return  BWAPI::TilePositions::None;
-}
-
-bool BuildingPlacer::tileOverlapsBaseLocation(BWAPI::TilePosition tile,BWAPI::UnitType type) const
-{
-    // if it's a resource depot we don't care if it overlaps
-    if (type.isResourceDepot())
-    {
-        return false;
-    }
-
-    // dimensions of the proposed location
-    int tx1 = tile.x;
-    int ty1 = tile.y;
-    int tx2 = tx1 + type.tileWidth();
-    int ty2 = ty1 + type.tileHeight();
-
-    // for each base location
-    for (BWTA::BaseLocation * base : BWTA::getBaseLocations())
-    {
-        // dimensions of the base location
-        int bx1 = base->getTilePosition().x;
-        int by1 = base->getTilePosition().y;
-        int bx2 = bx1 + BWAPI::Broodwar->self()->getRace().getCenter().tileWidth();
-        int by2 = by1 + BWAPI::Broodwar->self()->getRace().getCenter().tileHeight();
-
-        // conditions for non-overlap are easy
-        bool noOverlap = (tx2 < bx1) || (tx1 > bx2) || (ty2 < by1) || (ty1 > by2);
-
-        // if the reverse is true, return true
-        if (!noOverlap)
-        {
-            return true;
-        }
-    }
-
-    // otherwise there is no overlap
-    return false;
 }
 
 bool BuildingPlacer::buildable(const Building & b,int x,int y) const
@@ -447,35 +389,50 @@ BWAPI::Unit BuildingPlacer::getDefenseBase()
 	{
 		return nullptr;
 	}
+	auto enemyTP = BWAPI::TilePosition(enemyP);
 	const auto & bases = InformationManager::Instance().getSelfBases();
 	for (const auto & base : bases)
 	{
 		const auto & infos = InformationManager::Instance().getUnitInfo(BWAPI::Broodwar->self());
 		if (!base || infos.find(base) == infos.end()) continue;
 		// 寻找这个基地到对方家中的路径
-		auto path = MapPath::Instance().getPath({ base->getPosition(), BWAPI::Position(enemyP) });
-		if (path.empty())
+		int len = 1;
+		const auto & chokes = InformationManager::Instance().getBasePath(base->getTilePosition(), enemyTP, &len);
+		if (len < 0) continue;
+		BWAPI::Broodwar->drawLineMap(base->getPosition(), chokes.front(), BWAPI::Colors::Blue);
+		for (int i = 0; i < chokes.size() - 1; ++i)
 		{
-			MapPath::Instance().insert({ base->getPosition(), BWAPI::Position(enemyP) });
-			return nullptr;
+			BWAPI::Broodwar->drawLineMap(chokes[i], chokes[i + 1], BWAPI::Colors::Blue);
 		}
-		else
+		BWAPI::Broodwar->drawLineMap(enemyP, chokes.back(), BWAPI::Colors::Blue);
+		// 确保路径上没有其他的我方基地
+		bool badPath = false;
+		for (const auto & otherBase : bases)
 		{
-			// 确保路径上没有其他的我方基地
-			bool badPath = false;
-			for (const auto & node : path)
+			if (otherBase->getPosition().getDistance(base->getPosition()) < 300) continue;
+			len = 1;
+			const auto & otherChokes = InformationManager::Instance().getBasePath(otherBase->getTilePosition(), enemyTP, &len);
+			if (len < 0) continue;
+			if (otherChokes.size() <= chokes.size())
 			{
-				for (const auto & b : bases)
+				int i = 0;
+				for (int offset = chokes.size() - otherChokes.size(); i < otherChokes.size(); ++i)
 				{
-					if (b != base && node.getDistance(b->getTilePosition()) < 15)
+					if (otherChokes[i] != chokes[i + offset])
 					{
-						badPath = true;
+						break;
 					}
 				}
+				if (i == otherChokes.size())
+				{
+					badPath = true;
+					break;
+				}
 			}
-			if (!badPath) return base;
 		}
+		if (!badPath) return base;
 	}
+	BWAPI::Broodwar->printf("defense loc not found");
 	return nullptr;
 }
 
@@ -483,10 +440,11 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 {
 	if (base == nullptr) base = getDefenseBase();
 	if (!base) return BWAPI::TilePositions::None;
-	int numColony =
-		InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Creep_Colony, BWAPI::Broodwar->self())
+	auto baseP = base->getPosition();
+	auto baseTP = base->getTilePosition();
+	int numColony = numCreep
+		+ InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Creep_Colony, BWAPI::Broodwar->self())
 		+ InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Sunken_Colony, BWAPI::Broodwar->self());
-	numColony += numCreep;
 	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
 	auto enemyP = BWAPI::Positions::None;
 	if (!ebases.empty())
@@ -497,67 +455,59 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 	{
 		return BWAPI::TilePositions::None;
 	}
+	auto enemyTP = BWAPI::TilePosition(enemyP);
 	// 第一个地堡
 	if (numColony == 0)
 	{
-		// 寻找这个基地到对方家中的路径
-		auto path = MapPath::Instance().getPath({ base->getPosition(), BWAPI::Position(enemyP) });
-		if (path.empty())
+		// 找路口
+		int len = 0;
+		const auto & chokes = InformationManager::Instance().getBasePath(baseTP, enemyTP, &len);
+		if (len < 0) return BWAPI::TilePositions::None;
+		auto chokeTP = BWAPI::TilePositions::None;
+		if (!chokes.empty())
 		{
-			MapPath::Instance().insert({ base->getPosition(), BWAPI::Position(enemyP) });
-			return BWAPI::TilePositions::None;
+			chokeTP = BWAPI::TilePosition(chokes[0]);
 		}
-		else
+		if (!chokeTP.isValid())
 		{
-			auto baseP = base->getPosition();
-			auto baseTP = base->getTilePosition();
-			// 找路口
-			const auto & chokes = BWEM::Map::Instance().GetPath(baseP, enemyP);
-			auto chokeTP = BWAPI::TilePositions::None;
-			if (!chokes.empty() && chokes[0] != nullptr)
+			chokeTP = enemyTP;
+		}
+		double bestTargetScore = 10.0;
+		BWAPI::TilePosition bestCreep = BWAPI::TilePositions::None;
+		for (int x = baseTP.x - 10; x <= baseTP.x + 10; ++x)
+		{
+			for (int y = baseTP.y - 10; y <= baseTP.y + 10; ++y)
 			{
-				chokeTP = BWAPI::TilePosition(chokes[0]->Center());
-			}
-			if (!chokeTP.isValid())
-			{
-				chokeTP = path.size() > 20 ? path[20] : path.back();
-			}
-			double bestTargetScore = 10.0;
-			BWAPI::TilePosition bestCreep = BWAPI::TilePositions::None;
-			for (int x = baseTP.x - 10; x <= baseTP.x + 10; ++x)
-			{
-				for (int y = baseTP.y - 10; y <= baseTP.y + 10; ++y)
+				// 找离路口最近，离基地最远的位置
+				BWAPI::TilePosition targetTP(x, y);
+				// 尽量远离基地
+				if (targetTP.getDistance(baseTP) <= 5)
 				{
-					// 找离路口最近，离基地最远的位置
-					BWAPI::TilePosition targetTP(x, y);
-					// 尽量远离基地
-					if (targetTP.getDistance(baseTP) <= 5)
+					continue;
+				}
+				// 尽量远离资源
+				if (!isAwayResource(targetTP, base)) continue;
+				// 在可建造位置建造
+				Building b;
+				b.type = BWAPI::UnitTypes::Zerg_Creep_Colony;
+				auto drones = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Drone);
+				if (drones.size() > 0) b.builderUnit = *drones.begin();
+				if (canBuildHere(targetTP, b))
+				{
+					double disA = targetTP.getDistance(chokeTP);
+					double disB = targetTP.getDistance(baseTP);
+					double score = disB < 0.1 ? 0.08 * disA : disA / disB + 0.08 * (disA + disB);
+					// 尽可能远离中心又靠近路口
+					if (score < bestTargetScore)
 					{
-						continue;
-					}
-					// 尽量远离资源
-					if (!isAwayResource(targetTP, base)) continue;
-					// 在可建造位置建造
-					Building b;
-					b.type = BWAPI::UnitTypes::Zerg_Creep_Colony;
-					auto drones = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Drone);
-					if (drones.size() > 0) b.builderUnit = *drones.begin();
-					if (canBuildHere(targetTP, b))
-					{
-						double disA = targetTP.getDistance(chokeTP);
-						double disB = targetTP.getDistance(baseTP);
-						double score = disB < 0.1 ? 0.08 * disA : disA / disB + 0.08 * (disA + disB);
-						// 尽可能远离中心又靠近路口
-						if (score < bestTargetScore)
-						{
-							bestTargetScore = score;
-							bestCreep = targetTP;
-						}
+						bestTargetScore = score;
+						bestCreep = targetTP;
 					}
 				}
 			}
-			return bestCreep;
 		}
+		if (!bestCreep.isValid()) BWAPI::Broodwar->printf("creep loc not found");
+		return bestCreep;
 	}
 	else
 	{
@@ -568,23 +518,18 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 		creeps.insert(sunkenSet.begin(), sunkenSet.end());
 		//找到地堡中心
 		auto center = BWAPI::TilePosition(creeps.getPosition());
-		// 寻找这个基地到对方家中的路径
-		auto path = MapPath::Instance().getPath({ base->getPosition(), BWAPI::Position(enemyP) });
-		if (path.empty())
-		{
-			MapPath::Instance().insert({ base->getPosition(), BWAPI::Position(enemyP) });
-			return BWAPI::TilePositions::None;
-		}
 		// 找路口
-		const auto & chokes = BWEM::Map::Instance().GetPath(creeps.getPosition(), enemyP);
+		int len = 0;
+		const auto & chokes = InformationManager::Instance().getBasePath(baseTP, enemyTP, &len);
+		if (len < 0) return BWAPI::TilePositions::None;
 		auto chokeTP = BWAPI::TilePositions::None;
-		if (!chokes.empty() && chokes[0] != nullptr)
+		if (!chokes.empty())
 		{
-			chokeTP = BWAPI::TilePosition(chokes[0]->Center());
+			chokeTP = BWAPI::TilePosition(chokes[0]);
 		}
 		if (!chokeTP.isValid())
 		{
-			chokeTP = path.size() > 20 ? path[20] : path.back();
+			chokeTP = enemyTP;
 		}
 		int radius = 3;
 		double bestTargetScore = 100000;
@@ -614,5 +559,75 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 			}
 		}
 		return bestTile;
+	}
+}
+
+BWAPI::TilePosition BuildingPlacer::getNextExpansion()
+{
+	BWAPI::TilePosition closestMineBase = BWAPI::TilePositions::None;
+	BWAPI::TilePosition closestGasBase = BWAPI::TilePositions::None;
+	double minMineDistance = 100000;
+	double minGasDistance = 100000;
+
+	BWAPI::TilePosition homeTile = BWAPI::Broodwar->self()->getStartLocation();
+
+	const auto & baseTPs = InformationManager::Instance().getBaseTiles();
+
+	for (const auto & area : BWEM::Map::Instance().Areas())
+	{
+		for (const auto & base : area.Bases())
+		{
+			auto baseTile = base.Location();
+			bool find = false;
+			for (const auto & tp : baseTPs)
+			{
+				if (tp.getDistance(baseTile) < 10)
+				{
+					find = true;
+					break;
+				}
+			}
+			if (find) continue;
+			int len = 1;
+			const auto & chokes = InformationManager::Instance().getBasePath(homeTile, baseTile, &len);
+			if (len < 0) continue;
+			// the base's distance from our start location
+			BWAPI::Position startPosition(homeTile);
+			BWAPI::Position basePosition = BWAPI::Position(baseTile);
+			double distanceFromHome =
+				MapTools::Instance().getPathDistance(startPosition, basePosition, chokes)
+				+ startPosition.getDistance(basePosition);
+			if (base.Geysers().empty())
+			{
+				if (!closestMineBase || distanceFromHome < minMineDistance)
+				{
+					closestMineBase = base.Location();
+					minMineDistance = distanceFromHome;
+				}
+			}
+			else
+			{
+				if (!closestGasBase || distanceFromHome < minGasDistance)
+				{
+					closestGasBase = base.Location();
+					minGasDistance = distanceFromHome;
+				}
+			}
+		}
+	}
+
+	if (closestGasBase
+		&& InformationManager::Instance().checkBuildingLocation(closestGasBase))
+	{
+		return closestGasBase;
+	}
+	else if (closestMineBase
+		&& InformationManager::Instance().checkBuildingLocation(closestMineBase))
+	{
+		return closestMineBase;
+	}
+	else
+	{
+		return BWAPI::TilePositions::None;
 	}
 }

@@ -42,10 +42,9 @@ BWAPI::Position MapGrid::getLeastExplored()
 			BWAPI::Position cellCenter = getCellCenter(r,c);
 
 			// don't worry about places that aren't connected to our start locatin
-			if (!BWTA::isConnected(BWAPI::TilePosition(cellCenter), BWAPI::Broodwar->self()->getStartLocation()))
-			{
-				continue;
-			}
+			int len = -1;
+			const auto & path = BWEM::Map::Instance().GetPath(cellCenter, BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation()), &len);
+			if (path.empty() && len < 0) continue;
 
 			BWAPI::Position home(BWAPI::Broodwar->self()->getStartLocation());
 			double dist = home.getDistance(getCellByIndex(r, c).center);

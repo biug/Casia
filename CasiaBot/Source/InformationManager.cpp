@@ -7,7 +7,9 @@ InformationManager::InformationManager()
     : _self(BWAPI::Broodwar->self())
     , _enemy(BWAPI::Broodwar->enemy())
 	, _isEncounterRush(false)
+	, _isBasePathFound(false)
 {
+	_emptyPath.clear();
 	initializeRegionInformation();
 }
 
@@ -50,8 +52,6 @@ void InformationManager::initializeRegionInformation()
 		if (unit->getType().isResourceDepot())
 		{
 			_selfBases.push_back(unit);
-			// push that region into our occupied vector
-			updateOccupiedRegions(BWTA::getRegion(unit->getTilePosition()), BWAPI::Broodwar->self());
 			break;
 		}
 	}
@@ -62,41 +62,28 @@ void InformationManager::initializeRegionInformation()
 
 void InformationManager::updateBaseLocationInfo() 
 {
-	BWTA::Region * region;
-	_occupiedRegions[_self].clear();
-	_occupiedRegions[_enemy].clear();
-
+	_baseTiles.clear();
 	// for each enemy unit we know about
 	for (const auto & kv : _unitData[_enemy].getUnits())
 	{
 		const UnitInfo & ui(kv.second);
 		BWAPI::UnitType type = ui.type;
 
-		// if the unit is a building
-		if (type.isBuilding()) 
+		// if the unit is base
+		if (type == BWAPI::UnitTypes::Zerg_Hatchery
+			|| type == BWAPI::UnitTypes::Zerg_Lair
+			|| type == BWAPI::UnitTypes::Zerg_Hive
+			|| type == BWAPI::UnitTypes::Terran_Command_Center
+			|| type == BWAPI::UnitTypes::Protoss_Nexus)
 		{
-			// update the enemy occupied regions
-			updateOccupiedRegions(BWTA::getRegion(BWAPI::TilePosition(ui.lastPosition)), _enemy);
-			if (type.isResourceDepot()
-				|| type == BWAPI::UnitTypes::Zerg_Hatchery
-				|| type == BWAPI::UnitTypes::Zerg_Lair
-				|| type == BWAPI::UnitTypes::Zerg_Hive
-				|| type == BWAPI::UnitTypes::Terran_Command_Center
-				|| type == BWAPI::UnitTypes::Protoss_Nexus)
+			_baseTiles.emplace_back(kv.second.lastTilePosition);
+			auto itr = std::find_if(_enemyBaseInfos.begin(), _enemyBaseInfos.end(), [&ui](const UnitInfo & u)
 			{
-				bool find = false;
-				for (const auto & base : _enemyBaseInfos)
-				{
-					if (base.unit == kv.first)
-					{
-						find = true;
-						break;
-					}
-				}
-				if (!find)
-				{
-					_enemyBaseInfos.push_back(kv.second);
-				}
+				return u.lastTilePosition == ui.lastTilePosition;
+			});
+			if (itr == _enemyBaseInfos.end())
+			{
+				_enemyBaseInfos.emplace_back(ui);
 			}
 		}
 	}
@@ -104,68 +91,58 @@ void InformationManager::updateBaseLocationInfo()
 	// for each of our units
 	for (const auto & kv : _unitData[_self].getUnits())
 	{
-		const UnitInfo & ui(kv.second);
-		BWAPI::UnitType type = ui.type;
+		auto unit = kv.first;
+		BWAPI::UnitType type = kv.second.type;
 
-		// if the unit is a building
-		if (type.isBuilding()) 
+		// if the unit is base
+		if (type == BWAPI::UnitTypes::Zerg_Hatchery
+			|| type == BWAPI::UnitTypes::Zerg_Lair
+			|| type == BWAPI::UnitTypes::Zerg_Hive)
 		{
-			// update the enemy occupied regions
-			updateOccupiedRegions(BWTA::getRegion(BWAPI::TilePosition(ui.lastPosition)), _self);
-			if (type.isResourceDepot()
-				|| type == BWAPI::UnitTypes::Zerg_Hatchery
-				|| type == BWAPI::UnitTypes::Zerg_Lair
-				|| type == BWAPI::UnitTypes::Zerg_Hive)
+			_baseTiles.emplace_back(unit->getTilePosition());
+			auto itr = std::find(_selfBases.begin(), _selfBases.end(), unit);
+			if (itr == _selfBases.end())
 			{
-				bool find = false;
-				for (const auto & base : _selfBases)
+				_selfBases.emplace_back(unit);
+			}
+		}
+	}
+
+	if (!_isBasePathFound)
+	{
+		// only find once
+		_isBasePathFound = true;
+		_basePaths.clear();
+		auto startTP = BWAPI::Broodwar->self()->getStartLocation();
+		const auto & area = BWEM::Map::Instance().Areas();
+		for (const auto & area1 : area)
+		{
+			for (const auto & base1 : area1.Bases())
+			{
+				for (const auto & area2 : area) if (area1.AccessibleFrom(&area2) && &area1 != &area2)
 				{
-					if (base == kv.first)
+					// for each connect base
+					for (const auto & base2 : area2.Bases())
 					{
-						find = true;
-						break;
+						auto baseTP1 = base1.Location(), baseTP2 = base2.Location();
+						const auto & path = BWEM::Map::Instance().GetPath(&area1, &area2);
+						std::vector<BWAPI::Position> nodes;
+						for (const auto & node : path)
+						{
+							nodes.emplace_back(BWAPI::Position(node->Center()));
+						}
+						_basePaths[{baseTP1, baseTP2}] = nodes;
 					}
 				}
-				if (!find)
-				{
-					_selfBases.push_back(kv.first);
-				}
-			}
-		}
-	}
-}
-
-void InformationManager::updateOccupiedRegions(BWTA::Region * region, BWAPI::Player player) 
-{
-	// if the region is valid (flying buildings may be in nullptr regions)
-	if (region)
-	{
-		// add it to the list of occupied regions
-		_occupiedRegions[player].insert(region);
-	}
-}
-
-bool InformationManager::isEnemyBuildingInRegion(BWTA::Region * region) 
-{
-	// invalid regions aren't considered the same, but they will both be null
-	if (!region)
-	{
-		return false;
-	}
-
-	for (const auto & kv : _unitData[_enemy].getUnits())
-	{
-		const UnitInfo & ui(kv.second);
-		if (ui.type.isBuilding()) 
-		{
-			if (BWTA::getRegion(BWAPI::TilePosition(ui.lastPosition)) == region) 
-			{
-				return true;
 			}
 		}
 	}
 
-	return false;
+	for (const auto &baseTP : _baseTiles)
+	{
+		BWAPI::Position baseP(baseTP);
+		BWAPI::Broodwar->drawBoxMap(baseP - BWAPI::Position(16, 16), baseP + BWAPI::Position(16, 16), BWAPI::Colors::Blue, true);
+	}
 }
 
 bool InformationManager::beingMarineRushed()
@@ -216,11 +193,6 @@ const UIMap & InformationManager::getUnitInfo(BWAPI::Player player) const
 	return getUnitData(player).getUnits();
 }
 
-std::set<BWTA::Region *> & InformationManager::getOccupiedRegions(BWAPI::Player player)
-{
-	return _occupiedRegions[player];
-}
-
 const std::vector<BWAPI::Unit> & InformationManager::getSelfBases() const
 {
 	return _selfBases;
@@ -229,6 +201,26 @@ const std::vector<BWAPI::Unit> & InformationManager::getSelfBases() const
 const std::vector<UnitInfo> & InformationManager::getEnemyBaseInfos() const
 {
 	return _enemyBaseInfos;
+}
+
+const std::vector<BWAPI::TilePosition> & InformationManager::getBaseTiles() const
+{
+	return _baseTiles;
+}
+
+const std::vector<BWAPI::Position> & InformationManager::getBasePath(BWAPI::TilePosition base1, BWAPI::TilePosition base2, int * length) const
+{
+	*length = 1;
+	for (const auto & path : _basePaths)
+	{
+		auto tp1 = path.first.first, tp2 = path.first.second;
+		if (tp1.getDistance(base1) < 10 && tp2.getDistance(base2) < 10)
+		{
+			return path.second;
+		}
+	}
+	*length = -1;
+	return _emptyPath;
 }
 
 BWAPI::Position InformationManager::getLastPosition(BWAPI::Unit unit, BWAPI::Player player) const
@@ -439,65 +431,6 @@ void InformationManager::drawUnitInformation(int x, int y)
 	}
 }
 
-void InformationManager::drawMapInformation()
-{
-    if (!Config::Debug::DrawBWTAInfo)
-    {
-        return;
-    }
-
-	//we will iterate through all the base locations, and draw their outlines.
-	for (std::set<BWTA::BaseLocation*>::const_iterator i = BWTA::getBaseLocations().begin(); i != BWTA::getBaseLocations().end(); i++)
-	{
-		BWAPI::TilePosition p = (*i)->getTilePosition();
-		BWAPI::Position c = (*i)->getPosition();
-
-		//draw outline of center location
-		BWAPI::Broodwar->drawBoxMap(p.x * 32, p.y * 32, p.x * 32 + 4 * 32, p.y * 32 + 3 * 32, BWAPI::Colors::Blue);
-
-		//draw a circle at each mineral patch
-		for (BWAPI::Unitset::iterator j = (*i)->getStaticMinerals().begin(); j != (*i)->getStaticMinerals().end(); j++)
-		{
-			BWAPI::Position q = (*j)->getInitialPosition();
-			BWAPI::Broodwar->drawCircleMap(q.x, q.y, 30, BWAPI::Colors::Cyan);
-		}
-
-		//draw the outlines of vespene geysers
-		for (BWAPI::Unitset::iterator j = (*i)->getGeysers().begin(); j != (*i)->getGeysers().end(); j++)
-		{
-			BWAPI::TilePosition q = (*j)->getInitialTilePosition();
-			BWAPI::Broodwar->drawBoxMap(q.x * 32, q.y * 32, q.x * 32 + 4 * 32, q.y * 32 + 2 * 32, BWAPI::Colors::Orange);
-		}
-
-		//if this is an island expansion, draw a yellow circle around the base location
-		if ((*i)->isIsland())
-			BWAPI::Broodwar->drawCircleMap(c, 80, BWAPI::Colors::Yellow);
-	}
-
-	//we will iterate through all the regions and draw the polygon outline of it in green.
-	for (std::vector<BWTA::Region*>::const_iterator r = BWTA::getRegions().begin(); r != BWTA::getRegions().end(); r++)
-	{
-		const BWTA::Polygon *p = &((*r)->getPolygon());
-		for (int j = 0; j<(int)p->size(); j++)
-		{
-			BWAPI::Position point1 = (*p)[j];
-			BWAPI::Position point2 = (*p)[(j + 1) % p->size()];
-			BWAPI::Broodwar->drawLineMap(point1, point2, BWAPI::Colors::Green);
-		}
-	}
-
-	//we will visualize the chokepoints with red lines
-	for (std::vector<BWTA::Region*>::const_iterator r = BWTA::getRegions().begin(); r != BWTA::getRegions().end(); r++)
-	{
-		for (std::set<BWTA::Chokepoint*>::const_iterator c = (*r)->getChokepoints().begin(); c != (*r)->getChokepoints().end(); c++)
-		{
-			BWAPI::Position point1 = (*c)->getSides().first;
-			BWAPI::Position point2 = (*c)->getSides().second;
-			BWAPI::Broodwar->drawLineMap(point1, point2, BWAPI::Colors::Red);
-		}
-	}
-}
-
 void InformationManager::updateUnit(BWAPI::Unit unit)
 {
     if (!(unit->getPlayer() == _self || unit->getPlayer() == _enemy))
@@ -541,34 +474,28 @@ void InformationManager::onUnitDestroy(BWAPI::Unit unit)
         return;
     }
 	auto player = unit->getPlayer();
+	const auto & uis = _unitData[player].getUnits();
+	if (uis.find(unit) == uis.end()) return;
+	const auto tile = uis.at(unit).lastTilePosition;
 	// remove unit
     _unitData[player].removeUnit(unit);
-	if (player == BWAPI::Broodwar->self())
+	if (player == _enemy)
 	{
-		auto itr = _selfBases.begin();
-		while (itr != _selfBases.end())
+		auto itr = std::find_if(_enemyBaseInfos.begin(), _enemyBaseInfos.end(), [&tile](const UnitInfo & u)
 		{
-			if (*itr == unit)
-			{
-				// remove base
-				_selfBases.erase(itr);
-				break;
-			}
-			++itr;
+			return u.lastTilePosition == tile;
+		});
+		if (itr != _enemyBaseInfos.end())
+		{
+			_enemyBaseInfos.erase(itr);
 		}
 	}
 	else
 	{
-		auto itr = _enemyBaseInfos.begin();
-		while (itr != _enemyBaseInfos.end())
+		auto itr = std::find(_selfBases.begin(), _selfBases.end(), unit);
+		if (itr != _selfBases.end())
 		{
-			if (itr->unit == unit)
-			{
-				// remove base
-				_enemyBaseInfos.erase(itr);
-				break;
-			}
-			++itr;
+			_selfBases.erase(itr);
 		}
 	}
 }
