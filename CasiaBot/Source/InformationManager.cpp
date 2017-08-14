@@ -56,12 +56,45 @@ void InformationManager::initializeRegionInformation()
 		}
 	}
 	_enemyBaseInfos.clear();
+	_basePaths.clear();
+	_baseAreas.clear();
 
 }
 
 
 void InformationManager::updateBaseLocationInfo() 
 {
+	if (!_isBasePathFound)
+	{
+		// only find once
+		_isBasePathFound = true;
+		_basePaths.clear();
+		_baseAreas.clear();
+		const auto & area = BWEM::Map::Instance().Areas();
+		for (const auto & area1 : area)
+		{
+			for (const auto & base1 : area1.Bases())
+			{
+				_baseAreas[base1.Location()] = &area1;
+				for (const auto & area2 : area) if (area1.AccessibleFrom(&area2) && &area1 != &area2)
+				{
+					// for each connect base
+					for (const auto & base2 : area2.Bases())
+					{
+						auto baseTP1 = base1.Location(), baseTP2 = base2.Location();
+						const auto & path = BWEM::Map::Instance().GetPath(&area1, &area2);
+						std::vector<BWAPI::Position> nodes;
+						for (const auto & node : path)
+						{
+							nodes.emplace_back(BWAPI::Position(node->Center()));
+						}
+						_basePaths[{baseTP1, baseTP2}] = nodes;
+					}
+				}
+			}
+		}
+	}
+
 	_baseTiles.clear();
 	// for each enemy unit we know about
 	for (const auto & kv : _unitData[_enemy].getUnits())
@@ -74,7 +107,7 @@ void InformationManager::updateBaseLocationInfo()
 			|| type == BWAPI::UnitTypes::Zerg_Lair
 			|| type == BWAPI::UnitTypes::Zerg_Hive
 			|| type == BWAPI::UnitTypes::Terran_Command_Center
-			|| type == BWAPI::UnitTypes::Protoss_Nexus)
+			|| type == BWAPI::UnitTypes::Protoss_Nexus) if (getBaseArea(ui.lastTilePosition))
 		{
 			_baseTiles.emplace_back(kv.second.lastTilePosition);
 			auto itr = std::find_if(_enemyBaseInfos.begin(), _enemyBaseInfos.end(), [&ui](const UnitInfo & u)
@@ -97,43 +130,13 @@ void InformationManager::updateBaseLocationInfo()
 		// if the unit is base
 		if (type == BWAPI::UnitTypes::Zerg_Hatchery
 			|| type == BWAPI::UnitTypes::Zerg_Lair
-			|| type == BWAPI::UnitTypes::Zerg_Hive)
+			|| type == BWAPI::UnitTypes::Zerg_Hive) if (getBaseArea(unit->getTilePosition()))
 		{
 			_baseTiles.emplace_back(unit->getTilePosition());
 			auto itr = std::find(_selfBases.begin(), _selfBases.end(), unit);
 			if (itr == _selfBases.end())
 			{
 				_selfBases.emplace_back(unit);
-			}
-		}
-	}
-
-	if (!_isBasePathFound)
-	{
-		// only find once
-		_isBasePathFound = true;
-		_basePaths.clear();
-		auto startTP = BWAPI::Broodwar->self()->getStartLocation();
-		const auto & area = BWEM::Map::Instance().Areas();
-		for (const auto & area1 : area)
-		{
-			for (const auto & base1 : area1.Bases())
-			{
-				for (const auto & area2 : area) if (area1.AccessibleFrom(&area2) && &area1 != &area2)
-				{
-					// for each connect base
-					for (const auto & base2 : area2.Bases())
-					{
-						auto baseTP1 = base1.Location(), baseTP2 = base2.Location();
-						const auto & path = BWEM::Map::Instance().GetPath(&area1, &area2);
-						std::vector<BWAPI::Position> nodes;
-						for (const auto & node : path)
-						{
-							nodes.emplace_back(BWAPI::Position(node->Center()));
-						}
-						_basePaths[{baseTP1, baseTP2}] = nodes;
-					}
-				}
 			}
 		}
 	}
@@ -206,6 +209,18 @@ const std::vector<UnitInfo> & InformationManager::getEnemyBaseInfos() const
 const std::vector<BWAPI::TilePosition> & InformationManager::getBaseTiles() const
 {
 	return _baseTiles;
+}
+
+const BWEM::Area * InformationManager::getBaseArea(BWAPI::TilePosition base) const
+{
+	for (const auto & area : _baseAreas)
+	{
+		if (base.getDistance(area.first) < 10)
+		{
+			return area.second;
+		}
+	}
+	return nullptr;
 }
 
 const std::vector<BWAPI::Position> & InformationManager::getBasePath(BWAPI::TilePosition base1, BWAPI::TilePosition base2, int * length) const

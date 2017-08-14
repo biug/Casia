@@ -422,7 +422,7 @@ void ScoutManager::calculateEnemyRegionVertices()
         return;
     }
 
-    const auto area = BWEM::Map::Instance().GetNearestArea(BWAPI::TilePosition(ebases.front().lastPosition));
+    const auto & area = InformationManager::Instance().getBaseArea(ebases.front().lastTilePosition);
     //CAB_ASSERT_WARNING(enemyRegion, "We should have an enemy region if we are fleeing");
 
     if (!area)

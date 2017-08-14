@@ -22,17 +22,15 @@ class InformationManager
 	std::vector<BWAPI::Unit>									_selfBases;
 	std::vector<UnitInfo>										_enemyBaseInfos;
 	std::vector<BWAPI::TilePosition>							_baseTiles;
+	std::map<BWAPI::TilePosition, const BWEM::Area *>			_baseAreas;
 	std::map<std::pair<BWAPI::TilePosition, BWAPI::TilePosition> , std::vector<BWAPI::Position>> _basePaths;
 	std::vector<BWAPI::Position>								_emptyPath;
 
 	bool					_isEncounterRush;
 	bool					_isBasePathFound;
 
-    int                     getIndex(BWAPI::Player player) const;
-
     void                    updateUnit(BWAPI::Unit unit);
     void                    initializeRegionInformation();
-    void                    initializeBaseInfoVector();
     void                    updateUnitInfo();
     void                    updateBaseLocationInfo();
     bool                    isValidUnit(BWAPI::Unit unit);
@@ -64,7 +62,6 @@ public:
     int						getNumUnits(BWAPI::UnitType type,BWAPI::Player player);
 	int						getNumConstructedUnits(BWAPI::UnitType type, BWAPI::Player player);
 	int						getNumConstructingUnits(BWAPI::UnitType type, BWAPI::Player player);
-    bool					nearbyForceHasCloaked(BWAPI::Position p,BWAPI::Player player,int radius);
     bool					isCombatUnit(BWAPI::UnitType type) const;
 
     void                    getNearbyForce(std::vector<UnitInfo> & unitInfo,BWAPI::Position p,BWAPI::Player player,int radius);
@@ -75,7 +72,8 @@ public:
 	const std::vector<UnitInfo> &				getEnemyBaseInfos() const;
 	const std::vector<BWAPI::TilePosition> &	getBaseTiles() const;
 	BWAPI::Position	getLastPosition(BWAPI::Unit unit, BWAPI::Player player) const;
-	const std::vector<BWAPI::Position> & getBasePath(BWAPI::TilePosition base1, BWAPI::TilePosition base2, int * length) const;
+	const BWEM::Area *					getBaseArea(BWAPI::TilePosition base) const;
+	const std::vector<BWAPI::Position>& getBasePath(BWAPI::TilePosition base1, BWAPI::TilePosition base2, int * length) const;
 
     bool                    enemyHasCloakedUnits();
 

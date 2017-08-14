@@ -168,7 +168,7 @@ void CombatCommander::updateScoutDefenseSquad()
     Squad & scoutDefenseSquad = _squadData.getSquad("ScoutDefense");
   
     // get the region that our base is located in
-    const auto area = BWEM::Map::Instance().GetArea(BWAPI::Broodwar->self()->getStartLocation());
+    const auto & area = InformationManager::Instance().getBaseArea(BWAPI::Broodwar->self()->getStartLocation());
 	auto areaCenter = (area->TopLeft() + area->BottomRight()) / 2;
 
     // get all of the enemy units in this region
@@ -256,7 +256,8 @@ void CombatCommander::updateDefenseSquads()
 	// for each of our occupied regions
 	for (const auto & base : InformationManager::Instance().getSelfBases())
 	{
-		const auto & area = BWEM::Map::Instance().GetNearestArea(base->getTilePosition());
+		const auto & area = InformationManager::Instance().getBaseArea(base->getTilePosition());
+		if (!area) continue;
 		auto center = (area->TopLeft() + area->BottomRight()) / 2;
 		if (!center.isValid())
 		{

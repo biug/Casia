@@ -11,14 +11,16 @@ MapGrid & MapGrid::Instance()
 
 MapGrid::MapGrid() {}
 	
-MapGrid::MapGrid(int mapWidth, int mapHeight, int cellSize) 
+MapGrid::MapGrid(int mapWidth, int mapHeight, int cellSize)
 	: mapWidth(mapWidth)
 	, mapHeight(mapHeight)
 	, cellSize(cellSize)
 	, cols((mapWidth + cellSize - 1) / cellSize)
 	, rows((mapHeight + cellSize - 1) / cellSize)
 	, cells(rows * cols)
+	, connected(rows * cols, true)
 	, lastUpdated(0)
+	, getConnected(false)
 {
 	calculateCellCenters();
 }
@@ -34,17 +36,30 @@ BWAPI::Position MapGrid::getLeastExplored()
 	double minSeenDist = 0;
 	int leastRow(0), leastCol(0);
 
+	if (!getConnected && BWAPI::Broodwar->self() && BWAPI::Broodwar->self()->getStartLocation().isValid())
+	{
+		auto startP = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
+		for (int r = 0; r < rows; ++r)
+		{
+			for (int c = 0; c < cols; ++c)
+			{
+				int len = -1;
+				BWAPI::Position cellCenter = getCellCenter(r, c);
+				BWEM::Map::Instance().GetPath(cellCenter, startP, &len);
+				if (len < 0) connected[r*cols + c] = false;
+			}
+		}
+		getConnected = true;
+	}
+	if (!getConnected) return getCellCenter(leastRow, leastCol);
+
 	for (int r=0; r<rows; ++r)
 	{
 		for (int c=0; c<cols; ++c)
 		{
+			if (!connected[r * cols + c]) continue;
 			// get the center of this cell
 			BWAPI::Position cellCenter = getCellCenter(r,c);
-
-			// don't worry about places that aren't connected to our start locatin
-			int len = -1;
-			const auto & path = BWEM::Map::Instance().GetPath(cellCenter, BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation()), &len);
-			if (path.empty() && len < 0) continue;
 
 			BWAPI::Position home(BWAPI::Broodwar->self()->getStartLocation());
 			double dist = home.getDistance(getCellByIndex(r, c).center);
