@@ -109,6 +109,6 @@ namespace Config
 
     namespace Tools								
     {
-        extern int MAP_GRID_SIZE            = 320;      // size of grid spacing in MapGrid
+        extern int MAP_GRID_SIZE            = 256;      // size of grid spacing in MapGrid
     }
 }

@@ -422,7 +422,7 @@ void ScoutManager::calculateEnemyRegionVertices()
         return;
     }
 
-    const auto & area = InformationManager::Instance().getBaseArea(ebases.front().lastTilePosition);
+    const auto & area = InformationManager::Instance().getTileArea(ebases.front().lastTilePosition);
     //CAB_ASSERT_WARNING(enemyRegion, "We should have an enemy region if we are fleeing");
 
     if (!area)
@@ -451,10 +451,19 @@ void ScoutManager::calculateEnemyRegionVertices()
         // 1) in all 4 directions there's a tile position in the current region
         // 2) in all 4 directions there's a buildable tile
         bool surrounded = true;
-        if (map.GetNearestArea(BWAPI::TilePosition(tp.x+1, tp.y)) != area || !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x+1, tp.y))
-            || map.GetNearestArea(BWAPI::TilePosition(tp.x, tp.y+1)) != area || !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x, tp.y+1))
-            || map.GetNearestArea(BWAPI::TilePosition(tp.x-1, tp.y)) != area || !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x-1, tp.y))
-            || map.GetNearestArea(BWAPI::TilePosition(tp.x, tp.y-1)) != area || !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x, tp.y -1)))
+		auto & info = InformationManager::Instance();
+        if (!info.validTile(tp.x+1, tp.y)
+			|| info.getTileArea(BWAPI::TilePosition(tp.x+1, tp.y)) != area
+			|| !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x+1, tp.y))
+			|| !info.validTile(tp.x, tp.y+1)
+            || info.getTileArea(BWAPI::TilePosition(tp.x, tp.y+1)) != area
+			|| !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x, tp.y+1))
+			|| !info.validTile(tp.x - 1, tp.y)
+            || info.getTileArea(BWAPI::TilePosition(tp.x-1, tp.y)) != area
+			|| !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x-1, tp.y))
+			|| !info.validTile(tp.x, tp.y - 1)
+            || info.getTileArea(BWAPI::TilePosition(tp.x, tp.y-1)) != area
+			|| !BWAPI::Broodwar->isBuildable(BWAPI::TilePosition(tp.x, tp.y -1)))
         { 
             surrounded = false; 
         }

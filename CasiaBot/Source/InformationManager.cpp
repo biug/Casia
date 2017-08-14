@@ -7,9 +7,11 @@ InformationManager::InformationManager()
     : _self(BWAPI::Broodwar->self())
     , _enemy(BWAPI::Broodwar->enemy())
 	, _isEncounterRush(false)
-	, _isBasePathFound(false)
+	, _scannedColoum(0)
+	, _cols(BWAPI::Broodwar->mapWidth())
+	, _rows(BWAPI::Broodwar->mapHeight())
+	, _tileAreas(_cols * _rows, nullptr)
 {
-	_emptyPath.clear();
 	initializeRegionInformation();
 }
 
@@ -23,7 +25,7 @@ void InformationManager::update()
 {
 	_unitData.find(BWAPI::Broodwar->self())->second.clearUnitsets();
 	updateUnitInfo();
-	updateBaseLocationInfo();
+	updateLocationInfo();
 	updateRush();
 }
 
@@ -56,43 +58,19 @@ void InformationManager::initializeRegionInformation()
 		}
 	}
 	_enemyBaseInfos.clear();
-	_basePaths.clear();
-	_baseAreas.clear();
-
 }
 
-
-void InformationManager::updateBaseLocationInfo() 
+void InformationManager::updateLocationInfo() 
 {
-	if (!_isBasePathFound)
+	if (_scannedColoum < _cols)
 	{
-		// only find once
-		_isBasePathFound = true;
-		_basePaths.clear();
-		_baseAreas.clear();
-		const auto & area = BWEM::Map::Instance().Areas();
-		for (const auto & area1 : area)
+		// init tile areas
+		for (int r = 0; r < _rows; ++r)
 		{
-			for (const auto & base1 : area1.Bases())
-			{
-				_baseAreas[base1.Location()] = &area1;
-				for (const auto & area2 : area) if (area1.AccessibleFrom(&area2) && &area1 != &area2)
-				{
-					// for each connect base
-					for (const auto & base2 : area2.Bases())
-					{
-						auto baseTP1 = base1.Location(), baseTP2 = base2.Location();
-						const auto & path = BWEM::Map::Instance().GetPath(&area1, &area2);
-						std::vector<BWAPI::Position> nodes;
-						for (const auto & node : path)
-						{
-							nodes.emplace_back(BWAPI::Position(node->Center()));
-						}
-						_basePaths[{baseTP1, baseTP2}] = nodes;
-					}
-				}
-			}
+			const auto & area = BWEM::Map::Instance().GetNearestArea(BWAPI::TilePosition(_scannedColoum, r));
+			_tileAreas[_scannedColoum*_rows + r] = area;
 		}
+		++_scannedColoum;
 	}
 
 	_baseTiles.clear();
@@ -107,7 +85,7 @@ void InformationManager::updateBaseLocationInfo()
 			|| type == BWAPI::UnitTypes::Zerg_Lair
 			|| type == BWAPI::UnitTypes::Zerg_Hive
 			|| type == BWAPI::UnitTypes::Terran_Command_Center
-			|| type == BWAPI::UnitTypes::Protoss_Nexus) if (getBaseArea(ui.lastTilePosition))
+			|| type == BWAPI::UnitTypes::Protoss_Nexus) if (getTileArea(ui.lastTilePosition))
 		{
 			_baseTiles.emplace_back(kv.second.lastTilePosition);
 			auto itr = std::find_if(_enemyBaseInfos.begin(), _enemyBaseInfos.end(), [&ui](const UnitInfo & u)
@@ -130,7 +108,7 @@ void InformationManager::updateBaseLocationInfo()
 		// if the unit is base
 		if (type == BWAPI::UnitTypes::Zerg_Hatchery
 			|| type == BWAPI::UnitTypes::Zerg_Lair
-			|| type == BWAPI::UnitTypes::Zerg_Hive) if (getBaseArea(unit->getTilePosition()))
+			|| type == BWAPI::UnitTypes::Zerg_Hive) if (getTileArea(unit->getTilePosition()))
 		{
 			_baseTiles.emplace_back(unit->getTilePosition());
 			auto itr = std::find(_selfBases.begin(), _selfBases.end(), unit);
@@ -146,6 +124,11 @@ void InformationManager::updateBaseLocationInfo()
 		BWAPI::Position baseP(baseTP);
 		BWAPI::Broodwar->drawBoxMap(baseP - BWAPI::Position(16, 16), baseP + BWAPI::Position(16, 16), BWAPI::Colors::Blue, true);
 	}
+}
+
+bool InformationManager::validTile(int x, int y)
+{
+	return x >= 0 && x < _cols && y >= 0 && y < _rows;
 }
 
 bool InformationManager::beingMarineRushed()
@@ -211,31 +194,17 @@ const std::vector<BWAPI::TilePosition> & InformationManager::getBaseTiles() cons
 	return _baseTiles;
 }
 
-const BWEM::Area * InformationManager::getBaseArea(BWAPI::TilePosition base) const
+const BWEM::Area * InformationManager::getTileArea(BWAPI::TilePosition base) const
 {
-	for (const auto & area : _baseAreas)
-	{
-		if (base.getDistance(area.first) < 10)
-		{
-			return area.second;
-		}
-	}
-	return nullptr;
+	return _tileAreas[base.x*_rows + base.y];
 }
 
-const std::vector<BWAPI::Position> & InformationManager::getBasePath(BWAPI::TilePosition base1, BWAPI::TilePosition base2, int * length) const
+const BWEM::CPPath & InformationManager::getBasePath(BWAPI::TilePosition base1, BWAPI::TilePosition base2, int * length)
 {
 	*length = 1;
-	for (const auto & path : _basePaths)
-	{
-		auto tp1 = path.first.first, tp2 = path.first.second;
-		if (tp1.getDistance(base1) < 10 && tp2.getDistance(base2) < 10)
-		{
-			return path.second;
-		}
-	}
-	*length = -1;
-	return _emptyPath;
+	const auto & area1 = getTileArea(base1);
+	const auto & area2 = getTileArea(base2);
+	return BWEM::Map::Instance().GetPath(area1, area2, length);
 }
 
 BWAPI::Position InformationManager::getLastPosition(BWAPI::Unit unit, BWAPI::Player player) const

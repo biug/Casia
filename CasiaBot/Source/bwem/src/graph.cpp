@@ -390,6 +390,11 @@ vector<int> Graph::ComputeDistances(const ChokePoint * start, const vector<const
 
 const CPPath & Graph::GetPath(const Area * pAreaA, const Area * pAreaB, int * pLength) const
 {
+	if (!pAreaA || !pAreaB)
+	{
+		if (pLength) *pLength = -1;
+		return m_EmptyPath;
+	}
 	auto a = BWAPI::Position((pAreaA->TopLeft() + pAreaA->BottomRight()) / 2);
 	auto b = BWAPI::Position((pAreaB->TopLeft() + pAreaB->BottomRight()) / 2);
 	if (pAreaA == pAreaB)
@@ -454,7 +459,7 @@ const CPPath & Graph::GetPath(const Area * pAreaA, const Area * pAreaB, int * pL
 		}
 	}
 
-	return GetPath(pBestCpA, pBestCpB);
+	return Path;
 }
 
 const CPPath & Graph::GetPath(const Position & a, const Position & b, int * pLength) const

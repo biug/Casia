@@ -399,12 +399,17 @@ BWAPI::Unit BuildingPlacer::getDefenseBase()
 		int len = 1;
 		const auto & chokes = InformationManager::Instance().getBasePath(base->getTilePosition(), enemyTP, &len);
 		if (len < 0) continue;
-		BWAPI::Broodwar->drawLineMap(base->getPosition(), chokes.front(), BWAPI::Colors::Blue);
+		BWAPI::Broodwar->drawLineMap(base->getPosition(),
+			BWAPI::Position(chokes.front()->Center()),
+			BWAPI::Colors::Blue);
 		for (int i = 0; i < chokes.size() - 1; ++i)
 		{
-			BWAPI::Broodwar->drawLineMap(chokes[i], chokes[i + 1], BWAPI::Colors::Blue);
+			BWAPI::Broodwar->drawLineMap(BWAPI::Position(chokes[i]->Center()),
+				BWAPI::Position(chokes[i + 1]->Center()), BWAPI::Colors::Blue);
 		}
-		BWAPI::Broodwar->drawLineMap(enemyP, chokes.back(), BWAPI::Colors::Blue);
+		BWAPI::Broodwar->drawLineMap(enemyP,
+			BWAPI::Position(chokes.back()->Center()),
+			BWAPI::Colors::Blue);
 		// 确保路径上没有其他的我方基地
 		bool badPath = false;
 		for (const auto & otherBase : bases)
@@ -466,7 +471,7 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 		auto chokeTP = BWAPI::TilePositions::None;
 		if (!chokes.empty())
 		{
-			chokeTP = BWAPI::TilePosition(chokes[0]);
+			chokeTP = BWAPI::TilePosition(chokes[0]->Center());
 		}
 		if (!chokeTP.isValid())
 		{
@@ -525,7 +530,7 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 		auto chokeTP = BWAPI::TilePositions::None;
 		if (!chokes.empty())
 		{
-			chokeTP = BWAPI::TilePosition(chokes[0]);
+			chokeTP = BWAPI::TilePosition(chokes[0]->Center());
 		}
 		if (!chokeTP.isValid())
 		{

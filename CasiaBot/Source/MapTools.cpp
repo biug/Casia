@@ -215,25 +215,25 @@ double MapTools::getBasePathDistance(BWAPI::TilePosition base)
 	int len = 1;
 	auto homeTile = BWAPI::Broodwar->self()->getStartLocation();
 	const auto & basePath = InformationManager::Instance().getBasePath(homeTile, base, &len);
-	if (len < 0) return -1;
+	if (len < 0) return 10000000;
 	return getPathDistance(
 		BWAPI::Position(homeTile)
 		, BWAPI::Position(base)
 		, basePath);
 }
 
-double MapTools::getPathDistance(BWAPI::Position s, BWAPI::Position e, const std::vector<BWAPI::Position> & path)
+double MapTools::getPathDistance(BWAPI::Position s, BWAPI::Position e, const BWEM::CPPath & path)
 {
 	if (path.empty()) return s.getDistance(e);
 	else
 	{
 		double distanceFromHome = 0.0;
-		distanceFromHome = s.getDistance(BWAPI::Position(path.front()));
+		distanceFromHome = s.getDistance(BWAPI::Position(path.front()->Center()));
 		for (int i = 0; i < path.size() - 1; ++i)
 		{
-			distanceFromHome += path[i].getDistance(path[i + 1]);
+			distanceFromHome += path[i]->Center().getDistance(path[i + 1]->Center());
 		}
-		distanceFromHome += e.getDistance(BWAPI::Position(path.back()));
+		distanceFromHome += e.getDistance(BWAPI::Position(path.back()->Center()));
 		return distanceFromHome;
 	}
 }

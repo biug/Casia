@@ -14,7 +14,9 @@ typedef std::vector<BaseInfo> BaseInfoVector;
 class InformationManager 
 {
     InformationManager();
-    
+
+	int					_cols;
+	int					_rows;
     BWAPI::Player       _self;
     BWAPI::Player       _enemy;
 
@@ -22,17 +24,15 @@ class InformationManager
 	std::vector<BWAPI::Unit>									_selfBases;
 	std::vector<UnitInfo>										_enemyBaseInfos;
 	std::vector<BWAPI::TilePosition>							_baseTiles;
-	std::map<BWAPI::TilePosition, const BWEM::Area *>			_baseAreas;
-	std::map<std::pair<BWAPI::TilePosition, BWAPI::TilePosition> , std::vector<BWAPI::Position>> _basePaths;
-	std::vector<BWAPI::Position>								_emptyPath;
+	std::vector<const BWEM::Area *>								_tileAreas;
 
 	bool					_isEncounterRush;
-	bool					_isBasePathFound;
+	int						_scannedColoum;
 
     void                    updateUnit(BWAPI::Unit unit);
     void                    initializeRegionInformation();
     void                    updateUnitInfo();
-    void                    updateBaseLocationInfo();
+    void                    updateLocationInfo();
     bool                    isValidUnit(BWAPI::Unit unit);
 	void					updateRush();
 
@@ -72,9 +72,10 @@ public:
 	const std::vector<UnitInfo> &				getEnemyBaseInfos() const;
 	const std::vector<BWAPI::TilePosition> &	getBaseTiles() const;
 	BWAPI::Position	getLastPosition(BWAPI::Unit unit, BWAPI::Player player) const;
-	const BWEM::Area *					getBaseArea(BWAPI::TilePosition base) const;
-	const std::vector<BWAPI::Position>& getBasePath(BWAPI::TilePosition base1, BWAPI::TilePosition base2, int * length) const;
+	const BWEM::Area *					getTileArea(BWAPI::TilePosition base) const;
+	const BWEM::CPPath & getBasePath(BWAPI::TilePosition base1, BWAPI::TilePosition base2, int * length);
 
+	bool					validTile(int x, int y);
     bool                    enemyHasCloakedUnits();
 
     void                    drawExtendedInterface();

@@ -33,7 +33,7 @@ class MapGrid
 	int							mapWidth, mapHeight;
 	int							rows, cols;
 	int							lastUpdated;
-	bool						getConnected;
+	int							scannedColumn;
 	std::vector<bool>			connected;
 
 	std::vector< GridCell >		cells;
