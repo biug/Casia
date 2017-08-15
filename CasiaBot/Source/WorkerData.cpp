@@ -635,6 +635,11 @@ const BWAPI::Unitset & WorkerData::getRefineries() const
 	return refineries;
 }
 
+const BWAPI::Unitset & WorkerData::getMineralBases() const
+{
+	return mineralBases;
+}
+
 const BWAPI::Unitset & WorkerData::getMineralPatches(BWAPI::Unit base) const
 {
 	if (mineralBaseMineralPatchMap.find(base) != mineralBaseMineralPatchMap.end())

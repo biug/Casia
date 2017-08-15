@@ -71,7 +71,6 @@ namespace Config
         bool DrawBuildingInfo               = true;
         bool DrawMouseCursorInfo            = false;
         bool DrawEnemyUnitInfo              = false;
-        bool DrawBWTAInfo                   = false;
         bool DrawMapGrid                    = false;
         bool DrawUnitTargetInfo             = false;
         bool DrawSquadInfo                  = false;
@@ -110,6 +109,6 @@ namespace Config
 
     namespace Tools								
     {
-        extern int MAP_GRID_SIZE            = 320;      // size of grid spacing in MapGrid
+        extern int MAP_GRID_SIZE            = 256;      // size of grid spacing in MapGrid
     }
 }

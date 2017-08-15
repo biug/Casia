@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Common.h"
-#include "BWTA.h"
 
 namespace CasiaBot
 {
@@ -17,6 +16,7 @@ struct UnitInfo
     BWAPI::Player   player;
     BWAPI::Unit     unit;
     BWAPI::Position lastPosition;
+	BWAPI::TilePosition lastTilePosition;
     BWAPI::UnitType type;
     bool            completed;
 
@@ -27,6 +27,7 @@ struct UnitInfo
         , player(nullptr)
         , unit(nullptr)
         , lastPosition(BWAPI::Positions::None)
+		, lastTilePosition(BWAPI::TilePositions::None)
         , type(BWAPI::UnitTypes::None)
         , completed(false)
     {

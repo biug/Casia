@@ -6,9 +6,9 @@ using namespace CasiaBot;
 OverlordManager::OverlordManager() 
 {
 	initializeFlag = false;
-	startBase[0] = nullptr;
-	startBase[2] = nullptr;
-	startBase[1] = nullptr;
+	startBase[0] = BWAPI::TilePositions::None;
+	startBase[2] = BWAPI::TilePositions::None;
+	startBase[1] = BWAPI::TilePositions::None;
 	needDetect[0] = true;
 	needDetect[1] = false;
 	needDetect[2] = false;
@@ -23,20 +23,21 @@ void OverlordManager::initEnemyBase()
 		return;
 	}
 	const auto & sbases = InformationManager::Instance().getSelfBases();
-	auto sbaseP = sbases.empty()
-		? BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation())
-		: sbases.front()->getPosition();
+	auto sbaseTP = sbases.empty()
+		? BWAPI::Broodwar->self()->getStartLocation()
+		: sbases.front()->getTilePosition();
+	auto sbaseP = BWAPI::Position(sbaseTP);
 	//0最近的，1最远的，2剩下那个
 	int minDistance = 0;
 	int maxDistance = 0;
 	int nowDistance;
-	for (auto & base : BWTA::getStartLocations()) {
-		nowDistance = abs(base->getPosition().x - sbaseP.x) + abs(base->getPosition().y - sbaseP.y);
-		if ((startBase[0] == nullptr || minDistance > nowDistance) && nowDistance != 0){
+	for (const auto & base : BWEM::Map::Instance().StartingLocations()) {
+		nowDistance = abs(base.x - sbaseTP.x) + abs(base.y - sbaseTP.y);
+		if ((!startBase[0].isValid() || minDistance > nowDistance) && nowDistance != 0){
 			startBase[0] = base;
 			minDistance = nowDistance;
 		}
-		if ((startBase[1] == nullptr || maxDistance < nowDistance) && nowDistance != 0){
+		if ((!startBase[1].isValid() || maxDistance < nowDistance) && nowDistance != 0){
 			startBase[1] = base;
 			maxDistance = nowDistance;
 			needDetect[1] = true;
@@ -44,11 +45,11 @@ void OverlordManager::initEnemyBase()
 	}
 	if (startBase[1] == startBase[0])
 	{
-		startBase[1] = nullptr;
+		startBase[1] = BWAPI::TilePositions::None;
 		needDetect[1] = false;
 	}
-	for (auto & base : BWTA::getStartLocations()) {
-		if (startBase[0] != base && startBase[1] != base && sbaseP != base->getPosition()){
+	for (const auto & base : BWEM::Map::Instance().StartingLocations()) {
+		if (startBase[0] != base && startBase[1] != base && sbaseTP != base){
 			startBase[2] = base;
 			needDetect[2] = true;
 		}
@@ -59,7 +60,8 @@ void OverlordManager::initEnemyBase()
 	int halfHeight = 16 * BWAPI::Broodwar->mapHeight();
 	//以地图中心建立坐标系，与地图数据中y方向相反
 	double angle[4];
-	angle[0] = atan2(halfHeight - startBase[0]->getPosition().y, startBase[0]->getPosition().x - halfWidth);
+	auto start0 = BWAPI::Position(startBase[0]);
+	angle[0] = atan2(halfHeight - start0.y, start0.x - halfWidth);
 	angle[3] = atan2(halfHeight - sbaseP.y, sbaseP.x - halfWidth);
 	int compare = 0;
 	if (needDetect[2])
@@ -73,16 +75,14 @@ void OverlordManager::initEnemyBase()
 	{
 		return;
 	}
-	angle[compare] = atan2(halfHeight - startBase[compare]->getPosition().y, startBase[compare]->getPosition().x - halfWidth);
+	auto startCompare = BWAPI::Position(startBase[compare]);
+	angle[compare] = atan2(halfHeight - startCompare.y, startCompare.x - halfWidth);
 	if ((angle[3] > angle[0] && angle[3] > angle[compare] && angle[0] < angle[compare])//基地左上角
 		|| (angle[3] < angle[0] && angle[3] > angle[compare] && angle[0] < angle[compare])//基地右侧
 		|| (angle[3] < angle[0] && angle[3] < angle[compare] && angle[0] < angle[compare]))//基地左下角
 	{
 		//交换成顺时针方向
-		BWTA::BaseLocation *mid;
-		mid = startBase[0];
-		startBase[0] = startBase[compare];
-		startBase[compare] = mid;
+		std::swap(startBase[0], startBase[compare]);
 	}
 	//CAB_ASSERT_SIMPLE("1 %d %d", startBase[0]->getPosition().x, startBase[0]->getPosition().y);
 	//CAB_ASSERT_SIMPLE("2 %d %d", startBase[1]->getPosition().x, startBase[1]->getPosition().y);
@@ -163,17 +163,17 @@ void OverlordManager::executeMove(const SquadOrder & inputOrder)
 					//{
 					if (needDetect[0])
 					{
-						aimPosition = startBase[0]->getPosition();
+						aimPosition = BWAPI::Position(startBase[0]);
 						aimPlace = 0;
 					}
 					else if (needDetect[1])
 					{
-						aimPosition = startBase[1]->getPosition();
+						aimPosition = BWAPI::Position(startBase[1]);
 						aimPlace = 1;
 					}
 					else if (needDetect[2])
 					{
-						aimPosition = startBase[2]->getPosition();
+						aimPosition = BWAPI::Position(startBase[2]);
 						aimPlace = 2;
 					}
 					//}

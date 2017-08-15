@@ -72,40 +72,7 @@ void MicroManager::execute(const SquadOrder & inputOrder)
         // otherwise it is a normal attack force
         else
         {
-            // if this is a defense squad then we care about all units in the area
-            if (order.getType() == SquadOrderTypes::Defend)
-            {
-                executeMicro(nearbyEnemies);
-            }
-            // otherwise we only care about workers if they are in their own region
-            else
-            {
-                 // if this is the an attack squad
-                BWAPI::Unitset workersRemoved;
-
-                for (auto & enemyUnit : nearbyEnemies) 
-		        {
-                    // if its not a worker add it to the targets
-			        if (!enemyUnit->getType().isWorker())
-                    {
-                        workersRemoved.insert(enemyUnit);
-                    }
-                    // if it is a worker
-                    else
-                    {
-                        for (BWTA::Region * enemyRegion : InformationManager::Instance().getOccupiedRegions(BWAPI::Broodwar->enemy()))
-                        {
-                            // only add it if it's in their region
-                            if (BWTA::getRegion(BWAPI::TilePosition(enemyUnit->getPosition())) == enemyRegion)
-                            {
-                                workersRemoved.insert(enemyUnit);
-                            }
-                        }
-                    }
-		        }
-		        // Allow micromanager to handle enemies
-		        executeMicro(workersRemoved);
-            }
+			executeMicro(nearbyEnemies);
         }
 	}	
 }
@@ -180,23 +147,6 @@ bool MicroManager::checkPositionWalkable(BWAPI::Position pos)
 
 	// otherwise it's okay
 	return true;
-}
-
-void MicroManager::trainSubUnits(BWAPI::Unit unit) const
-{
-}
-
-bool MicroManager::unitNearChokepoint(BWAPI::Unit unit) const
-{
-	for (BWTA::Chokepoint * choke : BWTA::getChokepoints())
-	{
-		if (unit->getDistance(choke->getCenter()) < 80)
-		{
-			return true;
-		}
-	}
-
-	return false;
 }
 
 void MicroManager::drawOrderText() 

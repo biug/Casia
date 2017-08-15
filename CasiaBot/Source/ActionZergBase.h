@@ -226,7 +226,5 @@ namespace CasiaBot
 		int lastFrameGasAmount = 0;
 		std::deque<int> mineralNetIncrease;
 		std::deque<int> gasNetIncrease;
-		std::set<BWTA::Region *> mainPath;
-		BWAPI::Unitset resDepots;
 	};
 }

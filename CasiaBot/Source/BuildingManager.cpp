@@ -421,7 +421,7 @@ BWAPI::TilePosition BuildingManager::getBuildingLocation(const Building & b)
     else if (b.type.isResourceDepot() && !b.nexpHatchery)
     {
         // get the location 
-        BWAPI::TilePosition tile = MapTools::Instance().getNextExpansion();
+        BWAPI::TilePosition tile = BuildingPlacer::Instance().getNextExpansion();
 
         return tile;
     }

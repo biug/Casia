@@ -97,6 +97,7 @@ public:
 	BWAPI::Unit										getClosestRefinery(BWAPI::Unit worker) const;
 	BWAPI::Unit										getLarvaDepot() const;
 	const BWAPI::Unitset &							getRefineries() const;
+	const BWAPI::Unitset &							getMineralBases() const;
 	const BWAPI::Unitset &							getMineralPatches(BWAPI::Unit base) const;
 	const std::set<BWAPI::TilePosition> &			getCanceledRefineryLocations() const;
 

@@ -50,47 +50,6 @@ const BuildOrder & StrategyManager::getOpeningBookBuildOrder() const
     }
 }
 
-const bool StrategyManager::shouldExpandNow() const
-{
-	// if there is no place to expand to, we can't expand
-	if (MapTools::Instance().getNextExpansion() == BWAPI::TilePositions::None)
-	{
-        BWAPI::Broodwar->printf("No valid expansion location");
-		return false;
-	}
-
-	size_t numDepots    = UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Hatchery)
-                        + UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Lair)
-                        + UnitUtil::GetAllUnitCount(BWAPI::UnitTypes::Zerg_Hive);
-	int frame           = BWAPI::Broodwar->getFrameCount();
-    int minute          = frame / (24*60);
-
-	// if we have a ton of idle workers then we need a new expansion
-	if (WorkerManager::Instance().getNumIdleWorkers() > 10)
-	{
-		return true;
-	}
-
-    // if we have a ridiculous stockpile of minerals, expand
-    if (BWAPI::Broodwar->self()->minerals() > 3000)
-    {
-        return true;
-    }
-
-    // we will make expansion N after array[N] minutes have passed
-    std::vector<int> expansionTimes = {5, 10, 20, 30, 40 , 50};
-
-    for (size_t i(0); i < expansionTimes.size(); ++i)
-    {
-        if (numDepots < (i+2) && minute > expansionTimes[i])
-        {
-            return true;
-        }
-    }
-
-	return false;
-}
-
 void StrategyManager::addOpening(const std::string & name, Opening & opening)
 {
 	_openings[name] = opening;
@@ -98,7 +57,7 @@ void StrategyManager::addOpening(const std::string & name, Opening & opening)
 
 void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 {
-	/*
+	
 	int currentFrame = BWAPI::Broodwar->getFrameCount();
 	if (_enemyRace == BWAPI::Races::Terran) {
 		_actionZVTBarracks.updateCurrentState(queue);
@@ -206,10 +165,10 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 		if (_action != nullptr)
 			_action->getBuildOrderList(queue);
 	}
-	*/
-	_actionZVPHydra.updateCurrentState(queue);
-	_action = &_actionZVPHydra;
-	_action->getBuildOrderList(queue);	
+	
+	//_actionZVPHydra.updateCurrentState(queue);
+	//_action = &_actionZVPHydra;
+	//_action->getBuildOrderList(queue);	
 }
 
 void StrategyManager::readOpeningResults()

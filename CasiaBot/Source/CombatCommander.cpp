@@ -168,17 +168,15 @@ void CombatCommander::updateScoutDefenseSquad()
     Squad & scoutDefenseSquad = _squadData.getSquad("ScoutDefense");
   
     // get the region that our base is located in
-    BWTA::Region * myRegion = BWTA::getRegion(BWAPI::Broodwar->self()->getStartLocation());
-    if (!myRegion && myRegion->getCenter().isValid())
-    {
-        return;
-    }
+    const auto & area = InformationManager::Instance().getTileArea(BWAPI::Broodwar->self()->getStartLocation());
+	if (!area) return;
+	auto areaCenter = (area->TopLeft() + area->BottomRight()) / 2;
 
     // get all of the enemy units in this region
 	BWAPI::Unitset enemyUnitsInRegion;
     for (auto & unit : BWAPI::Broodwar->enemy()->getUnits())
     {
-        if (BWTA::getRegion(BWAPI::TilePosition(unit->getPosition())) == myRegion)
+        if (unit && unit->getTilePosition().getDistance(areaCenter) <= 10)
         {
             enemyUnitsInRegion.insert(unit);
         }
@@ -256,24 +254,13 @@ void CombatCommander::updateDefenseSquads()
         return; 
     }
 
-	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
-    BWTA::Region * enemyRegion = nullptr;
-    if (!ebases.empty())
-    {
-        enemyRegion = BWTA::getRegion(ebases.front().lastPosition);
-    }
-
 	// for each of our occupied regions
-	for (BWTA::Region * myRegion : InformationManager::Instance().getOccupiedRegions(BWAPI::Broodwar->self()))
+	for (const auto & base : InformationManager::Instance().getSelfBases())
 	{
-        // don't defend inside the enemy region, this will end badly when we are stealing gas
-        if (myRegion == enemyRegion)
-        {
-            continue;
-        }
-
-		BWAPI::Position regionCenter = myRegion->getCenter();
-		if (!regionCenter.isValid())
+		const auto & area = InformationManager::Instance().getTileArea(base->getTilePosition());
+		if (!area) continue;
+		auto center = (area->TopLeft() + area->BottomRight()) / 2;
+		if (!center.isValid())
 		{
 			continue;
 		}
@@ -291,10 +278,10 @@ void CombatCommander::updateDefenseSquads()
                 continue;
             }
 
-            if (BWTA::getRegion(BWAPI::TilePosition(unit->getPosition())) == myRegion)
-            {
-                enemyUnitsInRegion.insert(unit);
-            }
+			if (unit->getTilePosition().getDistance(center) < 10)
+			{
+				enemyUnitsInRegion.insert(unit);
+			}
         }
 
         // we can ignore the first enemy worker in our region since we assume it is a scout
@@ -311,7 +298,7 @@ void CombatCommander::updateDefenseSquads()
         int numEnemyGroundInRegion = std::count_if(enemyUnitsInRegion.begin(), enemyUnitsInRegion.end(), [](BWAPI::Unit u) { return !u->isFlying(); });
 
         std::stringstream squadName;
-        squadName << "Base Defense " << regionCenter.x << " " << regionCenter.y; 
+        squadName << "Base Defense " << center.x << " " << center.y;
         
         // if there's nothing in this region to worry about
         if (enemyUnitsInRegion.empty())
@@ -330,7 +317,7 @@ void CombatCommander::updateDefenseSquads()
             // if we don't have a squad assigned to this region already, create one
             if (!_squadData.squadExists(squadName.str()))
             {
-                SquadOrder defendRegion(SquadOrderTypes::Defend, regionCenter, 32 * 25, "Defend Region!");
+                SquadOrder defendRegion(SquadOrderTypes::Defend, BWAPI::Position(center), 32 * 25, "Defend Region!");
                 _squadData.addSquad(squadName.str(), Squad(squadName.str(), defendRegion, BaseDefensePriority));
             }
         }
@@ -466,11 +453,6 @@ BWAPI::Unit CombatCommander::findClosestDefender(const Squad & defenseSquad, BWA
 	}
 
 	return closestDefender;
-}
-
-BWAPI::Position CombatCommander::getDefendLocation()
-{
-	return BWTA::getRegion(BWTA::getStartLocation(BWAPI::Broodwar->self())->getTilePosition())->getCenter();
 }
 
 void CombatCommander::drawSquadInformation(int x, int y)

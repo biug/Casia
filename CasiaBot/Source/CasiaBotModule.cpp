@@ -17,10 +17,23 @@
 #include "UnitUtil.h"
 
 using namespace CasiaBot;
+namespace { auto & theMap = BWEM::Map::Instance(); }
 
 // This gets called when the bot starts!
 void CasiaBotModule::onStart()
 {
+	try
+	{
+		theMap.Initialize();
+		theMap.EnableAutomaticPathAnalysis();
+		bool startingLocationsOK = theMap.FindBasesForStartingLocations();
+		assert(startingLocationsOK);
+	}
+	catch (const std::exception & e)
+	{
+		BWAPI::Broodwar->printf("BWEM Exception %s", e.what());
+	}
+
     // Initialize SparCraft, the combat simulation package
     SparCraft::init();
 
@@ -51,31 +64,11 @@ void CasiaBotModule::onStart()
     // Call BWTA to read and analyze the current map
     if (Config::Modules::UsingGameCommander)
 	{
-		//BWTA::readMap();
-		BWTA::analyze();
-
         if (Config::Modules::UsingOpeningIO)
         {
             StrategyManager::Instance().readOpeningResults();
             StrategyManager::Instance().setLearnedOpening();
         }
-	}
-
-	try
-	{
-		BWEM::Map & theMap = BWEM::Map::Instance();
-		theMap.Initialize();
-		theMap.EnableAutomaticPathAnalysis();
-		bool startingLocationsOK = theMap.FindBasesForStartingLocations();
-		assert(startingLocationsOK);
-
-		BWEM::utils::MapPrinter::Initialize(&theMap);
-		BWEM::utils::printMap(theMap);      // will print the map into the file <StarCraftFolder>bwapi-data/map.bmp
-		BWEM::utils::pathExample(theMap);   // add to the printed map a path between two starting locations
-	}
-	catch (const std::exception & e)
-	{
-		BWAPI::Broodwar->printf("BWEM Exception %s", e.what());
 	}
 }
 

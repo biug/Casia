@@ -156,6 +156,7 @@ void UnitData::updateUnit(BWAPI::Unit unit)
     ui.unit         = unit;
     ui.player       = unit->getPlayer();
 	ui.lastPosition = unit->getPosition();
+	ui.lastTilePosition = unit->getTilePosition();
 	ui.lastHealth   = unit->getHitPoints();
     ui.lastShields  = unit->getShields();
 	ui.unitID       = unit->getID();
@@ -239,7 +240,7 @@ const bool UnitData::badUnitInfo(const UnitInfo & ui) const
 	}
 
 	// If the unit is a building and we can currently see its position and it is not there
-	if (ui.type.isBuilding() && BWAPI::Broodwar->isVisible(ui.lastPosition.x/32, ui.lastPosition.y/32) && !ui.unit->isVisible())
+	if (ui.type.isBuilding() && BWAPI::Broodwar->isVisible(ui.lastTilePosition.x, ui.lastTilePosition.y) && !ui.unit->isVisible())
 	{
 		return true;
 	}

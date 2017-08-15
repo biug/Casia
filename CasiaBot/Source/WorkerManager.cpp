@@ -333,6 +333,11 @@ const BWAPI::Unitset & WorkerManager::getRefineries() const
 	return workerData.getRefineries();
 }
 
+const BWAPI::Unitset & WorkerManager::getMineralBases() const
+{
+	return workerData.getMineralBases();
+}
+
 const BWAPI::Unitset & WorkerManager::getMineralPatches(BWAPI::Unit base) const
 {
 	return workerData.getMineralPatches(base);

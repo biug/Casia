@@ -11,8 +11,8 @@ namespace CasiaBot
 
 	struct TilePath
 	{
-		int									_lastVisit;
-		std::vector<BWAPI::TilePosition>	_positions;
+		int								_lastVisit;
+		std::vector<BWAPI::Position>	_positions;
 
 		TilePath();
 		TilePath(int tick);
@@ -22,10 +22,10 @@ namespace CasiaBot
 	class MapPath
 	{
 		MapPath();
-		std::mutex															_pathmtx;
-		std::mutex															_betapathmtx;
-		std::map<PosRect, TilePath>											_paths;
-		std::vector<std::pair<PosRect, std::vector<BWAPI::TilePosition>>>	_betaPaths;
+		std::mutex														_pathmtx;
+		std::mutex														_betapathmtx;
+		std::map<PosRect, TilePath>										_paths;
+		std::vector<std::pair<PosRect, std::vector<BWAPI::Position>>>	_betaPaths;
 
 		void					calcPath(PosRect rect);
 
@@ -36,6 +36,6 @@ namespace CasiaBot
 		void					update();
 		void					insert(PosRect rect);
 
-		std::vector<BWAPI::TilePosition>	getPath(PosRect rect);
+		std::vector<BWAPI::Position>	getPath(PosRect rect);
 	};
 }
