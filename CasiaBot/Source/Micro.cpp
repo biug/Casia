@@ -1,5 +1,6 @@
 #include "Micro.h"
 #include "UnitUtil.h"
+#include "InformationManager.h"
 
 using namespace CasiaBot;
 
@@ -77,7 +78,16 @@ void Micro::SmartAttackMove(BWAPI::Unit attacker, const BWAPI::Position & target
 	}
 
     // if nothing prevents it, attack the target
-    attacker->attack(targetPosition);
+	int len = 1;
+	const auto & chokes = InformationManager::Instance().getPath(attacker->getTilePosition(), BWAPI::TilePosition(targetPosition), &len);
+	if (chokes.empty()) attacker->attack(targetPosition);
+	else
+	{
+		auto target = BWAPI::Position(chokes.front()->Center());
+		auto nextTarget = chokes.size() > 1 ? BWAPI::Position(chokes[1]->Center()) : targetPosition;
+		if (attacker->getDistance(target) < 50) attacker->attack(nextTarget);
+		else attacker->attack(target);
+	}
     TotalCommands++;
 
     if (Config::Debug::DrawUnitTargetInfo) 
@@ -114,7 +124,16 @@ void Micro::SmartMove(BWAPI::Unit attacker, const BWAPI::Position & targetPositi
     }
 
     // if nothing prevents it, attack the target
-    attacker->move(targetPosition);
+	int len = 1;
+	const auto & chokes = InformationManager::Instance().getPath(attacker->getTilePosition(), BWAPI::TilePosition(targetPosition), &len);
+	if (chokes.empty()) attacker->move(targetPosition);
+	else
+	{
+		auto target = BWAPI::Position(chokes.front()->Center());
+		auto nextTarget = chokes.size() > 1 ? BWAPI::Position(chokes[1]->Center()) : targetPosition;
+		if (attacker->getDistance(target) < 50) attacker->move(nextTarget);
+		else attacker->move(target);
+	}
     TotalCommands++;
 
     if (Config::Debug::DrawUnitTargetInfo) 

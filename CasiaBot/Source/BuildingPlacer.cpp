@@ -415,25 +415,20 @@ BWAPI::Unit BuildingPlacer::getDefenseBase()
 		for (const auto & otherBase : bases)
 		{
 			if (otherBase->getPosition().getDistance(base->getPosition()) < 300) continue;
-			len = 1;
-			const auto & otherChokes = InformationManager::Instance().getPath(otherBase->getTilePosition(), enemyTP, &len);
-			if (len < 0) continue;
-			if (otherChokes.size() <= chokes.size())
+			const auto & otherArea = InformationManager::Instance().getTileArea(otherBase->getTilePosition());
+			if (!otherArea) continue;
+			const auto & otherChokes = otherArea->ChokePoints();
+			for (int i = 0; i < chokes.size() - 1; ++i)
 			{
-				int i = 0;
-				for (int offset = chokes.size() - otherChokes.size(); i < otherChokes.size(); ++i)
-				{
-					if (otherChokes[i] != chokes[i + offset])
-					{
-						break;
-					}
-				}
-				if (i == otherChokes.size())
+				auto itr1 = std::find(otherChokes.begin(), otherChokes.end(), chokes[i]);
+				auto itr2 = std::find(otherChokes.begin(), otherChokes.end(), chokes[i + 1]);
+				if (itr1 != otherChokes.end() && itr2 != otherChokes.end())
 				{
 					badPath = true;
 					break;
 				}
 			}
+			if (badPath) break;
 		}
 		if (!badPath) return base;
 	}
@@ -601,7 +596,7 @@ BWAPI::TilePosition BuildingPlacer::getNextExpansion()
 			BWAPI::Position basePosition = BWAPI::Position(baseTile);
 			double distanceFromHome =
 				MapTools::Instance().getPathDistance(startPosition, basePosition, chokes)
-				+ startPosition.getDistance(basePosition);
+				+ startPosition.getDistance(basePosition) * 0.1;
 			if (base.Geysers().empty())
 			{
 				if (!closestMineBase || distanceFromHome < minMineDistance)
