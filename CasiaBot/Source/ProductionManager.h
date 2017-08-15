@@ -19,8 +19,6 @@ class ProductionManager
 	std::deque<ProductionItem>	_openingQueue;
     BWAPI::TilePosition _predictedTilePosition;
     bool                _enemyCloakedDetected;
-    bool                _assignedWorkerForThisBuilding;
-    bool                _haveLocationForThisBuilding;
     
     BWAPI::Unit         getClosestUnitToPosition(const BWAPI::Unitset & units,BWAPI::Position closestTo);
     BWAPI::Unit         selectUnitOfType(BWAPI::UnitType type,BWAPI::Position closestTo = BWAPI::Position(0,0));
@@ -34,7 +32,6 @@ class ProductionManager
     void                manageBuildOrderQueue();
 	void				openingCheck();
     bool                canMakeNow(BWAPI::Unit producer,MetaType t);
-    void                predictWorkerMovement(const Building & b);
 
     int                 getFreeMinerals();
     int                 getFreeGas();

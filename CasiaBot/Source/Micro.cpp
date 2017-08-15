@@ -89,16 +89,11 @@ void Micro::SmartAttackMove(BWAPI::Unit attacker, const BWAPI::Position & target
 	{
 		auto target = BWAPI::Position(chokes.front()->Center());
 		auto nextTarget = chokes.size() > 1 ? BWAPI::Position(chokes[1]->Center()) : targetPosition;
-		if (attacker->getDistance(target) < 150)
-		{
-			BWAPI::Broodwar->drawLineMap(attacker->getPosition(), nextTarget, BWAPI::Colors::Blue);
-			attacker->attack(nextTarget);
-		}
-		else
-		{
-			BWAPI::Broodwar->drawLineMap(attacker->getPosition(), target, BWAPI::Colors::Yellow);
-			attacker->attack(target);
-		}
+		auto finalTarget =
+			target.getDistance(targetPosition) < nextTarget.getDistance(targetPosition) ?
+			target : nextTarget;
+		BWAPI::Broodwar->drawLineMap(attacker->getPosition(), finalTarget, finalTarget == target ? BWAPI::Colors::Blue : BWAPI::Colors::Yellow);
+		attacker->attack(finalTarget);
 	}
     TotalCommands++;
 
@@ -147,16 +142,11 @@ void Micro::SmartMove(BWAPI::Unit attacker, const BWAPI::Position & targetPositi
 	{
 		auto target = BWAPI::Position(chokes.front()->Center());
 		auto nextTarget = chokes.size() > 1 ? BWAPI::Position(chokes[1]->Center()) : targetPosition;
-		if (attacker->getDistance(target) < 150)
-		{
-			BWAPI::Broodwar->drawLineMap(attacker->getPosition(), nextTarget, BWAPI::Colors::Blue);
-			attacker->move(nextTarget);
-		}
-		else
-		{
-			BWAPI::Broodwar->drawLineMap(attacker->getPosition(), target, BWAPI::Colors::Yellow);
-			attacker->move(target);
-		}
+		auto finalTarget =
+			target.getDistance(targetPosition) < nextTarget.getDistance(targetPosition) ?
+			target : nextTarget;
+		BWAPI::Broodwar->drawLineMap(attacker->getPosition(), finalTarget, finalTarget == target ? BWAPI::Colors::Blue : BWAPI::Colors::Yellow);
+		attacker->move(finalTarget);
 	}
     TotalCommands++;
 

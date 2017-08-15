@@ -34,6 +34,16 @@ int	BuildingManager::numBeingBuilt(BWAPI::UnitType type)
 	return _numBuildings[type.getID()];
 }
 
+int BuildingManager::getFreeMinerals()
+{
+	return BWAPI::Broodwar->self()->minerals() - _reservedMinerals;
+}
+
+int BuildingManager::getFreeGas()
+{
+	return BWAPI::Broodwar->self()->gas() - _reservedGas;
+}
+
 // STEP 1: DO BOOK KEEPING ON WORKERS WHICH MAY HAVE DIED
 void BuildingManager::validateWorkersAndBuildings()
 {
@@ -75,23 +85,23 @@ void BuildingManager::assignWorkersToUnassignedBuildings()
 		{
 			continue;
 		}
+		b.finalPosition = testLocation;
 
         if (_debugMode) { BWAPI::Broodwar->printf("Assigning Worker To: %s",b.type.getName().c_str()); }
 
         // grab a worker unit from WorkerManager which is closest to this final position
-        BWAPI::Unit workerToAssign = WorkerManager::Instance().getBuilder(b);
+        BWAPI::Unit workerToAssign = WorkerManager::Instance().getBuilder(b, false);
 
-        if (workerToAssign && workerToAssign->getType().isWorker())
-        {			
-            b.builderUnit = workerToAssign;
+		if (!workerToAssign || !workerToAssign->getType().isWorker()) continue;
 
-            b.finalPosition = testLocation;
+		WorkerManager::Instance().setWorkerBuilding(workerToAssign, b);
 
-            // reserve this building's space
-            BuildingPlacer::Instance().reserveTiles(b.finalPosition,b.type.tileWidth(),b.type.tileHeight());
+        b.builderUnit = workerToAssign;
 
-            b.status = BuildingStatus::Assigned;
-        }
+        // reserve this building's space
+        BuildingPlacer::Instance().reserveTiles(b.finalPosition,b.type.tileWidth(),b.type.tileHeight());
+
+        b.status = BuildingStatus::Assigned;
     }
 }
 
@@ -278,8 +288,8 @@ bool BuildingManager::isEvolvedBuilding(BWAPI::UnitType type)
 // add a new building to be constructed
 void BuildingManager::addBuildingTask(BWAPI::UnitType type, BWAPI::TilePosition desiredLocation, bool isGasSteal)
 {
-    _reservedMinerals += type.mineralPrice();
-    _reservedGas	     += type.gasPrice();
+	_reservedMinerals += type.mineralPrice();
+	_reservedGas += type.gasPrice();
 
     Building b(type, desiredLocation);
     b.isGasSteal = isGasSteal;
@@ -404,22 +414,6 @@ BuildingManager & BuildingManager::Instance()
     static BuildingManager instance;
     return instance;
 }
-
-std::vector<BWAPI::UnitType> BuildingManager::buildingsQueued()
-{
-    std::vector<BWAPI::UnitType> buildingsQueued;
-
-    for (const auto & b : _buildings)
-    {
-        if (b.status == BuildingStatus::Unassigned || b.status == BuildingStatus::Assigned)
-        {
-            buildingsQueued.push_back(b.type);
-        }
-    }
-
-    return buildingsQueued;
-}
-
 
 BWAPI::TilePosition BuildingManager::getBuildingLocation(const Building & b)
 {

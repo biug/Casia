@@ -59,7 +59,7 @@ public:
     bool        isFree(BWAPI::Unit worker);
     bool        isBuilder(BWAPI::Unit worker);
 
-    BWAPI::Unit getBuilder(Building & b,bool setJobAsBuilder = true);
+    BWAPI::Unit getBuilder(Building & b,bool setJobAsBuilder = false);
     BWAPI::Unit getMoveWorker(BWAPI::Position p);
 	BWAPI::Unit getClosestResource(BWAPI::Unit worker, BWAPI::Unitset & poses);
     BWAPI::Unit getGasWorker(BWAPI::Unit refinery);

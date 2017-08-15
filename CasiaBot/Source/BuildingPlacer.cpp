@@ -594,9 +594,10 @@ BWAPI::TilePosition BuildingPlacer::getNextExpansion()
 			// the base's distance from our start location
 			BWAPI::Position startPosition(homeTile);
 			BWAPI::Position basePosition = BWAPI::Position(baseTile);
-			double distanceFromHome =
-				MapTools::Instance().getPathDistance(startPosition, basePosition, chokes)
-				+ startPosition.getDistance(basePosition) * 0.1;
+			double dist1 = MapTools::Instance().getPathDistance(startPosition, basePosition, chokes);
+			double dist2 = startPosition.getDistance(basePosition) * 0.1;
+			double distanceFromHome = dist1 + dist2;
+			BWAPI::Broodwar->printf("(%d,%d): dist1=%.2lf, dist2=%.2lf", dist1, dist2);
 			if (base.Geysers().empty())
 			{
 				if (!closestMineBase || distanceFromHome < minMineDistance)

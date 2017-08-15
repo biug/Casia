@@ -231,7 +231,9 @@ double MapTools::getPathDistance(BWAPI::Position s, BWAPI::Position e, const BWE
 		distanceFromHome = s.getDistance(BWAPI::Position(path.front()->Center()));
 		for (int i = 0; i < path.size() - 1; ++i)
 		{
-			distanceFromHome += BWAPI::Position(path[i]->Center()).getDistance(BWAPI::Position(path[i + 1]->Center()));
+			auto p1 = BWAPI::Position(path[i]->Center());
+			auto p2 = BWAPI::Position(path[i + 1]->Center());
+			distanceFromHome += p1.getDistance(p2);
 		}
 		distanceFromHome += e.getDistance(BWAPI::Position(path.back()->Center()));
 		return distanceFromHome;
