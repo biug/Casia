@@ -397,7 +397,7 @@ BWAPI::Unit BuildingPlacer::getDefenseBase()
 		if (!base || infos.find(base) == infos.end()) continue;
 		// 寻找这个基地到对方家中的路径
 		int len = 1;
-		const auto & chokes = InformationManager::Instance().getBasePath(base->getTilePosition(), enemyTP, &len);
+		const auto & chokes = InformationManager::Instance().getPath(base->getTilePosition(), enemyTP, &len);
 		if (len < 0) continue;
 		BWAPI::Broodwar->drawLineMap(base->getPosition(),
 			BWAPI::Position(chokes.front()->Center()),
@@ -416,7 +416,7 @@ BWAPI::Unit BuildingPlacer::getDefenseBase()
 		{
 			if (otherBase->getPosition().getDistance(base->getPosition()) < 300) continue;
 			len = 1;
-			const auto & otherChokes = InformationManager::Instance().getBasePath(otherBase->getTilePosition(), enemyTP, &len);
+			const auto & otherChokes = InformationManager::Instance().getPath(otherBase->getTilePosition(), enemyTP, &len);
 			if (len < 0) continue;
 			if (otherChokes.size() <= chokes.size())
 			{
@@ -466,7 +466,7 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 	{
 		// 找路口
 		int len = 0;
-		const auto & chokes = InformationManager::Instance().getBasePath(baseTP, enemyTP, &len);
+		const auto & chokes = InformationManager::Instance().getPath(baseTP, enemyTP, &len);
 		if (len < 0) return BWAPI::TilePositions::None;
 		auto chokeTP = BWAPI::TilePositions::None;
 		if (!chokes.empty())
@@ -525,7 +525,7 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 		auto center = BWAPI::TilePosition(creeps.getPosition());
 		// 找路口
 		int len = 0;
-		const auto & chokes = InformationManager::Instance().getBasePath(baseTP, enemyTP, &len);
+		const auto & chokes = InformationManager::Instance().getPath(baseTP, enemyTP, &len);
 		if (len < 0) return BWAPI::TilePositions::None;
 		auto chokeTP = BWAPI::TilePositions::None;
 		if (!chokes.empty())
@@ -594,7 +594,7 @@ BWAPI::TilePosition BuildingPlacer::getNextExpansion()
 			}
 			if (find) continue;
 			int len = 1;
-			const auto & chokes = InformationManager::Instance().getBasePath(homeTile, baseTile, &len);
+			const auto & chokes = InformationManager::Instance().getPath(homeTile, baseTile, &len);
 			if (len < 0) continue;
 			// the base's distance from our start location
 			BWAPI::Position startPosition(homeTile);

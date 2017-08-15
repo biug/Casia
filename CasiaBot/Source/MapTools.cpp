@@ -214,7 +214,7 @@ double MapTools::getBasePathDistance(BWAPI::TilePosition base)
 {
 	int len = 1;
 	auto homeTile = BWAPI::Broodwar->self()->getStartLocation();
-	const auto & basePath = InformationManager::Instance().getBasePath(homeTile, base, &len);
+	const auto & basePath = InformationManager::Instance().getPath(homeTile, base, &len);
 	if (len < 0) return 10000000;
 	return getPathDistance(
 		BWAPI::Position(homeTile)

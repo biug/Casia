@@ -27,7 +27,7 @@ class InformationManager
 	std::vector<const BWEM::Area *>								_tileAreas;
 
 	bool					_isEncounterRush;
-	int						_scannedColoum;
+	int						_scanned;
 
     void                    updateUnit(BWAPI::Unit unit);
     void                    initializeRegionInformation();
@@ -73,9 +73,9 @@ public:
 	const std::vector<BWAPI::TilePosition> &	getBaseTiles() const;
 	BWAPI::Position	getLastPosition(BWAPI::Unit unit, BWAPI::Player player) const;
 	const BWEM::Area *					getTileArea(BWAPI::TilePosition base) const;
-	const BWEM::CPPath & getBasePath(BWAPI::TilePosition base1, BWAPI::TilePosition base2, int * length);
+	const BWEM::CPPath & getPath(BWAPI::TilePosition base1, BWAPI::TilePosition base2, int * length);
 
-	bool					validTile(int x, int y);
+	bool					validTile(int x, int y) const;
     bool                    enemyHasCloakedUnits();
 
     void                    drawExtendedInterface();

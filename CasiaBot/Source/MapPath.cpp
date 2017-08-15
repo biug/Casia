@@ -48,7 +48,7 @@ void MapPath::calcPath(PosRect rect)
 	_pathmtx.unlock();
 
 	// calculate
-	auto path = BWEM::Map::Instance().GetPath(rect.first, rect.second);
+	const auto & path = BWEM::Map::Instance().GetPath(rect.first, rect.second);
 	std::vector<BWAPI::Position> nodes;
 	for (const auto & node : path)
 	{

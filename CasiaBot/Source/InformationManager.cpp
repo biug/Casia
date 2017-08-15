@@ -7,7 +7,7 @@ InformationManager::InformationManager()
     : _self(BWAPI::Broodwar->self())
     , _enemy(BWAPI::Broodwar->enemy())
 	, _isEncounterRush(false)
-	, _scannedColoum(0)
+	, _scanned(0)
 	, _cols(BWAPI::Broodwar->mapWidth())
 	, _rows(BWAPI::Broodwar->mapHeight())
 	, _tileAreas(_cols * _rows, nullptr)
@@ -62,15 +62,15 @@ void InformationManager::initializeRegionInformation()
 
 void InformationManager::updateLocationInfo() 
 {
-	if (_scannedColoum < _cols)
+	while (_scanned < _cols * _rows)
 	{
 		// init tile areas
-		for (int r = 0; r < _rows; ++r)
-		{
-			const auto & area = BWEM::Map::Instance().GetNearestArea(BWAPI::TilePosition(_scannedColoum, r));
-			_tileAreas[_scannedColoum*_rows + r] = area;
-		}
-		++_scannedColoum;
+		int c = _scanned / _rows;
+		int r = _scanned % _rows;
+		const auto & area = BWEM::Map::Instance().GetNearestArea(BWAPI::TilePosition(c, r));
+		_tileAreas[_scanned] = area;
+		++_scanned;
+		if (_scanned % 192 == 0) break;
 	}
 
 	_baseTiles.clear();
@@ -126,7 +126,7 @@ void InformationManager::updateLocationInfo()
 	}
 }
 
-bool InformationManager::validTile(int x, int y)
+bool InformationManager::validTile(int x, int y) const
 {
 	return x >= 0 && x < _cols && y >= 0 && y < _rows;
 }
@@ -196,10 +196,11 @@ const std::vector<BWAPI::TilePosition> & InformationManager::getBaseTiles() cons
 
 const BWEM::Area * InformationManager::getTileArea(BWAPI::TilePosition base) const
 {
+	if (!validTile(base.x, base.y)) return nullptr;
 	return _tileAreas[base.x*_rows + base.y];
 }
 
-const BWEM::CPPath & InformationManager::getBasePath(BWAPI::TilePosition base1, BWAPI::TilePosition base2, int * length)
+const BWEM::CPPath & InformationManager::getPath(BWAPI::TilePosition base1, BWAPI::TilePosition base2, int * length)
 {
 	*length = 1;
 	const auto & area1 = getTileArea(base1);
