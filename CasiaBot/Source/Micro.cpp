@@ -80,13 +80,25 @@ void Micro::SmartAttackMove(BWAPI::Unit attacker, const BWAPI::Position & target
     // if nothing prevents it, attack the target
 	int len = 1;
 	const auto & chokes = InformationManager::Instance().getPath(attacker->getTilePosition(), BWAPI::TilePosition(targetPosition), &len);
-	if (chokes.empty()) attacker->attack(targetPosition);
+	if (chokes.empty())
+	{
+		BWAPI::Broodwar->drawLineMap(attacker->getPosition(), targetPosition, BWAPI::Colors::Green);
+		attacker->attack(targetPosition);
+	}
 	else
 	{
 		auto target = BWAPI::Position(chokes.front()->Center());
 		auto nextTarget = chokes.size() > 1 ? BWAPI::Position(chokes[1]->Center()) : targetPosition;
-		if (attacker->getDistance(target) < 50) attacker->attack(nextTarget);
-		else attacker->attack(target);
+		if (attacker->getDistance(target) < 150)
+		{
+			BWAPI::Broodwar->drawLineMap(attacker->getPosition(), nextTarget, BWAPI::Colors::Blue);
+			attacker->attack(nextTarget);
+		}
+		else
+		{
+			BWAPI::Broodwar->drawLineMap(attacker->getPosition(), target, BWAPI::Colors::Yellow);
+			attacker->attack(target);
+		}
 	}
     TotalCommands++;
 
@@ -126,13 +138,25 @@ void Micro::SmartMove(BWAPI::Unit attacker, const BWAPI::Position & targetPositi
     // if nothing prevents it, attack the target
 	int len = 1;
 	const auto & chokes = InformationManager::Instance().getPath(attacker->getTilePosition(), BWAPI::TilePosition(targetPosition), &len);
-	if (chokes.empty()) attacker->move(targetPosition);
+	if (chokes.empty())
+	{
+		attacker->move(targetPosition);
+		BWAPI::Broodwar->drawLineMap(attacker->getPosition(), targetPosition, BWAPI::Colors::Green);
+	}
 	else
 	{
 		auto target = BWAPI::Position(chokes.front()->Center());
 		auto nextTarget = chokes.size() > 1 ? BWAPI::Position(chokes[1]->Center()) : targetPosition;
-		if (attacker->getDistance(target) < 50) attacker->move(nextTarget);
-		else attacker->move(target);
+		if (attacker->getDistance(target) < 150)
+		{
+			BWAPI::Broodwar->drawLineMap(attacker->getPosition(), nextTarget, BWAPI::Colors::Blue);
+			attacker->move(nextTarget);
+		}
+		else
+		{
+			BWAPI::Broodwar->drawLineMap(attacker->getPosition(), target, BWAPI::Colors::Yellow);
+			attacker->move(target);
+		}
 	}
     TotalCommands++;
 

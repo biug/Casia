@@ -7,7 +7,7 @@ namespace CasiaBot
 
 namespace BuildingStatus
 {
-    enum { Unassigned = 0, Assigned = 1, UnderConstruction = 2, Size = 3 };
+    enum { Unassigned = 0, Assigned, UnderConstruction, Size };
 }
 
 class Building 
