@@ -468,7 +468,7 @@ bool Squad::needsToRegroup()
 	SparCraft::ScoreType score = 0;
 	bool retreat = false;
 
-	if (BWAPI::Broodwar->enemy()->getRace() == BWAPI::Races::Terran)
+	if (BWAPI::Broodwar->enemy()->getRace() != BWAPI::Races::Zerg)
 	{
 		retreat = terranRetreat(unitClosest->getPosition());
 	}
@@ -588,7 +588,7 @@ BWAPI::Position Squad::calcRegroupPosition()
 
 	if (regroup == BWAPI::Position(0, 0))
 	{
-		return BWTA::getRegion(BWTA::getStartLocation(BWAPI::Broodwar->self())->getTilePosition())->getCenter();
+		return BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
 	}
 	else
 	{

@@ -43,8 +43,8 @@ public:
     int	                    getEnemyBaseDistance(BWAPI::Position p);
     int	                    getMyBaseDistance(BWAPI::Position p);
     BWAPI::Position         getEnemyBaseMoveTo(BWAPI::Position p);
-    BWAPI::TilePosition     getNextExpansion();
-    BWAPI::TilePosition     getNextExpansion(BWAPI::Player player);
+	double					getBasePathDistance(BWAPI::TilePosition base);
+	double					getPathDistance(BWAPI::Position s, BWAPI::Position e, const BWEM::CPPath & path);
     void                    drawHomeDistanceMap();
 
     const std::vector<BWAPI::TilePosition> & getClosestTilesTo(BWAPI::Position pos);

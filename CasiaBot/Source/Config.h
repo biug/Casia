@@ -69,7 +69,6 @@ namespace Config
         extern bool DrawBuildingInfo;
         extern bool DrawMouseCursorInfo;
         extern bool DrawEnemyUnitInfo;
-        extern bool DrawBWTAInfo;
         extern bool DrawMapGrid;
         extern bool DrawUnitTargetInfo;
         extern bool DrawSquadInfo;

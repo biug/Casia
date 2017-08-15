@@ -33,8 +33,6 @@ protected:
 	bool                checkPositionWalkable(BWAPI::Position pos);
 	void                drawOrderText();
 	bool                unitNearEnemy(BWAPI::Unit unit);
-	bool                unitNearChokepoint(BWAPI::Unit unit) const;
-	void                trainSubUnits(BWAPI::Unit unit) const;
     
 
 public:

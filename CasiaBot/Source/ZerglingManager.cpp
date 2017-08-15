@@ -198,8 +198,7 @@ int ZerglingManager::getAttackPriority(BWAPI::Unit attacker, BWAPI::Unit unit)
 		(type.groundWeapon() != BWAPI::WeaponTypes::None && !type.isWorker()) ||
 		type == BWAPI::UnitTypes::Terran_Bunker ||
 		type == BWAPI::UnitTypes::Protoss_High_Templar ||
-		type == BWAPI::UnitTypes::Protoss_Reaver ||
-		(type.isWorker() && unitNearChokepoint(unit)))
+		type == BWAPI::UnitTypes::Protoss_Reaver)
 	{
 		return 10;
 	}

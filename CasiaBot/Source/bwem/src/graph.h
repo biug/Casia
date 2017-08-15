@@ -95,6 +95,7 @@ public:
 	const CPPath &						GetPath(const ChokePoint * cpA, const ChokePoint * cpB) const { return m_PathsBetweenChokePoints[cpA->Index()][cpB->Index()]; }
 
 	const CPPath &						GetPath(const BWAPI::Position & a, const BWAPI::Position & b, int * pLength = nullptr) const;
+	const CPPath &						GetPath(const Area * a, const Area * b, int * pLength = nullptr) const;
 
 	int									BaseCount() const	{ return m_baseCount; }
 

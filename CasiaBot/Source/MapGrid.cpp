@@ -11,7 +11,7 @@ MapGrid & MapGrid::Instance()
 
 MapGrid::MapGrid() {}
 	
-MapGrid::MapGrid(int mapWidth, int mapHeight, int cellSize) 
+MapGrid::MapGrid(int mapWidth, int mapHeight, int cellSize)
 	: mapWidth(mapWidth)
 	, mapHeight(mapHeight)
 	, cellSize(cellSize)
@@ -33,19 +33,18 @@ BWAPI::Position MapGrid::getLeastExplored()
 	int minSeen = 1000000;
 	double minSeenDist = 0;
 	int leastRow(0), leastCol(0);
+	auto startTP = BWAPI::Broodwar->self()->getStartLocation();
 
+	std::vector<bool> connected(rows*cols, false);
 	for (int r=0; r<rows; ++r)
 	{
 		for (int c=0; c<cols; ++c)
 		{
-			// get the center of this cell
-			BWAPI::Position cellCenter = getCellCenter(r,c);
-
-			// don't worry about places that aren't connected to our start locatin
-			if (!BWTA::isConnected(BWAPI::TilePosition(cellCenter), BWAPI::Broodwar->self()->getStartLocation()))
-			{
-				continue;
-			}
+			BWAPI::TilePosition cellCenter = BWAPI::TilePosition(getCellCenter(r, c));
+			int len = 1;
+			InformationManager::Instance().getPath(startTP, cellCenter, &len);
+			if (len < 0) break;
+			connected[r*cols + c] = true;
 
 			BWAPI::Position home(BWAPI::Broodwar->self()->getStartLocation());
 			double dist = home.getDistance(getCellByIndex(r, c).center);
@@ -153,8 +152,6 @@ void MapGrid::update()
 			    BWAPI::Broodwar->drawTextMap(cell.center.x, cell.center.y+10, "Row/Col (%d, %d)", r, c);
 		    }
 	    }
-
-
     }
 
 	// clear the grid

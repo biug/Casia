@@ -30,7 +30,6 @@ public:
     bool					buildable(const Building & b,int x,int y) const;
     bool					isReserved(int x,int y) const;
     bool					isInResourceBox(int x,int y) const;
-    bool					tileOverlapsBaseLocation(BWAPI::TilePosition tile,BWAPI::UnitType type) const;
 
     BWAPI::TilePosition		GetBuildLocation(const Building & b,int padding) const;
 
@@ -50,6 +49,7 @@ public:
     BWAPI::TilePosition		getRefineryPosition();
 	BWAPI::Unit				getDefenseBase();
 	BWAPI::TilePosition		getCreepPosition(int numCreep, BWAPI::Unit base = nullptr);
+	BWAPI::TilePosition		getNextExpansion();
 	bool					isAwayResource(BWAPI::TilePosition tp, BWAPI::Unit base);
 
 };
