@@ -14,11 +14,7 @@ namespace CasiaBot
 		bool canDeployAction() override;
 		bool tick() override;
 		void getBuildOrderList(CasiaBot::ProductionQueue &queue) override;
-		void updateCurrentState(CasiaBot::ProductionQueue &queue) override;
 		void getBuildOrderListNew(CasiaBot::ProductionQueue &queue);
-
-	protected:
-		void tryAddInQueue(CasiaBot::ProductionQueue &queue, const CasiaBot::ProductionItem & item, bool priority = false) override;
 
 	private:
 		double enemyDragoonOverZealotRate = 0;

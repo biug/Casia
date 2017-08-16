@@ -7,12 +7,8 @@
 #include "BuildOrder.h"
 #include "ProductionQueue.h"
 #include "ActionZVTBarracksUnits.h"
-#include "ActionZVTFactoriesUnits.h"
 #include "ActionZVZZerglingLurker.h"
-#include "ActionZVZZerglingMutalisk.h"
 #include "ActionZVPZealot.h"
-#include "ActionZVPDragoon.h"
-#include "ActionZVPZerglingRush.h"
 #include "ActionZVPHydra.h"
 
 namespace CasiaBot
@@ -61,12 +57,8 @@ class StrategyManager
 	ActionZergBase*					_action;
 	int								_lastChangeFrame;
 	ActionZVTBarracksUnits			_actionZVTBarracks;
-	ActionZVTFactoriesUnits			_actionZVTFactories;
 	ActionZVZZerglingLurker			_actionZVZLurker;
-	ActionZVZZerglingMutalisk		_actionZVZMutalisk;
 	ActionZVPZealot					_actionZVPZealot;
-	ActionZVPDragoon				_actionZVPDragoon;
-	ActionZVPZerglingRush			_actionZVPZerglingRush;
 	ActionZVPHydra					_actionZVPHydra;
 
 	        void	                writeResults();

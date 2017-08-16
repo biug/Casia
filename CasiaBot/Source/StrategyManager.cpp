@@ -13,12 +13,8 @@ StrategyManager::StrategyManager()
 	, _lastChangeFrame(0)
 {
 	_actionZVTBarracks.init();
-	_actionZVTFactories.init();
 	_actionZVZLurker.init();
-	_actionZVZMutalisk.init();
 	_actionZVPZealot.init();
-	_actionZVPDragoon.init();
-	_actionZVPZerglingRush.init();
 	_actionZVPHydra.init();
 }
 
@@ -63,15 +59,13 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 	{
 		BWAPI::Broodwar->printf("find race, race change");
 	}
+	// update status
+	ActionZergBase::updateStatus(queue);
+	// 人族action
 	if (race == BWAPI::Races::Terran) {
-		_actionZVTBarracks.updateCurrentState(queue);
-		_actionZVTFactories.updateCurrentState(queue);
-
-		// need to be update
 		if (_action == nullptr)
 		{
-			if (queue.empty())
-				_action = &_actionZVTBarracks;
+			_action = &_actionZVTBarracks;
 		}
 		else if (currentFrame - _lastChangeFrame >= 1000 || queue.empty() || _lastEnemyRace != race)
 		{
@@ -85,29 +79,20 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 			{
 				queue.clear();
 				bool useBarracks = _actionZVTBarracks.canDeployAction();
-				bool useFactories = _actionZVTFactories.canDeployAction();
 				_action = &_actionZVTBarracks;
 				if (useBarracks)
 				{
 					_action = &_actionZVTBarracks;
-				}
-				else if (useFactories)
-				{
-					_action = &_actionZVTFactories;
 				}
 			}
 		}
 		if (_action != nullptr)
 			_action->getBuildOrderList(queue);
 	}
+	// 虫族action
 	else if (race == BWAPI::Races::Zerg) {
-		_actionZVZLurker.updateCurrentState(queue);
-		_actionZVZMutalisk.updateCurrentState(queue);
-
-		// to do
 		if (_action == nullptr) {
-			if (queue.empty())
-				_action = &_actionZVZLurker;
+			_action = &_actionZVZLurker;
 		}
 		else if (currentFrame - _lastChangeFrame >= 1000 || queue.empty() || _lastEnemyRace != race) {
 			_lastChangeFrame = currentFrame;
@@ -119,31 +104,19 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 			else if (_action->tick()) {
 				queue.clear();
 				bool useLurker = _actionZVZLurker.canDeployAction();
-				bool useMutalisk = _actionZVZMutalisk.canDeployAction();
 				_action = &_actionZVZLurker;
 				if (useLurker) {
 					_action = &_actionZVZLurker;
-				}
-				else if (useMutalisk) {
-					_action = &_actionZVZMutalisk;
 				}
 			}
 		}
 		if (_action != nullptr)
 			_action->getBuildOrderList(queue);
 	}
+	// 神族action
 	else if (race == BWAPI::Races::Protoss) {
-		_actionZVPZealot.updateCurrentState(queue);
-		_actionZVPDragoon.updateCurrentState(queue);
-		_actionZVPZerglingRush.updateCurrentState(queue);
-		_actionZVPHydra.updateCurrentState(queue);
-
-		//to do
 		if (_action == nullptr) {
-			if (queue.empty())
-				_action = &_actionZVPZealot;
-			
-			//queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+			_action = &_actionZVPZealot;
 		}
 		else if (currentFrame - _lastChangeFrame >= 1000 || queue.empty() || _lastEnemyRace != race) {
 			_lastChangeFrame = currentFrame;
@@ -155,18 +128,9 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 			else if (_action->tick()) {
 				queue.clear();
 				bool useZealot = _actionZVPZealot.canDeployAction();
-				bool useDragoon = _actionZVPDragoon.canDeployAction();
-				//bool useZergling = _actionZVPZerglingRush.canDeployAction();
-				bool useZergling = false;
 				_action = &_actionZVPZealot;
 				if (useZealot) {
 					_action = &_actionZVPZealot;
-				}
-				else if (useDragoon) {
-					_action = &_actionZVPDragoon;
-				}
-				else if (useZergling) {
-					_action = &_actionZVPZerglingRush;
 				}
 				
 			}
@@ -175,11 +139,9 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 			_action->getBuildOrderList(queue);
 	}
 	else {
-		_actionZVPZealot.updateCurrentState(queue);
 		if (_action == nullptr)
 		{
-			if (queue.empty())
-				_action = &_actionZVPZealot;
+			_action = &_actionZVPZealot;
 		}
 		if (_action != nullptr)
 			_action->getBuildOrderList(queue);
