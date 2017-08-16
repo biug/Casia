@@ -556,7 +556,7 @@ std::pair<BWAPI::Unit, BWAPI::Unit> WorkerData::getClosestMineral(BWAPI::Unit wo
 			}
 		}
 	}
-	if (bestPatch0)
+	if ((bestPatch0 && abs(minDist1 -  minDist0) < 300) || !bestPatch1)
 	{
 		return { bestPatch0, bestMineralBase0 };
 	}
