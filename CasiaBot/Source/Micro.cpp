@@ -80,21 +80,9 @@ void Micro::SmartAttackMove(BWAPI::Unit attacker, const BWAPI::Position & target
     // if nothing prevents it, attack the target
 	int len = 1;
 	const auto & chokes = InformationManager::Instance().getPath(attacker->getTilePosition(), BWAPI::TilePosition(targetPosition), &len);
-	if (chokes.empty())
-	{
-		BWAPI::Broodwar->drawLineMap(attacker->getPosition(), targetPosition, BWAPI::Colors::Green);
-		attacker->attack(targetPosition);
-	}
-	else
-	{
-		auto target = BWAPI::Position(chokes.front()->Center());
-		auto nextTarget = chokes.size() > 1 ? BWAPI::Position(chokes[1]->Center()) : targetPosition;
-		auto finalTarget =
-			target.getDistance(targetPosition) < nextTarget.getDistance(targetPosition) ?
-			target : nextTarget;
-		BWAPI::Broodwar->drawLineMap(attacker->getPosition(), finalTarget, finalTarget == target ? BWAPI::Colors::Blue : BWAPI::Colors::Yellow);
-		attacker->attack(finalTarget);
-	}
+	auto target = chokes.size() > 1 ? BWAPI::Position(chokes[1]->Center()) : targetPosition;
+	BWAPI::Broodwar->drawLineMap(attacker->getPosition(), target, BWAPI::Colors::Blue);
+	attacker->attack(target);
     TotalCommands++;
 
     if (Config::Debug::DrawUnitTargetInfo) 
@@ -133,21 +121,9 @@ void Micro::SmartMove(BWAPI::Unit attacker, const BWAPI::Position & targetPositi
     // if nothing prevents it, attack the target
 	int len = 1;
 	const auto & chokes = InformationManager::Instance().getPath(attacker->getTilePosition(), BWAPI::TilePosition(targetPosition), &len);
-	if (chokes.empty())
-	{
-		attacker->move(targetPosition);
-		BWAPI::Broodwar->drawLineMap(attacker->getPosition(), targetPosition, BWAPI::Colors::Green);
-	}
-	else
-	{
-		auto target = BWAPI::Position(chokes.front()->Center());
-		auto nextTarget = chokes.size() > 1 ? BWAPI::Position(chokes[1]->Center()) : targetPosition;
-		auto finalTarget =
-			target.getDistance(targetPosition) < nextTarget.getDistance(targetPosition) ?
-			target : nextTarget;
-		BWAPI::Broodwar->drawLineMap(attacker->getPosition(), finalTarget, finalTarget == target ? BWAPI::Colors::Blue : BWAPI::Colors::Yellow);
-		attacker->move(finalTarget);
-	}
+	auto target = chokes.size() > 1 ? BWAPI::Position(chokes[1]->Center()) : targetPosition;
+	BWAPI::Broodwar->drawLineMap(attacker->getPosition(), target, BWAPI::Colors::Blue);
+	attacker->move(target);
     TotalCommands++;
 
     if (Config::Debug::DrawUnitTargetInfo) 
