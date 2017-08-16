@@ -275,7 +275,7 @@ void ActionZVPZealot::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 	if (spire_completed > 0 && lurker_completed > 0
 		&& mutalisk_count + mutalisk_in_queue < 12)
 	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Mutalisk), true);
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Mutalisk));
 	}
 }
 
