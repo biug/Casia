@@ -152,6 +152,7 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 				
 			}
 		}
+		_action = &_actionZVPHydra;
 		if (_action != nullptr)
 			_action->getBuildOrderList(queue);
 	}

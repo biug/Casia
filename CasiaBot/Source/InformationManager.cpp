@@ -164,13 +164,15 @@ bool InformationManager::beingZerglingRushed()
 void InformationManager::updateRush()
 {
 	if (getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Lurker, BWAPI::Broodwar->self()) >= 2
-		|| getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Mutalisk, BWAPI::Broodwar->self()) >= 4)
+		|| getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Mutalisk, BWAPI::Broodwar->self()) >= 4
+		|| BWAPI::Broodwar->getFrameCount() > 7200)
 	{
 		_isEncounterRush = false;
 	}
 	else if (!_isEncounterRush)
 	{
-		_isEncounterRush = beingMarineRushed() || beingZerglingRushed() || beingZealotRushed();
+		_isEncounterRush = beingMarineRushed() || beingZerglingRushed() || beingZealotRushed() &&
+			BWAPI::Broodwar->getFrameCount() < 7200;
 	}
 }
 

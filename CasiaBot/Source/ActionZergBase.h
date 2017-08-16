@@ -185,6 +185,7 @@ namespace CasiaBot
 		int enemy_gateway_count = 0;				//兵营
 		int enemy_stargate_count = 0;				//星门
 		int enemy_robotics_facility_count = 0;		//机械工厂
+		int enemy_nexus_count = 0;
 
 													//虫族单位
 		int enemy_zergling_count = 0;				//小狗
@@ -226,5 +227,6 @@ namespace CasiaBot
 		int lastFrameGasAmount = 0;
 		std::deque<int> mineralNetIncrease;
 		std::deque<int> gasNetIncrease;
+		std::deque<int> larvaQueue;
 	};
 }

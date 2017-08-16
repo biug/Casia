@@ -7,6 +7,7 @@ ActionZergBase::ActionZergBase()
 {
 	mineralNetIncrease = { 0,0,0,0,0 };
 	gasNetIncrease = { 0,0,0,0,0 };
+	larvaQueue = { 0,0,0,0 };
 }
 
 
@@ -145,6 +146,9 @@ void ActionZergBase::updateCurrentState(ProductionQueue &queue)
 	is_defending = false;
 	default_upgrade = false;
 
+
+
+
 	//敌方
 	enemy_terran_unit_count = 0;
 	enemy_protos_unit_count = 0;
@@ -188,7 +192,7 @@ void ActionZergBase::updateCurrentState(ProductionQueue &queue)
 	enemy_gateway_count = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Protoss_Gateway, BWAPI::Broodwar->enemy());					//兵营
 	enemy_stargate_count = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Protoss_Stargate, BWAPI::Broodwar->enemy());				//星门
 	enemy_robotics_facility_count = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Protoss_Robotics_Facility, BWAPI::Broodwar->enemy());	//机械工厂
-
+	enemy_nexus_count = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Protoss_Nexus, BWAPI::Broodwar->enemy());
 	//虫族单位
 	enemy_zergling_count = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Zergling, BWAPI::Broodwar->enemy());				//小狗
 	enemy_hydralisk_count = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Hydralisk, BWAPI::Broodwar->enemy());				//刺蛇
@@ -224,7 +228,22 @@ void ActionZergBase::updateCurrentState(ProductionQueue &queue)
 
 	//我方
 	real_base_count = WorkerManager::Instance().getMineralBases().size();
+	for (const auto & u : InformationManager::Instance().getUnitInfo(BWAPI::Broodwar->self()))
+	{
+		auto info = u.second;
+		auto type = info.type;
 
+		//军事力量
+		if (!type.isWorker() && !type.isBuilding()) {
+			if (type.isFlyer()) {
+				air_army_supply += type.supplyRequired();
+			}
+			else {
+				ground_army_supply += type.supplyRequired();
+			}
+			army_supply += type.supplyRequired();
+		}
+	}
 	//敌方
 	for (const auto & u : InformationManager::Instance().getUnitInfo(BWAPI::Broodwar->enemy()))
 	{
