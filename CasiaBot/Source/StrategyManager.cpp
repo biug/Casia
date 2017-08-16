@@ -59,6 +59,10 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 {
 	auto race = BWAPI::Broodwar->enemy()->getRace();
 	int currentFrame = BWAPI::Broodwar->getFrameCount();
+	if (race != _lastEnemyRace)
+	{
+		BWAPI::Broodwar->printf("find race, race change");
+	}
 	if (race == BWAPI::Races::Terran) {
 		_actionZVTBarracks.updateCurrentState(queue);
 		_actionZVTFactories.updateCurrentState(queue);
@@ -72,7 +76,12 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 		else if (currentFrame - _lastChangeFrame >= 1000 || queue.empty() || _lastEnemyRace != race)
 		{
 			_lastChangeFrame = currentFrame;
-			if (_action->tick() || _lastEnemyRace != race)
+			if (_lastEnemyRace != race)
+			{
+				queue.clear();
+				_action = &_actionZVTBarracks;
+			}
+			else if (_action->tick())
 			{
 				queue.clear();
 				bool useBarracks = _actionZVTBarracks.canDeployAction();
@@ -102,7 +111,12 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 		}
 		else if (currentFrame - _lastChangeFrame >= 1000 || queue.empty() || _lastEnemyRace != race) {
 			_lastChangeFrame = currentFrame;
-			if (_action->tick() || _lastEnemyRace != race) {
+			if (_lastEnemyRace != race)
+			{
+				queue.clear();
+				_action = &_actionZVZLurker;
+			}
+			else if (_action->tick()) {
 				queue.clear();
 				bool useLurker = _actionZVZLurker.canDeployAction();
 				bool useMutalisk = _actionZVZMutalisk.canDeployAction();
@@ -133,7 +147,12 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 		}
 		else if (currentFrame - _lastChangeFrame >= 1000 || queue.empty() || _lastEnemyRace != race) {
 			_lastChangeFrame = currentFrame;
-			if (_action->tick() || _lastEnemyRace != race) {
+			if (_lastEnemyRace != race)
+			{
+				queue.clear();
+				_action = &_actionZVPZealot;
+			}
+			else if (_action->tick()) {
 				queue.clear();
 				bool useZealot = _actionZVPZealot.canDeployAction();
 				bool useDragoon = _actionZVPDragoon.canDeployAction();
