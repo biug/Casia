@@ -55,11 +55,17 @@ namespace CasiaBot
 		int guardian_in_queue = 0;                   //队列中守卫者
 		int devourer_in_queue = 0;                   //队列中吞噬者
 
-		bool muscular_argument_completing;
-		bool grooved_spines_completing;
+		// 科技
+		int muscular_arguments_count;
+		int grooved_spines_count;
 		int metabolic_boost_count;
 		int lurker_aspect_count;
 		int adrenal_glands_count;
+		int melee_attacks_count;
+		int missile_attacks_count;
+		int ground_carapace_count;
+		int flyer_attacks_count;
+		int flyer_carapace_count;
 
 		//己方已建成建筑
 		int real_base_count;				//实际意义上的基地
@@ -84,7 +90,6 @@ namespace CasiaBot
 		int hatchery_completed;
 		int lair_completed;
 		int hive_completed;
-		int spire_complete;
 		int creep_colony_completed;
 		int extractor_completed;
 		int spawning_pool_completed;

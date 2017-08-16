@@ -238,7 +238,6 @@ void ProductionManager::manageBuildOrderQueue()
 			else
 			{
 				double distance = workerToAssign->getDistance(BWAPI::Position(b.finalPosition));
-				BWAPI::Broodwar->printf("in will resource, price:%dm %dg, free:%dm %dg", b.type.mineralPrice(), b.type.gasPrice(), getFreeMinerals(), getFreeGas());
 				canMake = WorkerManager::Instance().willHaveResources(
 					b.type.mineralPrice() - getFreeMinerals(),
 					b.type.gasPrice() - getFreeGas(),

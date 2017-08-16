@@ -53,19 +53,34 @@ void ActionZergBase::updateCurrentState(ProductionQueue &queue)
 
 	metabolic_boost_count = queue.upgradeCount(BWAPI::UpgradeTypes::Metabolic_Boost)
 		+ BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Metabolic_Boost)
-		+ (BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Metabolic_Boost) ? 1 : 0);
+		+ BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Metabolic_Boost);
 	lurker_aspect_count = queue.techCount(BWAPI::TechTypes::Lurker_Aspect)
 		+ BWAPI::Broodwar->self()->hasResearched(BWAPI::TechTypes::Lurker_Aspect)
-		+ (BWAPI::Broodwar->self()->isResearching(BWAPI::TechTypes::Lurker_Aspect) ? 1 : 0);
+		+ BWAPI::Broodwar->self()->isResearching(BWAPI::TechTypes::Lurker_Aspect);
 	adrenal_glands_count = queue.upgradeCount(BWAPI::UpgradeTypes::Adrenal_Glands)
 		+ BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Adrenal_Glands)
-		+ (BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Adrenal_Glands) ? 1 : 0);
-	grooved_spines_completing = queue.upgradeCount(BWAPI::UpgradeTypes::Grooved_Spines)
-		|| BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Grooved_Spines)
-		|| (BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Grooved_Spines) );
-	muscular_argument_completing = queue.upgradeCount(BWAPI::UpgradeTypes::Muscular_Augments)
-		|| BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Muscular_Augments)
-		|| (BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Muscular_Augments));
+		+ BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Adrenal_Glands);
+	grooved_spines_count = queue.upgradeCount(BWAPI::UpgradeTypes::Grooved_Spines)
+		+ BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Grooved_Spines)
+		+ BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Grooved_Spines);
+	muscular_arguments_count = queue.upgradeCount(BWAPI::UpgradeTypes::Muscular_Augments)
+		+ BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Muscular_Augments)
+		+ BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Muscular_Augments);
+	melee_attacks_count = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Melee_Attacks)
+		+ BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Zerg_Melee_Attacks)
+		+ BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Zerg_Melee_Attacks);
+	missile_attacks_count = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Missile_Attacks)
+		+ BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Zerg_Missile_Attacks)
+		+ BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Zerg_Missile_Attacks);
+	ground_carapace_count = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Carapace)
+		+ BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Zerg_Carapace)
+		+ BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Zerg_Carapace);
+	flyer_attacks_count = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Flyer_Attacks)
+		+ BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Zerg_Flyer_Attacks)
+		+ BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Zerg_Flyer_Attacks);
+	flyer_carapace_count = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Flyer_Carapace)
+		+ BWAPI::Broodwar->self()->getUpgradeLevel(BWAPI::UpgradeTypes::Zerg_Flyer_Carapace)
+		+ BWAPI::Broodwar->self()->isUpgrading(BWAPI::UpgradeTypes::Zerg_Flyer_Carapace);
 
 	//建筑
 	hatchery_count = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Hatchery, BWAPI::Broodwar->self());
@@ -89,12 +104,12 @@ void ActionZergBase::updateCurrentState(ProductionQueue &queue)
 	lair_completed = InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Lair, BWAPI::Broodwar->self());
 	hive_completed = InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Hive, BWAPI::Broodwar->self());
 	base_completed = hatchery_completed + lair_completed + hive_completed;
-	spire_complete = InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Spire, BWAPI::Broodwar->self());
+	spire_completed = InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Spire, BWAPI::Broodwar->self());
 	creep_colony_completed = InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Creep_Colony, BWAPI::Broodwar->self());
 	extractor_completed = InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Extractor, BWAPI::Broodwar->self());
 	spawning_pool_completed = InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Spawning_Pool, BWAPI::Broodwar->self());
 	hydralisk_den_completed = InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Hydralisk_Den, BWAPI::Broodwar->self());
-	spire_completed = InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Spire, BWAPI::Broodwar->self());
+	queens_nest_completed = InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Queens_Nest, BWAPI::Broodwar->self());
 
 	hatchery_in_queue = queue.unitCount(BWAPI::UnitTypes::Zerg_Hatchery);
 	lair_in_queue = queue.unitCount(BWAPI::UnitTypes::Zerg_Lair);
@@ -244,7 +259,7 @@ void ActionZergBase::updateCurrentState(ProductionQueue &queue)
 		}
 
 		//军事力量
-		if (!type.isWorker() && !type.isBuilding()) {
+		if (!type.isWorker() && !type.isBuilding() && type.canAttack()) {
 			if (type.isFlyer()) {
 				enemy_air_army_supply += type.supplyRequired();
 			}

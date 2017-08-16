@@ -156,8 +156,6 @@ void BuildingManager::constructAssignedBuildings()
 					}
 					else
 					{
-						std::string flag = "build " + b.type.getName() + " failed";
-						BWAPI::Broodwar->printf(flag.c_str());
 						BWAPI::Broodwar->drawLineMap(b.builderUnit->getPosition(), BWAPI::Position(b.finalPosition), BWAPI::Colors::Orange);
 					}
 				}

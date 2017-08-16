@@ -52,8 +52,8 @@ private:
 	std::hash_map<BWAPI::Unit, BWAPI::Unit>					workerRefineryMap;
 	std::hash_map<BWAPI::Unit, BWAPI::Unitset>				refineryWorkersMap;
 
-	const int		mineralPatchRadius = 480;
-	const int		sameMineralBaseRadius = 480;
+	const int		mineralPatchRadius = 300;
+	const int		sameMineralBaseRadius = 300;
 
 	void clearPreviousJob(BWAPI::Unit unit);
 

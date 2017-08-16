@@ -77,33 +77,33 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 	}
 
 	// 判断血池是否存在
-	bool isSpawningPoolExist = spawning_pool_being_built + spawning_pool_count + spawning_pool_in_queue > 0;
-	if (!isSpawningPoolExist)
+	if (spawning_pool_being_built + spawning_pool_count + spawning_pool_in_queue == 0)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Spawning_Pool), true);
 	}
 
 	// 判断第一个气矿是否存在
-	bool isExtractorExist = extractor_being_built + extractor_count + extractor_in_queue > 0;
-	if (!isExtractorExist && drone_count >= 10 && spawning_pool_count > 0)
+	if (extractor_being_built + extractor_count + extractor_in_queue == 0
+		&& drone_count >= 10 && spawning_pool_count > 0)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Extractor));
 	}
 
-	// 判断刺蛇洞是否存在
-	bool isHydraliskDenExist = hydralisk_den_being_built + hydralisk_den_count + hydralisk_den_in_queue > 0;
-	if (!isHydraliskDenExist && freeGas >= 50 && lair_count > 0)
-	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk_Den, "50%Lair"));
-	}
-
 	// 判断是否二本
 	if (lair_count + lair_being_built + lair_in_queue == 0	// 没有多造
-		&& spawning_pool_completed > 0 && freeGas >= 100		// 资源和前置条件
-		&& (being_rushed ? (sunken_colony_count >= 2) : true)// 被rush要地堡优先
-		&& currentFrameCount > 3600)
+		&& spawning_pool_completed > 0 && freeGas > 50		// 资源和前置条件
+		&& (!being_rushed || sunken_colony_count >= 2)		// 被rush要地堡优先
+		&& zergling_count >= 8
+		&& currentFrameCount >= 5400)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Lair), true);	// 二本优先
+	}
+
+	// 判断刺蛇洞是否存在
+	if (hydralisk_den_being_built + hydralisk_den_count + hydralisk_den_in_queue == 0
+		&& freeGas >= 50 && lair_count > 0)
+	{
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk_Den, "50%Lair"));
 	}
 
 	// 内双
@@ -130,12 +130,10 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 	// 三本
 	if (lair_completed > 0)
 	{
-		if (queens_nest_count + queens_nest_being_built + queens_nest_in_queue == 0)
+		if (queens_nest_count + queens_nest_being_built + queens_nest_in_queue == 0
+			&& lurker_completed > 0)
 		{
-			if (currentFrameCount > 15400)
-			{
-				queue.add(MetaType(BWAPI::UnitTypes::Zerg_Queens_Nest));
-			}
+			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Queens_Nest));
 		}
 		if (queens_nest_completed > 0)
 		{
@@ -175,7 +173,8 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 	}
 
 	// 分矿的气矿
-	int extractorNeed = std::min(base_completed, 3);
+	int numMineralBases = WorkerManager::Instance().getMineralBases().size();
+	int extractorNeed = std::min(numMineralBases, 3);
 	if (!notEnoughDrone
 		&& extractor_count + extractor_being_built + extractor_in_queue < extractorNeed)
 	{
@@ -204,7 +203,11 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 		&& BWAPI::Broodwar->self()->hasResearched(BWAPI::TechTypes::Lurker_Aspect)
 		&& lurker_in_queue == 0)
 	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Lurker), true);
+		int hydra_reserved = enemy_army_supply - hydralisk_count;
+		if (hydra_reserved <= 0)
+		{
+			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Lurker), true);
+		}
 	}
 }
 

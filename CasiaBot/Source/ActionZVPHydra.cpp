@@ -248,7 +248,7 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 			if (gas > 300 && minerals > 500)
 			{
 				BWAPI::Broodwar->drawTextScreen(200, 300, "update tech");
-				if (!muscular_argument_completing)
+				if (!muscular_arguments_count)
 				{
 					BWAPI::Broodwar->drawTextScreen(300, 300, "no speed");
 					if (hydralisk_den_completed > 0 && hydralisk_count + hydralisk_in_queue > 7)
@@ -257,7 +257,7 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 						tryAddInQueue(queue, MetaType(BWAPI::UpgradeTypes::Muscular_Augments));
 					}
 				}
-				else if (!grooved_spines_completing) {
+				else if (!grooved_spines_count) {
 					BWAPI::Broodwar->drawTextScreen(300, 300, "no range");
 					if (hydralisk_den_completed > 0 && hydralisk_count + hydralisk_in_queue > 12)
 					{
@@ -291,14 +291,14 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 		else
 		{
 			BWAPI::Broodwar->drawTextScreen(200, 320, "tech is first power");
-			if (!muscular_argument_completing)
+			if (!muscular_arguments_count)
 			{
 				if (hydralisk_den_completed > 0 && minerals > 150 && gas >= 150 && hydralisk_count + hydralisk_in_queue > 7)
 				{
 					tryAddInQueue(queue, MetaType(BWAPI::UpgradeTypes::Muscular_Augments));
 				}
 			}
-			else if (!grooved_spines_completing) {
+			else if (!grooved_spines_count) {
 				if (hydralisk_den_completed > 0 && gas >= 150 && hydralisk_count + hydralisk_in_queue > 12)
 				{
 					tryAddInQueue(queue, MetaType(BWAPI::UpgradeTypes::Grooved_Spines));
@@ -691,14 +691,14 @@ void ActionZVPHydra::getBuildOrderListNew(CasiaBot::ProductionQueue & queue)
 		}
 	}
 
-	if (!muscular_argument_completing) 
+	if (!muscular_arguments_count) 
 	{
 		if (hydralisk_den_completed > 0 && gas >= 150 && hydralisk_count + hydralisk_in_queue > 7)
 		{
 			tryAddInQueue(queue, MetaType(BWAPI::UpgradeTypes::Muscular_Augments));
 		}
 	}
-	else if (!grooved_spines_completing) {
+	else if (!grooved_spines_count) {
 		if (hydralisk_den_completed > 0 && gas >= 150 && hydralisk_count + hydralisk_in_queue > 12)
 		{
 			tryAddInQueue(queue, MetaType(BWAPI::UpgradeTypes::Muscular_Augments));
@@ -844,17 +844,17 @@ void ActionZVPHydra::tryAddInQueue(ProductionQueue & queue, const ProductionItem
 		}
 	}
 	else if (upgradeType == BWAPI::UpgradeTypes::Muscular_Augments) {
-		if (hydralisk_den_completed > 0 && !muscular_argument_completing)
+		if (hydralisk_den_completed > 0 && !muscular_arguments_count)
 		{
 			queue.add(item, priority);
-			muscular_argument_completing = true;
+			muscular_arguments_count = true;
 		}
 	}
 	else if (upgradeType == BWAPI::UpgradeTypes::Grooved_Spines) {
-		if (hydralisk_den_completed > 0 && !grooved_spines_completing)
+		if (hydralisk_den_completed > 0 && !grooved_spines_count)
 		{
 			queue.add(item, priority);
-			grooved_spines_completing = true;
+			grooved_spines_count = true;
 		}
 	}
 	else if (techType == BWAPI::TechTypes::Lurker_Aspect)

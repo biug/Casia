@@ -22,15 +22,13 @@ namespace CasiaBot
 	private:
 		double enemyDragoonOverZealotRate = 0;
 		int enemyAirForceCount = 0;
-		bool isBuildingSunkenColony = false;
-		bool isSunkenColonyBuildingComplete = false;
 		int droneLimit = 16;
 		int zerglingLimit = 20;
 		const int hydraliskLimit = 20;
 		const int lurkerLimit = 15;
 		const int mutaliskLimit = 20;
-		const int creepColonyLimit = 7;
-		const int sunkenColonyLimit = 7;
+		const int creepColonyLimit = 5;
+		const int sunkenColonyLimit = 5;
 		const int spawningPoolLimit = 1;
 		const int extractorLimit = 3;
 		const int hydraliskDenLimit = 1;

@@ -122,7 +122,7 @@ void ActionZVTFactoriesUnits::getBuildOrderList(CasiaBot::ProductionQueue & queu
 	if (!isFlyerCarapaceUpgrading
 		&& currentFlyerCarapaceLevel < 1
 		&& queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Flyer_Carapace) == 0
-		&& spire_complete > 0)
+		&& spire_completed > 0)
 	{
 		queue.add(MetaType(BWAPI::UpgradeTypes::Zerg_Flyer_Carapace));
 	}

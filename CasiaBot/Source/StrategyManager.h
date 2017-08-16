@@ -54,7 +54,7 @@ class StrategyManager
 	StrategyManager();
 
 	BWAPI::Race					    _selfRace;
-	BWAPI::Race					    _enemyRace;
+	BWAPI::Race					    _lastEnemyRace;
     std::map<std::string, Opening>	_openings;
     int                             _totalGamesPlayed;
 	const BuildOrder                _emptyBuildOrder;

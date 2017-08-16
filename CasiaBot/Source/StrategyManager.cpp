@@ -7,7 +7,7 @@ using namespace CasiaBot;
 // constructor
 StrategyManager::StrategyManager()
 	: _selfRace(BWAPI::Broodwar->self()->getRace())
-	, _enemyRace(BWAPI::Broodwar->enemy()->getRace())
+	, _lastEnemyRace(BWAPI::Broodwar->enemy()->getRace())
 	, _emptyBuildOrder(BWAPI::Broodwar->self()->getRace())
 	, _action(nullptr)
 	, _lastChangeFrame(0)
@@ -57,9 +57,9 @@ void StrategyManager::addOpening(const std::string & name, Opening & opening)
 
 void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 {
-	
+	auto race = BWAPI::Broodwar->enemy()->getRace();
 	int currentFrame = BWAPI::Broodwar->getFrameCount();
-	if (_enemyRace == BWAPI::Races::Terran) {
+	if (race == BWAPI::Races::Terran) {
 		_actionZVTBarracks.updateCurrentState(queue);
 		_actionZVTFactories.updateCurrentState(queue);
 
@@ -69,10 +69,10 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 			if (queue.empty())
 				_action = &_actionZVTBarracks;
 		}
-		else if (currentFrame - _lastChangeFrame >= 1000 || queue.empty())
+		else if (currentFrame - _lastChangeFrame >= 1000 || queue.empty() || _lastEnemyRace != race)
 		{
 			_lastChangeFrame = currentFrame;
-			if (_action->tick())
+			if (_action->tick() || _lastEnemyRace != race)
 			{
 				queue.clear();
 				bool useBarracks = _actionZVTBarracks.canDeployAction();
@@ -91,7 +91,7 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 		if (_action != nullptr)
 			_action->getBuildOrderList(queue);
 	}
-	else if (_enemyRace == BWAPI::Races::Zerg) {
+	else if (race == BWAPI::Races::Zerg) {
 		_actionZVZLurker.updateCurrentState(queue);
 		_actionZVZMutalisk.updateCurrentState(queue);
 
@@ -100,9 +100,9 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 			if (queue.empty())
 				_action = &_actionZVZLurker;
 		}
-		else if (currentFrame - _lastChangeFrame >= 1000 || queue.empty()) {
+		else if (currentFrame - _lastChangeFrame >= 1000 || queue.empty() || _lastEnemyRace != race) {
 			_lastChangeFrame = currentFrame;
-			if (_action->tick()) {
+			if (_action->tick() || _lastEnemyRace != race) {
 				queue.clear();
 				bool useLurker = _actionZVZLurker.canDeployAction();
 				bool useMutalisk = _actionZVZMutalisk.canDeployAction();
@@ -118,7 +118,7 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 		if (_action != nullptr)
 			_action->getBuildOrderList(queue);
 	}
-	else if (_enemyRace == BWAPI::Races::Protoss) {
+	else if (race == BWAPI::Races::Protoss) {
 		_actionZVPZealot.updateCurrentState(queue);
 		_actionZVPDragoon.updateCurrentState(queue);
 		_actionZVPZerglingRush.updateCurrentState(queue);
@@ -131,9 +131,9 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 			
 			//queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
 		}
-		else if (currentFrame - _lastChangeFrame >= 1000 || queue.empty()) {
+		else if (currentFrame - _lastChangeFrame >= 1000 || queue.empty() || _lastEnemyRace != race) {
 			_lastChangeFrame = currentFrame;
-			if (_action->tick()) {
+			if (_action->tick() || _lastEnemyRace != race) {
 				queue.clear();
 				bool useZealot = _actionZVPZealot.canDeployAction();
 				bool useDragoon = _actionZVPDragoon.canDeployAction();
@@ -165,10 +165,7 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 		if (_action != nullptr)
 			_action->getBuildOrderList(queue);
 	}
-	
-	//_actionZVPHydra.updateCurrentState(queue);
-	//_action = &_actionZVPHydra;
-	//_action->getBuildOrderList(queue);	
+	_lastEnemyRace = race;
 }
 
 void StrategyManager::readOpeningResults()
