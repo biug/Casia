@@ -161,7 +161,7 @@ void ParseUtils::ParseConfigFile(const std::string & filename)
             const rapidjson::Value & specific = opening["EnemySpecificOpening"];
 
             // check to see if our current enemy name is listed anywhere in the specific strategies
-            if (specific.HasMember(enemyName.c_str()) && specific[enemyName.c_str()].IsObject())
+            if (specific.HasMember(enemyName.c_str()) && specific[enemyName.c_str()].IsString())
             {
                 // if that enemy has a opening, use it
 				Config::Opening::OpeningName = specific[enemyName.c_str()].GetString();

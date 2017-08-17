@@ -46,7 +46,8 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 	bool being_rushed = _status.being_rushed;
 
 	// 防rush放地堡
-	int creep_need = std::min(3, std::max(2, (_status.enemy_marine_count + _status.enemy_firebat_count + _status.enemy_medic_count) / 6));
+	int enemy_barracks_count = _status.enemy_marine_count + _status.enemy_firebat_count + _status.enemy_medic_count;
+	int creep_need = std::min(3, std::max(2, enemy_barracks_count / 6));
 	if (_status.spawning_pool_count > 0	// 存在血池
 		&& _status.creep_colony_being_built + _status.creep_colony_in_queue == 0	// 队列中没有地堡
 		&& _status.creep_colony_total + _status.sunken_colony_total < (being_rushed ? creep_need : 0))
@@ -88,7 +89,7 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 
 	// 判断刺蛇洞是否存在
 	if (_status.hydralisk_den_total == 0
-		&& freeGas >= 50 && _status.lair_count > 0)
+		&& freeGas >= 30 && _status.lair_count > 0)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk_Den, "50%Lair"));
 	}
@@ -110,14 +111,13 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 		&& _status.base_count < 5
 		&& _status.lurker_count > 0)
 	{
-		BWAPI::Broodwar->printf("add a hatchery");
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hatchery));
 	}
 
 	// 三本
 	if (_status.lair_completed > 0)
 	{
-		if (_status.queens_nest_total == 0 && _status.spire_completed > 0)
+		if (_status.queens_nest_total == 0 && _status.lurker_completed > 0)
 		{
 			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Queens_Nest));
 		}
@@ -171,13 +171,15 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 	// 小狗
 	int zerglingMax = being_rushed || currentFrameCount < 6400 ? 16 : 48;
 	int zerglingNeed = (zerglingMax - _status.zergling_total) / 2;
-	if (zerglingNeed > 0 && _status.zergling_in_queue <= 6)
+	if (zerglingNeed > 0 && _status.zergling_in_queue < 8)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Zergling));
 	}
 
 	// 刺蛇
-	if (_status.hydralisk_den_completed > 0 && _status.hydralisk_total < 3)
+	if (_status.hydralisk_den_completed > 0
+		&& _status.hydralisk_in_queue < 2
+		&& _status.hydralisk_total < _status.enemy_air_army_supply + 3)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk));
 	}

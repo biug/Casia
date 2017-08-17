@@ -79,7 +79,7 @@ void ActionZVPZealot::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 
 	// ÅÐ¶Ï´ÌÉß¶´ÊÇ·ñ´æÔÚ
 	if (_status.hydralisk_den_total == 0
-		&& freeGas >= 50 && _status.lair_count > 0)
+		&& freeGas >= 30 && _status.lair_count > 0)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk_Den, "50%Lair"));
 	}
@@ -99,7 +99,6 @@ void ActionZVPZealot::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 		&& _status.lurker_count > 0
 		&& !being_rushed)
 	{
-		BWAPI::Broodwar->printf("add a hatchery");
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hatchery));
 	}
 

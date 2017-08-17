@@ -78,7 +78,7 @@ void ActionZVZZerglingLurker::getBuildOrderList(CasiaBot::ProductionQueue & queu
 
 	// ÅĞ¶Ï´ÌÉß¶´ÊÇ·ñ´æÔÚ
 	if (_status.hydralisk_den_total == 0
-		&& freeGas >= 50 && _status.lair_count > 0)
+		&& freeGas >= 30 && _status.lair_count > 0)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk_Den, "50%Lair"));
 	}
@@ -153,13 +153,15 @@ void ActionZVZZerglingLurker::getBuildOrderList(CasiaBot::ProductionQueue & queu
 	// Ğ¡¹·
 	int zerglingMax = std::max(16, _status.enemy_zergling_count + 6);
 	int zerglingNeed = (zerglingMax - _status.zergling_total) / 2;
-	if (zerglingNeed > 0 && _status.zergling_in_queue <= 6)
+	if (zerglingNeed > 0 && _status.zergling_in_queue < 8)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Zergling));
 	}
 
 	// ´ÌÉß
-	if (_status.hydralisk_den_completed > 0 && _status.hydralisk_total < 3)
+	if (_status.hydralisk_den_completed > 0
+		&& _status.hydralisk_in_queue < 2
+		&& _status.hydralisk_total < _status.enemy_air_army_supply + 3)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk));
 	}
