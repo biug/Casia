@@ -157,7 +157,7 @@ void ActionZVZZerglingLurker::getBuildOrderList(CasiaBot::ProductionQueue & queu
 	}
 
 	int air_require = _status.enemy_mutalisk_count - _status.mutalisk_count - _status.scourge_count;
-	if (air_require > 0)
+	if (air_require > 0 && _status.scourge_in_queue < 2)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Scourge), true);
 	}

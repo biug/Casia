@@ -33,6 +33,15 @@ void ProductionManager::update()
 {
 	// update status
 	ActionZergBase::updateStatus(_queue);
+	for (const auto & item : _openingQueue)
+	{
+		if (item._unit.isUpgrade()
+			&& item._unit.getUpgradeType() == BWAPI::UpgradeTypes::Metabolic_Boost)
+		{
+			ActionZergBase::_status.metabolic_boost_in_queue = 1;
+			break;
+		}
+	}
 
 	// check the _queue for stuff we can build
 	manageBuildOrderQueue();

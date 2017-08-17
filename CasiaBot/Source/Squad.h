@@ -48,9 +48,8 @@ namespace CasiaBot
 
 		std::map<BWAPI::Unit, bool>	_nearEnemy;
 
-
-		BWAPI::Unit		getRegroupUnit();
-		BWAPI::Unit		unitClosestToEnemy();
+		BWAPI::Unit		groundUnitClosestToEnemy();
+		BWAPI::Unit		airUnitClosestToEnemy();
 
 		void						checkEnemy();
 		void                        updateUnits();
@@ -59,11 +58,13 @@ namespace CasiaBot
 		void                        setAllUnits();
 
 		bool                        unitNearEnemy(BWAPI::Unit unit);
-		bool                        needsToRegroup();
+		bool                        groundNeedsToRegroup();
+		bool                        airNeedsToRegroup();
 		int                         squadUnitsNear(BWAPI::Position p);
 		float						groundForceScore(BWAPI::UnitType type);
 		float						airForceScore(BWAPI::UnitType type);
-		bool						terranRetreat(BWAPI::Position center);
+		bool						groundRetreat(BWAPI::Position center);
+		bool						airRetreat(BWAPI::Position center);
 
 	public:
 
@@ -83,7 +84,8 @@ namespace CasiaBot
 		const std::string & getName() const;
 
 		BWAPI::Position     calcCenter();
-		BWAPI::Position     calcRegroupPosition();
+		BWAPI::Position     calcGroundRegroupPosition();
+		BWAPI::Position     calcAirRegroupPosition();
 
 		const BWAPI::Unitset &  getUnits() const;
 		const SquadOrder &  getSquadOrder()	const;

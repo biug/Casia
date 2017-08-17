@@ -32,27 +32,14 @@ void Squad::update()
 	updateUnits();
 
 	// determine whether or not we should regroup
-	bool needToRegroup = needsToRegroup();
-
-	// draw some debug info
-	if (Config::Debug::DrawSquadInfo && _order.getType() == SquadOrderTypes::Attack)
-	{
-		BWAPI::Broodwar->drawTextScreen(200, 350, "%s", _regroupStatus.c_str());
-
-		BWAPI::Unit closest = unitClosestToEnemy();
-	}
+	bool gRegroup = groundNeedsToRegroup();
+	bool aRegroup = airNeedsToRegroup();
 
 	checkEnemy();
-	// if we do need to regroup, do it
-	_scourgeManager.execute(_order);
-	if (needToRegroup)
+	// 陆军
+	if (gRegroup)
 	{
-		BWAPI::Position regroupPosition = calcRegroupPosition();
-
-		if (Config::Debug::DrawCombatSimulationInfo)
-		{
-			BWAPI::Broodwar->drawTextScreen(200, 150, "REGROUP");
-		}
+		BWAPI::Position regroupPosition = calcGroundRegroupPosition();
 
 		BWAPI::Broodwar->drawCircleMap(regroupPosition.x, regroupPosition.y, 30, BWAPI::Colors::Purple, true);
 
@@ -60,15 +47,6 @@ void Squad::update()
 		_rangedManager.regroup(regroupPosition);
 		_hydraliskManager.regroup(regroupPosition);
 		_zerglingManager.regroup(regroupPosition);
-		if (_noAirWeapon)
-		{
-			_mutaliskManager.execute(_order);
-		}
-		else
-		{
-			_mutaliskManager.regroup(regroupPosition);
-			_scourgeManager.regroup(regroupPosition);
-		}
 		if (_noShowHidden)
 		{
 			_lurkerManager.execute(_order);
@@ -85,27 +63,23 @@ void Squad::update()
 		_lurkerManager.execute(_order);
 		_hydraliskManager.execute(_order);
 		_zerglingManager.execute(_order);
+	}
+	// 空军
+	if (aRegroup)
+	{
+		BWAPI::Position regroupPosition = calcAirRegroupPosition();
+
+		BWAPI::Broodwar->drawCircleMap(regroupPosition.x, regroupPosition.y, 30, BWAPI::Colors::Purple, true);
+
+		_mutaliskManager.regroup(regroupPosition);
+		_scourgeManager.regroup(regroupPosition);
+	}
+	else
+	{
 		_mutaliskManager.execute(_order);
+		_scourgeManager.execute(_order);
 	}
 	_overlordManager.executeMove(_order);
-	/*if (_numHarassZergling > 5)
-	{
-	_harassZerglingManager.setPattern(true);
-	}
-	else
-	{
-	_harassZerglingManager.setPattern(false);
-	}*/
-	/*if (_numHarassMutalisk > 1 || _noAirWeapon)
-	{
-	_harassMutaliskManager.setPattern(true);
-	}
-	else
-	{
-	_harassMutaliskManager.setPattern(false);
-	}
-	_harassZerglingManager.execute(_order);
-	_harassMutaliskManager.execute(_order);*/
 }
 void Squad::checkEnemy()
 {
@@ -347,7 +321,7 @@ float Squad::airForceScore(BWAPI::UnitType type)
 	return score;
 }
 
-bool Squad::terranRetreat(BWAPI::Position center)
+bool Squad::groundRetreat(BWAPI::Position center)
 {
 	BWAPI::Unitset ourCombatUnits;
 	std::vector<UnitInfo> enemyCombatUnits;
@@ -356,10 +330,10 @@ bool Squad::terranRetreat(BWAPI::Position center)
 	InformationManager::Instance().getNearbyForce(enemyCombatUnits, center, BWAPI::Broodwar->enemy(), Config::Micro::CombatRegroupRadius);
 
 	// enemy force
-	std::hash_map<int, float> groundScore, airScore;
-	int eGroundNum = 0, eAirNum = 0, sGroundNum = 0, sAirNum = 0;
-	float eGroundForce = 0, eAirForce = 0, sGroundForce = 0, sAirForce = 0;
-	float eGroundHealth = 0, eAirHealth = 0, sGroundHealth = 0, sAirHealth = 0;
+	std::hash_map<int, float> groundScore;
+	int eGroundNum = 0, sGroundNum = 0;
+	float eGroundForce = 0, sGroundForce = 0;
+	float eGroundHealth = 0, sGroundHealth = 0;
 	// enemy force and health
 	for (const auto & eunit : enemyCombatUnits)
 	{
@@ -372,37 +346,20 @@ bool Squad::terranRetreat(BWAPI::Position center)
 		}
 		// 血量会对力量打折扣
 		eGroundForce += groundScore[id] * std::sqrtf(eunit.lastHealth / eunit.type.maxHitPoints());
-		if (airScore.find(id) == airScore.end())
-		{
-			airScore[id] = airForceScore(type);
-		}
-		// 血量会对力量打折扣
-		eAirForce += airScore[id] * std::sqrtf(eunit.lastHealth / eunit.type.maxHitPoints());
 		if (!type.isFlyer())
 		{
-			eGroundHealth += eunit.lastHealth + eunit.lastShields + eunit.type.armor();
 			++eGroundNum;
-		}
-		else
-		{
-			eAirHealth += eunit.lastHealth + eunit.lastShields + eunit.type.armor();
-			++eAirNum;
+			eGroundHealth += eunit.lastHealth + eunit.lastShields + eunit.type.armor();
 		}
 	}
 	int num = 0;
 	for (const auto & score : groundScore)
 	{
-		BWAPI::Broodwar->drawTextScreen(240, 220 + num * 10, "eg %s : %.2f", BWAPI::UnitType(score.first).getName().c_str(), score.second);
-		++num;
-	}
-	for (const auto & score : airScore)
-	{
-		BWAPI::Broodwar->drawTextScreen(240, 220 + num * 10, "ea %s : %.2f", BWAPI::UnitType(score.first).getName().c_str(), score.second);
+		BWAPI::Broodwar->drawTextScreen(180, 220 + num * 10, "eg %s : %.2f", BWAPI::UnitType(score.first).getName().c_str(), score.second);
 		++num;
 	}
 	// self force and health
 	groundScore.clear();
-	airScore.clear();
 	for (const auto & sunit : ourCombatUnits)
 	{
 		if (!InformationManager::Instance().isCombatUnit(sunit->getType())) continue;
@@ -414,27 +371,85 @@ bool Squad::terranRetreat(BWAPI::Position center)
 		}
 		// 血量会对力量打折扣
 		sGroundForce += groundScore[id] * std::sqrtf(sunit->getHitPoints() / sunit->getType().maxHitPoints());
+		if (!type.isFlyer())
+		{
+			++sGroundNum;
+			sGroundHealth += sunit->getHitPoints() + sunit->getShields() + sunit->getType().armor();
+		}
+	}
+	for (const auto & score : groundScore)
+	{
+		BWAPI::Broodwar->drawTextScreen(180, 220 + num*10, "sg %s : %.2f", BWAPI::UnitType(score.first).getName().c_str(), score.second);
+		++num;
+	}
+	// 血量平衡数值
+	float healthRate = 2.0f;
+	eGroundHealth /= healthRate;
+	sGroundHealth /= healthRate;
+	// 如果某一方没有空军/陆军，那么另一方的空军火力/陆军火力无效
+	if (sGroundNum == 0) eGroundForce = 0.0f;
+	if (eGroundNum == 0) sGroundForce = 0.0f;
+	float groundOffset = (sGroundForce - eGroundHealth) - (eGroundForce - sGroundHealth);
+	BWAPI::Broodwar->drawTextScreen(430, 280, "gOffset: %.2f", groundOffset);
+	// 有一方劣势就该撤退
+	return groundOffset < -0.1f;
+}
+
+bool Squad::airRetreat(BWAPI::Position center)
+{
+	BWAPI::Unitset ourCombatUnits;
+	std::vector<UnitInfo> enemyCombatUnits;
+
+	MapGrid::Instance().GetUnits(ourCombatUnits, center, Config::Micro::CombatRegroupRadius * 2, true, false);
+	InformationManager::Instance().getNearbyForce(enemyCombatUnits, center, BWAPI::Broodwar->enemy(), Config::Micro::CombatRegroupRadius);
+
+	// enemy force
+	std::hash_map<int, float> airScore;
+	int eAirNum = 0, sAirNum = 0;
+	float eAirForce = 0, sAirForce = 0;
+	float eAirHealth = 0, sAirHealth = 0;
+	// enemy force and health
+	for (const auto & eunit : enemyCombatUnits)
+	{
+		if (!InformationManager::Instance().isCombatUnit(eunit.type)) continue;
+		auto type = eunit.type;
+		int id = type.getID();
+		if (airScore.find(id) == airScore.end())
+		{
+			airScore[id] = airForceScore(type);
+		}
+		// 血量会对力量打折扣
+		eAirForce += airScore[id] * std::sqrtf(eunit.lastHealth / eunit.type.maxHitPoints());
+		if (type.isFlyer())
+		{
+			++eAirNum;
+			eAirHealth += eunit.lastHealth + eunit.lastShields + eunit.type.armor();
+		}
+	}
+	int num = 0;
+	for (const auto & score : airScore)
+	{
+		BWAPI::Broodwar->drawTextScreen(240, 220 + num * 10, "ea %s : %.2f", BWAPI::UnitType(score.first).getName().c_str(), score.second);
+		++num;
+	}
+	// self force and health
+	airScore.clear();
+	for (const auto & sunit : ourCombatUnits)
+	{
+		if (!InformationManager::Instance().isCombatUnit(sunit->getType())) continue;
+		auto type = sunit->getType();
+		int id = type.getID();
 		if (airScore.find(id) == airScore.end())
 		{
 			airScore[id] = airForceScore(type);
 		}
 		// 血量会对力量打折扣
 		sAirForce += airScore[id] * std::sqrtf(sunit->getHitPoints() / sunit->getType().maxHitPoints());
-		if (!type.isFlyer())
+		if (type.isFlyer())
 		{
-			sGroundHealth += sunit->getHitPoints() + sunit->getShields() + sunit->getType().armor();
-			++sGroundNum;
-		}
-		else
-		{
-			sAirHealth += sunit->getHitPoints() + sunit->getShields() + sunit->getType().armor();
 			++sAirNum;
+			sAirHealth += sunit->getHitPoints() + sunit->getShields() + sunit->getType().armor();
 		}
-	}
-	for (const auto & score : groundScore)
-	{
-		BWAPI::Broodwar->drawTextScreen(240, 220 + num*10, "sg %s : %.2f", BWAPI::UnitType(score.first).getName().c_str(), score.second);
-		++num;
 	}
 	for (const auto & score : airScore)
 	{
@@ -443,37 +458,20 @@ bool Squad::terranRetreat(BWAPI::Position center)
 	}
 	// 血量平衡数值
 	float healthRate = 2.0f;
-	eGroundHealth /= healthRate;
-	sGroundHealth /= healthRate;
 	eAirHealth /= healthRate;
 	sAirHealth /= healthRate;
 	// 如果某一方没有空军/陆军，那么另一方的空军火力/陆军火力无效
-	if (sGroundNum == 0) eGroundForce = 0.0f;
-	if (eGroundNum == 0) sGroundForce = 0.0f;
 	if (sAirNum == 0) eAirForce = 0.0f;
 	if (eAirNum == 0) sAirForce = 0.0f;
-	BWAPI::Broodwar->drawTextScreen(440, 200, "sGroundNum: %d", sGroundNum);
-	BWAPI::Broodwar->drawTextScreen(440, 210, "eGroundNum: %d", eGroundNum);
-	BWAPI::Broodwar->drawTextScreen(440, 220, "sAirNum: %d", sAirNum);
-	BWAPI::Broodwar->drawTextScreen(440, 230, "eAirNum: %d", eAirNum);
-	BWAPI::Broodwar->drawTextScreen(430, 240, "sGForce: %.2f | eGHP: %.2f", sGroundForce, eGroundHealth);
-	BWAPI::Broodwar->drawTextScreen(430, 250, "eGForce: %.2f | sGHP: %.2f", eGroundForce, sGroundHealth);
-	BWAPI::Broodwar->drawTextScreen(430, 260, "sAForce: %.2f | eAHP: %.2f", sAirForce, eAirHealth);
-	BWAPI::Broodwar->drawTextScreen(430, 270, "eAForce: %.2f | sAHP: %.2f", eAirForce, sAirHealth);
-	float groundOffset = (sGroundForce - eGroundHealth) - (eGroundForce - sGroundHealth);
 	float airOffset = (sAirForce - eAirHealth) - (eAirForce - sAirHealth);
-	BWAPI::Broodwar->drawTextScreen(430, 280, "gOffset: %.2f | aOffset: %.2f", groundOffset, airOffset);
+	BWAPI::Broodwar->drawTextScreen(430, 280, "aOffset: %.2f", airOffset);
 	// 有一方劣势就该撤退
-	return groundOffset < -0.1f || airOffset < -0.1f;
+	return airOffset < -0.1f;
 }
 
 // calculates whether or not to regroup
-bool Squad::needsToRegroup()
+bool Squad::groundNeedsToRegroup()
 {
-	if (!Config::Micro::UseSparcraftSimulation)
-	{
-		return false;
-	}
 
 	// if we are not attacking, never regroup
 	if (_units.empty() || (_order.getType() != SquadOrderTypes::Attack))
@@ -482,7 +480,7 @@ bool Squad::needsToRegroup()
 		return false;
 	}
 
-	BWAPI::Unit unitClosest = unitClosestToEnemy();
+	BWAPI::Unit unitClosest = groundUnitClosestToEnemy();
 
 	if (!unitClosest)
 	{
@@ -492,35 +490,37 @@ bool Squad::needsToRegroup()
 
 	// if none of our units are in attack range of any enemy units, don't retreat
 
-	bool retreat = false;
+	bool gRetreat = groundRetreat(unitClosest->getPosition());
 
-	retreat = terranRetreat(unitClosest->getPosition());
 	int switchTime = 15;
 
-	// we should not attack unless 5 seconds have passed since a retreat
-	if (retreat != _lastRetreatSwitchVal)
+	return gRetreat;
+}
+
+bool Squad::airNeedsToRegroup()
+{
+	// if we are not attacking, never regroup
+	if (_units.empty() || (_order.getType() != SquadOrderTypes::Attack))
 	{
-		if (!retreat && (BWAPI::Broodwar->getFrameCount() - _lastRetreatSwitch < switchTime))
-		{
-			retreat = _lastRetreatSwitchVal;
-		}
-		else
-		{
-			_lastRetreatSwitch = BWAPI::Broodwar->getFrameCount();
-			_lastRetreatSwitchVal = retreat;
-		}
+		_regroupStatus = std::string("\x04 No combat units available");
+		return false;
 	}
 
-	if (retreat)
+	BWAPI::Unit unitClosest = airUnitClosestToEnemy();
+
+	if (!unitClosest)
 	{
-		_regroupStatus = std::string("\x04 Retreat - simulation predicts defeat");
-	}
-	else
-	{
-		_regroupStatus = std::string("\x04 Attack - simulation predicts success");
+		_regroupStatus = std::string("\x04 No closest unit");
+		return false;
 	}
 
-	return retreat;
+	// if none of our units are in attack range of any enemy units, don't retreat
+
+	bool aRetreat = airRetreat(unitClosest->getPosition());
+
+	int switchTime = 15;
+
+	return aRetreat;
 }
 
 void Squad::setSquadOrder(const SquadOrder & so)
@@ -576,7 +576,7 @@ BWAPI::Position Squad::calcCenter()
 	return BWAPI::Position(accum.x / _units.size(), accum.y / _units.size());
 }
 
-BWAPI::Position Squad::calcRegroupPosition()
+BWAPI::Position Squad::calcGroundRegroupPosition()
 {
 	BWAPI::Position regroup(0, 0);
 
@@ -584,6 +584,8 @@ BWAPI::Position Squad::calcRegroupPosition()
 
 	for (auto & unit : _units)
 	{
+		// 跳过飞行单位
+		if (unit->isFlying()) continue;
 		if (!_nearEnemy[unit])
 		{
 			int dist = unit->getDistance(_order.getPosition());
@@ -605,13 +607,46 @@ BWAPI::Position Squad::calcRegroupPosition()
 	}
 }
 
-BWAPI::Unit Squad::unitClosestToEnemy()
+BWAPI::Position Squad::calcAirRegroupPosition()
+{
+	BWAPI::Position regroup(0, 0);
+
+	int minDist = 100000;
+
+	for (auto & unit : _units)
+	{
+		// 跳过地面单位
+		if (!unit->isFlying()) continue;
+		if (!_nearEnemy[unit])
+		{
+			int dist = unit->getDistance(_order.getPosition());
+			if (dist < minDist)
+			{
+				minDist = dist;
+				regroup = unit->getPosition();
+			}
+		}
+	}
+
+	if (regroup == BWAPI::Position(0, 0))
+	{
+		return BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
+	}
+	else
+	{
+		return regroup;
+	}
+}
+
+BWAPI::Unit Squad::groundUnitClosestToEnemy()
 {
 	BWAPI::Unit closest = nullptr;
 	int closestDist = 100000;
 
 	for (auto & unit : _units)
 	{
+		// 跳过飞行单位
+		if (unit->isFlying()) continue;
 		// the distance to the order position
 		int dist = MapTools::Instance().getGroundDistance(unit->getPosition(), _order.getPosition());
 
@@ -626,6 +661,47 @@ BWAPI::Unit Squad::unitClosestToEnemy()
 	{
 		for (auto & unit : _units)
 		{
+			// 跳过飞行单位
+			if (unit->isFlying()) continue;
+			// the distance to the order position
+			int dist = unit->getDistance(BWAPI::Position(BWAPI::Broodwar->enemy()->getStartLocation()));
+
+			if (dist != -1 && (!closest || dist < closestDist))
+			{
+				closest = unit;
+				closestDist = dist;
+			}
+		}
+	}
+
+	return closest;
+}
+
+BWAPI::Unit Squad::airUnitClosestToEnemy()
+{
+	BWAPI::Unit closest = nullptr;
+	int closestDist = 100000;
+
+	for (auto & unit : _units)
+	{
+		// 跳过地面单位
+		if (!unit->isFlying()) continue;
+		// the distance to the order position
+		int dist = MapTools::Instance().getGroundDistance(unit->getPosition(), _order.getPosition());
+
+		if (dist != -1 && (!closest || dist < closestDist))
+		{
+			closest = unit;
+			closestDist = dist;
+		}
+	}
+
+	if (!closest)
+	{
+		for (auto & unit : _units)
+		{
+			// 跳过地面单位
+			if (!unit->isFlying()) continue;
 			// the distance to the order position
 			int dist = unit->getDistance(BWAPI::Position(BWAPI::Broodwar->enemy()->getStartLocation()));
 

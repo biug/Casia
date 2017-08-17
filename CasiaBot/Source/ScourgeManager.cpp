@@ -19,7 +19,9 @@ void ScourgeManager::execute(const SquadOrder & inputOrder)
 		}
 	}
 	// 要么在家里，要么攻击
-	auto newPos = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
+	const auto & mutas = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Hero_Kukulza_Mutalisk);
+	auto newPos =
+		mutas.empty() ? BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation()) : mutas.getPosition();
 	for (const auto & flyer : flyers)
 	{
 		if (flyer->canAttack())

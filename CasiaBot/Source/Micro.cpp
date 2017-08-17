@@ -78,12 +78,19 @@ void Micro::SmartAttackMove(BWAPI::Unit attacker, const BWAPI::Position & target
 	}
 
     // if nothing prevents it, attack the target
-	int len = 1;
-	const auto & chokes = InformationManager::Instance().getPath(attacker->getTilePosition(), BWAPI::TilePosition(targetPosition), &len);
-	auto target = chokes.size() > 1 ? BWAPI::Position(chokes[1]->Center()) : targetPosition;
-	BWAPI::Broodwar->drawLineMap(attacker->getPosition(), target, BWAPI::Colors::Blue);
-	attacker->attack(target);
-    TotalCommands++;
+	if (attacker->isFlying())
+	{
+		attacker->attack(targetPosition);
+	}
+	else
+	{
+		int len = 1;
+		const auto & chokes = InformationManager::Instance().getPath(attacker->getTilePosition(), BWAPI::TilePosition(targetPosition), &len);
+		auto target = chokes.size() > 1 ? BWAPI::Position(chokes[1]->Center()) : targetPosition;
+		BWAPI::Broodwar->drawLineMap(attacker->getPosition(), target, BWAPI::Colors::Blue);
+		attacker->attack(target);
+		TotalCommands++;
+	}
 
     if (Config::Debug::DrawUnitTargetInfo) 
     {
@@ -119,11 +126,18 @@ void Micro::SmartMove(BWAPI::Unit attacker, const BWAPI::Position & targetPositi
     }
 
     // if nothing prevents it, attack the target
-	int len = 1;
-	const auto & chokes = InformationManager::Instance().getPath(attacker->getTilePosition(), BWAPI::TilePosition(targetPosition), &len);
-	auto target = chokes.size() > 1 ? BWAPI::Position(chokes[1]->Center()) : targetPosition;
-	BWAPI::Broodwar->drawLineMap(attacker->getPosition(), target, BWAPI::Colors::Blue);
-	attacker->move(target);
+	if (attacker->isFlying())
+	{
+		attacker->move(targetPosition);
+	}
+	else
+	{
+		int len = 1;
+		const auto & chokes = InformationManager::Instance().getPath(attacker->getTilePosition(), BWAPI::TilePosition(targetPosition), &len);
+		auto target = chokes.size() > 1 ? BWAPI::Position(chokes[1]->Center()) : targetPosition;
+		BWAPI::Broodwar->drawLineMap(attacker->getPosition(), target, BWAPI::Colors::Blue);
+		attacker->move(target);
+	}
     TotalCommands++;
 
     if (Config::Debug::DrawUnitTargetInfo) 
