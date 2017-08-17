@@ -49,6 +49,8 @@ public:
     int                 getReservedGas();
 
 	int					numBeingBuilt(BWAPI::UnitType type);
+	int					getFreeMinerals();
+	int					getFreeGas();
 
     std::vector<BWAPI::UnitType> buildingsQueued();
 };

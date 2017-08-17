@@ -34,6 +34,16 @@ int	BuildingManager::numBeingBuilt(BWAPI::UnitType type)
 	return _numBuildings[type.getID()];
 }
 
+int BuildingManager::getFreeMinerals()
+{
+	return BWAPI::Broodwar->self()->minerals() - _reservedMinerals;
+}
+
+int BuildingManager::getFreeGas()
+{
+	return BWAPI::Broodwar->self()->gas() - _reservedGas;
+}
+
 // STEP 1: DO BOOK KEEPING ON WORKERS WHICH MAY HAVE DIED
 void BuildingManager::validateWorkersAndBuildings()
 {
@@ -75,23 +85,23 @@ void BuildingManager::assignWorkersToUnassignedBuildings()
 		{
 			continue;
 		}
+		b.finalPosition = testLocation;
 
         if (_debugMode) { BWAPI::Broodwar->printf("Assigning Worker To: %s",b.type.getName().c_str()); }
 
         // grab a worker unit from WorkerManager which is closest to this final position
-        BWAPI::Unit workerToAssign = WorkerManager::Instance().getBuilder(b);
+        BWAPI::Unit workerToAssign = WorkerManager::Instance().getBuilder(b, false);
 
-        if (workerToAssign)
-        {			
-            b.builderUnit = workerToAssign;
+		if (!workerToAssign || !workerToAssign->getType().isWorker()) continue;
 
-            b.finalPosition = testLocation;
+		WorkerManager::Instance().setWorkerBuilding(workerToAssign, b);
 
-            // reserve this building's space
-            BuildingPlacer::Instance().reserveTiles(b.finalPosition,b.type.tileWidth(),b.type.tileHeight());
+        b.builderUnit = workerToAssign;
 
-            b.status = BuildingStatus::Assigned;
-        }
+        // reserve this building's space
+        BuildingPlacer::Instance().reserveTiles(b.finalPosition,b.type.tileWidth(),b.type.tileHeight());
+
+        b.status = BuildingStatus::Assigned;
     }
 }
 
@@ -106,49 +116,65 @@ void BuildingManager::constructAssignedBuildings()
         }
 
         // if that worker is not currently constructing
-        if (!b.builderUnit->isConstructing())
+		// for zerg, it not morph to a building
+        if (b.builderUnit->exists() && b.builderUnit->getType().isWorker())
         {
-            // if we haven't explored the build position, go there
-            if (!isBuildingPositionExplored(b))
-            {
-                Micro::SmartMove(b.builderUnit,BWAPI::Position(b.finalPosition));
-            }
-            // if this is not the first time we've sent this guy to build this
-            // it must be the case that something was in the way of building
-            else if (b.buildCommandGiven)
-            {
-                // tell worker manager the unit we had is not needed now, since we might not be able
-                // to get a valid location soon enough
-                WorkerManager::Instance().finishedWithWorker(b.builderUnit);
-
-                // free the previous location in reserved
-                BuildingPlacer::Instance().freeTiles(b.finalPosition,b.type.tileWidth(),b.type.tileHeight());
-
-                // nullify its current builder unit
-                b.builderUnit = nullptr;
-
-                // reset the build command given flag
-                b.buildCommandGiven = false;
-
-                // add the building back to be assigned
-                b.status = BuildingStatus::Unassigned;
-            }
-            else
-            {
-                // issue the build order!
-				if (b.builderUnit->build(b.type, b.finalPosition))
+			if (!b.builderUnit->isConstructing())
+			{
+				// if we haven't explored the build position, go there
+				if (!isBuildingPositionExplored(b))
 				{
-					// set the flag to true
-					b.buildCommandGiven = true;
+					Micro::SmartMove(b.builderUnit, BWAPI::Position(b.finalPosition));
+				}
+				// if this is not the first time we've sent this guy to build this
+				// it must be the case that something was in the way of building
+				else if (b.buildCommandGiven)
+				{
+					// tell worker manager the unit we had is not needed now, since we might not be able
+					// to get a valid location soon enough
+					WorkerManager::Instance().finishedWithWorker(b.builderUnit);
+
+					// free the previous location in reserved
+					BuildingPlacer::Instance().freeTiles(b.finalPosition, b.type.tileWidth(), b.type.tileHeight());
+
+					// nullify its current builder unit
+					b.builderUnit = nullptr;
+
+					// reset the build command given flag
+					b.buildCommandGiven = false;
+
+					// add the building back to be assigned
+					b.status = BuildingStatus::Unassigned;
 				}
 				else
 				{
-					std::string flag = "build " + b.type.getName() + " failed";
-					BWAPI::Broodwar->printf(flag.c_str());
-					BWAPI::Broodwar->drawLineMap(b.builderUnit->getPosition(), BWAPI::Position(b.finalPosition), BWAPI::Colors::Orange);
+					// issue the build order!
+					if (b.builderUnit->build(b.type, b.finalPosition))
+					{
+						// set the flag to true
+						b.buildCommandGiven = true;
+					}
+					else
+					{
+						BWAPI::Broodwar->drawLineMap(b.builderUnit->getPosition(), BWAPI::Position(b.finalPosition), BWAPI::Colors::Orange);
+					}
 				}
-            }
+			}
         }
+		else if ((b.buildCommandGiven && !b.builderUnit->exists()) && !b.type.isRefinery())
+		{
+			// free the previous location in reserved
+			BuildingPlacer::Instance().freeTiles(b.finalPosition, b.type.tileWidth(), b.type.tileHeight());
+
+			// nullify its current builder unit
+			b.builderUnit = nullptr;
+
+			// reset the build command given flag
+			b.buildCommandGiven = false;
+
+			// add the building back to be assigned
+			b.status = BuildingStatus::Unassigned;
+		}
     }
 }
 
@@ -173,14 +199,6 @@ void BuildingManager::checkForStartedConstruction()
             }
         
             // check if the positions match
-			if (b.type.isRefinery())
-			{
-				auto pos = b.finalPosition;
-				if (buildingStarted->getType().isRefinery())
-				{
-					pos = buildingStarted->getTilePosition();
-				}
-			}
             if (b.finalPosition == buildingStarted->getTilePosition())
             {
                 // the resources should now be spent, so unreserve them
@@ -226,7 +244,7 @@ void BuildingManager::checkForConstructingBuildings()
 		BWAPI::Broodwar->drawTextMap(b.buildingUnit->getPosition(), ".2f", ratio);
 		if (!b.buildingUnit->getType().isRefinery())
 		{
-			// 普通建筑在80%时移除
+			// 普通建筑在20%时移除
 			if (b.buildingUnit->isBeingConstructed() && ratio > 0.2)
 			{
 				toRemove.push_back(b);
@@ -268,8 +286,8 @@ bool BuildingManager::isEvolvedBuilding(BWAPI::UnitType type)
 // add a new building to be constructed
 void BuildingManager::addBuildingTask(BWAPI::UnitType type, BWAPI::TilePosition desiredLocation, bool isGasSteal)
 {
-    _reservedMinerals += type.mineralPrice();
-    _reservedGas	     += type.gasPrice();
+	_reservedMinerals += type.mineralPrice();
+	_reservedGas += type.gasPrice();
 
     Building b(type, desiredLocation);
     b.isGasSteal = isGasSteal;
@@ -394,22 +412,6 @@ BuildingManager & BuildingManager::Instance()
     static BuildingManager instance;
     return instance;
 }
-
-std::vector<BWAPI::UnitType> BuildingManager::buildingsQueued()
-{
-    std::vector<BWAPI::UnitType> buildingsQueued;
-
-    for (const auto & b : _buildings)
-    {
-        if (b.status == BuildingStatus::Unassigned || b.status == BuildingStatus::Assigned)
-        {
-            buildingsQueued.push_back(b.type);
-        }
-    }
-
-    return buildingsQueued;
-}
-
 
 BWAPI::TilePosition BuildingManager::getBuildingLocation(const Building & b)
 {

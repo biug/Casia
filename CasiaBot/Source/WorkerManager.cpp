@@ -668,8 +668,8 @@ bool WorkerManager::willHaveResources(int mineralsRequired, int gasRequired, dou
 	double gasRate     = getNumGasWorkers() * 0.07;
 
 	// calculate if we will have enough by the time the worker gets there
-	if (mineralRate * framesToMove >= mineralsRequired + 16 &&
-		gasRate * framesToMove >= gasRequired + 8)
+	if (mineralRate * framesToMove >= (mineralsRequired == 0 ? 0 : mineralsRequired + 16) &&
+		gasRate * framesToMove >= (gasRequired == 0 ? 0 : gasRequired + 8))
 	{
 		return true;
 	}

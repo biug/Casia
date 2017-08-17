@@ -3,9 +3,7 @@
 using namespace CasiaBot;
 
 ProductionManager::ProductionManager() 
-	: _assignedWorkerForThisBuilding (false)
-	, _haveLocationForThisBuilding   (false)
-	, _enemyCloakedDetected          (false)
+	: _enemyCloakedDetected          (false)
 {
     setOpenningBuildOrder(StrategyManager::Instance().getOpeningBookBuildOrder());
 }
@@ -217,29 +215,42 @@ void ProductionManager::manageBuildOrderQueue()
 		}
 	}
 
-	// if the next item in the list is a building and we can't yet make it
-    if (unit.isBuilding() && !(producer && canMake) && unit.whatBuilds().isWorker() && !item._assigned)
+	if (unit.isBuilding())
 	{
-		// construct a temporary building object
 		Building b(unit.getUnitType(), item._desiredPosition);
-        b.isGasSteal = false;
 		b.nexpHatchery = item._unit.getCond().isMain();
+		b.isGasSteal = false;
+		BWAPI::TilePosition testLocation = BuildingManager::Instance().getBuildingLocation(b);
+		if (!testLocation.isValid())
+		{
+			canMake = false;
+		}
+		else
+		{
+			b.finalPosition = testLocation;
 
-		// set the producer as the closest worker, but do not set its job yet
-		producer = WorkerManager::Instance().getBuilder(b, false);
-
-		// predict the worker movement to that building location
-		predictWorkerMovement(b);
-		item._assigned = true;
+			// grab a worker unit from WorkerManager which is closest to this final position
+			BWAPI::Unit workerToAssign = WorkerManager::Instance().getBuilder(b, false);
+			if (!workerToAssign || !workerToAssign->getType().isWorker())
+			{
+				canMake = false;
+			}
+			else
+			{
+				double distance = workerToAssign->getDistance(BWAPI::Position(b.finalPosition));
+				canMake = WorkerManager::Instance().willHaveResources(
+					b.type.mineralPrice() - getFreeMinerals(),
+					b.type.gasPrice() - getFreeGas(),
+					distance);
+			}
+		}
 	}
 
 	// if we can make the current item
-	if (producer && canMake) 
+	if ((producer && canMake)) 
 	{
 		// create it
 		create(producer, item);
-		_assignedWorkerForThisBuilding = false;
-		_haveLocationForThisBuilding = false;
 	}
 	else 
 	{
@@ -401,76 +412,14 @@ bool ProductionManager::canMakeNow(BWAPI::Unit producer, MetaType t)
 	return canMake;
 }
 
-// When the next item in the queue is a building, this checks to see if we should move to it
-// This function is here as it needs to access prodction manager's reserved resources info
-void ProductionManager::predictWorkerMovement(const Building & b)
-{
-    if (b.isGasSteal)
-    {
-        return;
-    }
-
-	// get a possible building location for the building
-	if (!_haveLocationForThisBuilding)
-	{
-		_predictedTilePosition = BuildingManager::Instance().getBuildingLocation(b);
-	}
-
-	if (_predictedTilePosition != BWAPI::TilePositions::None)
-	{
-		_haveLocationForThisBuilding = true;
-	}
-	else
-	{
-		return;
-	}
-	
-	// draw a box where the building will be placed
-	int x1 = _predictedTilePosition.x * 32;
-	int x2 = x1 + (b.type.tileWidth()) * 32;
-	int y1 = _predictedTilePosition.y * 32;
-	int y2 = y1 + (b.type.tileHeight()) * 32;
-	if (Config::Debug::DrawWorkerInfo) 
-    {
-        BWAPI::Broodwar->drawBoxMap(x1, y1, x2, y2, BWAPI::Colors::Blue, false);
-    }
-
-	// where we want the worker to walk to
-	BWAPI::Position walkToPosition		= BWAPI::Position(x1 + (b.type.tileWidth()/2)*32, y1 + (b.type.tileHeight()/2)*32);
-
-	// compute how many resources we need to construct this building
-	int mineralsRequired				= std::max(0, b.type.mineralPrice() - getFreeMinerals());
-	int gasRequired						= std::max(0, b.type.gasPrice() - getFreeGas());
-
-	// get a candidate worker to move to this location
-	BWAPI::Unit moveWorker			= WorkerManager::Instance().getMoveWorker(walkToPosition);
-
-	// Conditions under which to move the worker: 
-	//		- there's a valid worker to move
-	//		- we haven't yet assigned a worker to move to this location
-	//		- the build position is valid
-	//		- we will have the required resources by the time the worker gets there
-	if (moveWorker && _haveLocationForThisBuilding && !_assignedWorkerForThisBuilding && (_predictedTilePosition != BWAPI::TilePositions::None) &&
-		WorkerManager::Instance().willHaveResources(mineralsRequired, gasRequired, moveWorker->getDistance(walkToPosition)) )
-	{
-		// we have assigned a worker
-		_assignedWorkerForThisBuilding = true;
-
-		// tell the worker manager to move this worker
-		WorkerManager::Instance().setWorkerMoving(mineralsRequired, gasRequired, walkToPosition);
-	}
-}
-
 int ProductionManager::getFreeMinerals()
 {
-	int minerals = BWAPI::Broodwar->self()->minerals();
-	int reservedMinerals = BuildingManager::Instance().getReservedMinerals();
-	return minerals - reservedMinerals;
+	return BuildingManager::Instance().getFreeMinerals();
 }
 
 int ProductionManager::getFreeGas()
 {
-	return BWAPI::Broodwar->self()->gas() - BuildingManager::Instance().getReservedGas();
+	return BuildingManager::Instance().getFreeGas();
 }
 
 // return whether or not we meet resources, including building reserves

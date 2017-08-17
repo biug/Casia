@@ -156,9 +156,6 @@
     <ClCompile Include="..\Source\ActionZVTBarracksUnits.cpp">
       <Filter>game\action</Filter>
     </ClCompile>
-    <ClCompile Include="..\Source\ActionZVTFactoriesUnits.cpp">
-      <Filter>game\action</Filter>
-    </ClCompile>
     <ClCompile Include="..\Source\ActionHelper.cpp">
       <Filter>game\util</Filter>
     </ClCompile>
@@ -174,17 +171,11 @@
     <ClCompile Include="..\Source\MutaliskManager.cpp">
       <Filter>game\combat\micro</Filter>
     </ClCompile>
-    <ClCompile Include="..\Source\ActionZVZZerglingMutalisk.cpp">
-      <Filter>game\action</Filter>
-    </ClCompile>
     <ClCompile Include="..\Source\ActionZVZZerglingLurker.cpp">
       <Filter>game\action</Filter>
     </ClCompile>
     <ClCompile Include="..\Source\ProductionItem.cpp">
       <Filter>game\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Source\ActionZVPDragoon.cpp">
-      <Filter>game\action</Filter>
     </ClCompile>
     <ClCompile Include="..\Source\ActionZVPZealot.cpp">
       <Filter>game\action</Filter>
@@ -194,9 +185,6 @@
     </ClCompile>
     <ClCompile Include="..\Source\HarassZerglingManager.cpp">
       <Filter>game\combat\micro</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Source\ActionZVPZerglingRush.cpp">
-      <Filter>game\action</Filter>
     </ClCompile>
     <ClCompile Include="..\Source\MapPath.cpp">
       <Filter>game\util\map</Filter>
@@ -380,9 +368,6 @@
     <ClInclude Include="..\Source\ActionZVTBarracksUnits.h">
       <Filter>game\action</Filter>
     </ClInclude>
-    <ClInclude Include="..\Source\ActionZVTFactoriesUnits.h">
-      <Filter>game\action</Filter>
-    </ClInclude>
     <ClInclude Include="..\Source\ActionHelper.h">
       <Filter>game\util</Filter>
     </ClInclude>
@@ -398,17 +383,11 @@
     <ClInclude Include="..\Source\MutaliskManager.h">
       <Filter>game\combat\micro</Filter>
     </ClInclude>
-    <ClInclude Include="..\Source\ActionZVZZerglingMutalisk.h">
-      <Filter>game\action</Filter>
-    </ClInclude>
     <ClInclude Include="..\Source\ActionZVZZerglingLurker.h">
       <Filter>game\action</Filter>
     </ClInclude>
     <ClInclude Include="..\Source\ProductionItem.h">
       <Filter>game\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Source\ActionZVPDragoon.h">
-      <Filter>game\action</Filter>
     </ClInclude>
     <ClInclude Include="..\Source\ActionZVPZealot.h">
       <Filter>game\action</Filter>
@@ -418,9 +397,6 @@
     </ClInclude>
     <ClInclude Include="..\Source\HarassZerglingManager.h">
       <Filter>game\combat\micro</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Source\ActionZVPZerglingRush.h">
-      <Filter>game\action</Filter>
     </ClInclude>
     <ClInclude Include="..\Source\MapPath.h">
       <Filter>game\util\map</Filter>

@@ -7,12 +7,8 @@
 #include "BuildOrder.h"
 #include "ProductionQueue.h"
 #include "ActionZVTBarracksUnits.h"
-#include "ActionZVTFactoriesUnits.h"
 #include "ActionZVZZerglingLurker.h"
-#include "ActionZVZZerglingMutalisk.h"
 #include "ActionZVPZealot.h"
-#include "ActionZVPDragoon.h"
-#include "ActionZVPZerglingRush.h"
 #include "ActionZVPHydra.h"
 
 namespace CasiaBot
@@ -54,19 +50,15 @@ class StrategyManager
 	StrategyManager();
 
 	BWAPI::Race					    _selfRace;
-	BWAPI::Race					    _enemyRace;
+	BWAPI::Race					    _lastEnemyRace;
     std::map<std::string, Opening>	_openings;
     int                             _totalGamesPlayed;
 	const BuildOrder                _emptyBuildOrder;
 	ActionZergBase*					_action;
 	int								_lastChangeFrame;
 	ActionZVTBarracksUnits			_actionZVTBarracks;
-	ActionZVTFactoriesUnits			_actionZVTFactories;
 	ActionZVZZerglingLurker			_actionZVZLurker;
-	ActionZVZZerglingMutalisk		_actionZVZMutalisk;
 	ActionZVPZealot					_actionZVPZealot;
-	ActionZVPDragoon				_actionZVPDragoon;
-	ActionZVPZerglingRush			_actionZVPZerglingRush;
 	ActionZVPHydra					_actionZVPHydra;
 
 	        void	                writeResults();
