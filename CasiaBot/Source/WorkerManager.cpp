@@ -1,6 +1,7 @@
 #include "Common.h"
 #include "WorkerManager.h"
 #include "Micro.h"
+#include "ActionZergBase.h"
 
 using namespace CasiaBot;
 
@@ -45,36 +46,32 @@ void WorkerManager::updateResourceStatus()
 		int gas = BWAPI::Broodwar->self()->gas();
 		int spentMineral = BWAPI::Broodwar->self()->spentMinerals();
 		int spentGas = BWAPI::Broodwar->self()->spentGas();
-		int numHydra =
-			InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Hydralisk, BWAPI::Broodwar->self());
-		int numMuta =
-			InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Mutalisk, BWAPI::Broodwar->self());
-		// 晶矿不多时
-		if (mineral < 200)
+		int numLairInQueue = ActionZergBase::_status.lair_in_queue;
+		int numMetabolicBoostInQueue = ActionZergBase::_status.metabolic_boost_in_queue;
+		int numLurkerAspectInQueue = ActionZergBase::_status.lurker_aspect_in_queue;
+		int numLurkerInQueue = ActionZergBase::_status.lurker_in_queue;
+		int numMutaliskInQueue = ActionZergBase::_status.mutalisk_in_queue;
+		int numSpireInQueue = ActionZergBase::_status.spire_in_queue;
+		
+		// 需要采气
+		needMoreGas =
+			numLairInQueue
+			+ numMetabolicBoostInQueue
+			+ numLurkerAspectInQueue
+			+ numLurkerInQueue
+			+ numMutaliskInQueue
+			+ numSpireInQueue > 0;
+		if (!needMoreGas)
 		{
-			// 如果已经消耗很多气
-			if (spentGas >= 600)
-			{
-				// 晶矿不足阈值降低
-				if (mineral < 100)
-				{
-					needMoreMineral = true;
-				}
-			}
-			else
+			if (mineral < 100)
 			{
 				needMoreMineral = true;
 			}
-		}
-		// 如果很长一段时间没有用气，并且还没有出刺蛇/飞龙，那么停止采气
-		if (gas > 200 && gasNotUsed && numHydra == 0 && numMuta == 0)
-		{
-			needLessGas = true;
-		}
-		// 如果不需要更多的矿，并且气体不足
-		else if (!needMoreMineral)
-		{
-			needMoreGas = true;
+			// 如果很长一段时间没有用气，并且还没有出刺蛇/飞龙，那么停止采气
+			if (gas > 300 && gasNotUsed)
+			{
+				needLessGas = true;
+			}
 		}
 	}
 }

@@ -50,7 +50,7 @@ void ActionZVZZerglingLurker::getBuildOrderList(CasiaBot::ProductionQueue & queu
 		//如果有creep就变地堡
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony), true);
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone), true);	// 补地堡也要补农民
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone));	// 补地堡也要补农民
 	}
 
 	// 判断血池是否存在
@@ -68,35 +68,34 @@ void ActionZVZZerglingLurker::getBuildOrderList(CasiaBot::ProductionQueue & queu
 
 	// 判断是否二本
 	if (_status.lair_total == 0	// 没有多造
-		&& _status.spawning_pool_completed > 0 && freeGas > 50		// 资源和前置条件
+		&& _status.spawning_pool_completed > 0		// 资源和前置条件
 		&& (!being_rushed || _status.sunken_colony_count >= 2)		// 被rush要地堡优先
 		&& _status.zergling_count >= 8
-		&& currentFrameCount >= 5400)
+		&& currentFrameCount >= 4800)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Lair), true);	// 二本优先
 	}
 
-	// 判断刺蛇洞是否存在
-	if (_status.hydralisk_den_total == 0
-		&& freeGas >= 30 && _status.lair_count > 0)
+	// 飞龙塔
+	if (_status.lair_completed > 0
+		&& _status.spire_total == 0)
 	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk_Den, "50%Lair"));
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Spire));
 	}
 
 	// 开分矿
-	if (freeMineral > 400
+	if (freeMineral > 350
 		&& _status.base_in_queue + _status.base_being_built == 0
-		&& _status.base_count < 5
-		&& _status.lurker_count > 0)
+		&& _status.base_count < 5)
 	{
-		BWAPI::Broodwar->printf("add a hatchery");
+		std::string cond = _status.base_total == 1 ? "Main" : "";
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hatchery));
 	}
 
 	// 三本
 	if (_status.lair_completed > 0)
 	{
-		if (_status.queens_nest_total == 0 && _status.lurker_completed > 0)
+		if (_status.queens_nest_total == 0 && _status.lurker_completed > 2)
 		{
 			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Queens_Nest));
 		}
@@ -109,19 +108,12 @@ void ActionZVZZerglingLurker::getBuildOrderList(CasiaBot::ProductionQueue & queu
 		}
 	}
 
-	// lurker科技
-	if (_status.hydralisk_den_completed > 0
-		&& _status.lair_completed > 0
-		&& _status.lurker_aspect_count == 0)
-	{
-		queue.add(MetaType(BWAPI::TechTypes::Lurker_Aspect), true);
-	}
 	// 小狗科技
-	if (_status.spawning_pool_completed > 0 && _status.metabolic_boost_count == 0)
+	if (_status.spawning_pool_completed > 0 && _status.metabolic_boost_total == 0)
 	{
 		queue.add(MetaType(BWAPI::UpgradeTypes::Metabolic_Boost));
 	}
-	if (_status.hive_completed > 0 && _status.adrenal_glands_count == 0)
+	if (_status.hive_completed > 0 && _status.adrenal_glands_total == 0)
 	{
 		queue.add(MetaType(BWAPI::UpgradeTypes::Adrenal_Glands));
 	}
@@ -133,7 +125,7 @@ void ActionZVZZerglingLurker::getBuildOrderList(CasiaBot::ProductionQueue & queu
 		numTotalPatch += WorkerManager::Instance().getMineralPatches(base).size();
 	}
 	// 如果农民不足，需要加入优先队列
-	bool notEnoughDrone = (_status.drone_total) < (int)((float)numTotalPatch * 1.3);
+	bool notEnoughDrone = (_status.drone_total) < numTotalPatch;
 	if (_status.drone_total < numTotalPatch * Config::Macro::WorkersPerMineralPatch)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone), notEnoughDrone);
@@ -151,29 +143,22 @@ void ActionZVZZerglingLurker::getBuildOrderList(CasiaBot::ProductionQueue & queu
 
 	// 判断需要建造多少部队
 	// 小狗
-	int zerglingMax = std::max(16, _status.enemy_zergling_count + 6);
+	int zerglingMax = std::max(12, _status.enemy_zergling_count + 2);
 	int zerglingNeed = (zerglingMax - _status.zergling_total) / 2;
-	if (zerglingNeed > 0 && _status.zergling_in_queue < 8)
+	if (zerglingNeed > 0 && _status.zergling_in_queue < 4)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Zergling));
 	}
 
-	// 刺蛇
-	if (_status.hydralisk_den_completed > 0
-		&& _status.hydralisk_in_queue < 2
-		&& _status.hydralisk_total < _status.enemy_air_army_supply + 3)
+	// 飞龙
+	if (_status.spire_completed > 0 && _status.mutalisk_in_queue < 2)
 	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk));
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Mutalisk), _status.enemy_mutalisk_count - _status.mutalisk_count > 0);
 	}
-	// lurker加入优先队列
-	if (_status.hydralisk_completed > 0
-		&& BWAPI::Broodwar->self()->hasResearched(BWAPI::TechTypes::Lurker_Aspect)
-		&& _status.lurker_in_queue == 0)
+
+	int air_require = _status.enemy_mutalisk_count - _status.mutalisk_count - _status.scourge_count;
+	if (air_require > 0)
 	{
-		int hydra_reserved = _status.enemy_air_army_supply - _status.hydralisk_count;
-		if (hydra_reserved <= 0)
-		{
-			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Lurker), true);
-		}
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Scourge), true);
 	}
 }

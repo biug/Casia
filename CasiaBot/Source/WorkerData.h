@@ -54,6 +54,7 @@ private:
 
 	const int		mineralPatchRadius = 300;
 	const int		sameMineralBaseRadius = 300;
+	std::hash_map<BWAPI::Unit, int> patchWorkers;
 
 	void clearPreviousJob(BWAPI::Unit unit);
 
@@ -93,7 +94,7 @@ public:
 	bool					isRefinery(BWAPI::Unit refinery) const;
 	bool					isWorkerInOverloadMineral(BWAPI::Unit unit) const;
 
-	std::pair<BWAPI::Unit, BWAPI::Unit>				getClosestMineral(BWAPI::Unit worker) const;
+	std::pair<BWAPI::Unit, BWAPI::Unit>				getClosestMineral(BWAPI::Unit worker);
 	BWAPI::Unit										getClosestRefinery(BWAPI::Unit worker) const;
 	BWAPI::Unit										getLarvaDepot() const;
 	const BWAPI::Unitset &							getRefineries() const;

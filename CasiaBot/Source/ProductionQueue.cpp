@@ -234,7 +234,7 @@ ProductionItem ProductionQueue::popItem()
 			if (!_armyQueue.empty())
 			{
 				// 如果造了过多的army，并且卡住了worker
-				if (_straightArmyCount > 3 && !_workerQueue.empty())
+				if (_straightArmyCount > 1 && !_workerQueue.empty())
 				{
 					break;
 				}
@@ -247,7 +247,7 @@ ProductionItem ProductionQueue::popItem()
 		case ProductionTypeID::WORKER:
 			if (!_workerQueue.empty())
 			{
-				if (_straightWorkerCount > 3 && !_armyQueue.empty())
+				if (_straightWorkerCount > 1 && !_armyQueue.empty())
 				{
 					break;
 				}

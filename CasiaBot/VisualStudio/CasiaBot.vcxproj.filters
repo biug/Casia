@@ -246,6 +246,9 @@
     <ClCompile Include="..\Source\ActionZVPHydra.cpp">
       <Filter>game\action</Filter>
     </ClCompile>
+    <ClCompile Include="..\Source\ScourgeManager.cpp">
+      <Filter>game\combat\micro</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\CombatCommander.h">
@@ -469,6 +472,9 @@
     </ClInclude>
     <ClInclude Include="..\Source\ActionZVPHydra.h">
       <Filter>game\action</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ScourgeManager.h">
+      <Filter>game\combat\micro</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

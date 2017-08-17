@@ -31,6 +31,9 @@ void ProductionManager::performBuildOrderSearch()
 
 void ProductionManager::update() 
 {
+	// update status
+	ActionZergBase::updateStatus(_queue);
+
 	// check the _queue for stuff we can build
 	manageBuildOrderQueue();
     

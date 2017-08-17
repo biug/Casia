@@ -157,14 +157,16 @@ bool InformationManager::beingZealotRushed()
 bool InformationManager::beingZerglingRushed()
 {
 	int numZergling = getNumUnits(BWAPI::UnitTypes::Zerg_Zergling, BWAPI::Broodwar->enemy());
+	int ourZergling = getNumUnits(BWAPI::UnitTypes::Zerg_Zergling, BWAPI::Broodwar->self());
 	int frameCount = BWAPI::Broodwar->getFrameCount();
-	return (frameCount <= 3200 && numZergling >= 6);
+	return (frameCount <= 3200 && numZergling >= 6)
+		|| (frameCount > 3200 && (ourZergling == 0 || numZergling / ourZergling >= 2));
 }
 
 void InformationManager::updateRush()
 {
-	if (getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Lurker, BWAPI::Broodwar->self()) >= 2
-		|| getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Mutalisk, BWAPI::Broodwar->self()) >= 4)
+	if (getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Lurker, BWAPI::Broodwar->self()) > 0
+		|| getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Mutalisk, BWAPI::Broodwar->self()) > 0)
 	{
 		_isEncounterRush = false;
 	}
@@ -487,9 +489,9 @@ void InformationManager::onUnitDestroy(BWAPI::Unit unit)
 
 bool InformationManager::isCombatUnit(BWAPI::UnitType type) const
 {
-	if (type == BWAPI::UnitTypes::Zerg_Lurker/* || type == BWAPI::UnitTypes::Protoss_Dark_Templar*/)
+	if (type == BWAPI::UnitTypes::Zerg_Lurker)
 	{
-		return false;
+		return true;
 	}
 
 	// check for various types of combat units

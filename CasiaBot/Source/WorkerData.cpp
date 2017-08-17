@@ -10,6 +10,7 @@ WorkerData::WorkerData()
 void WorkerData::checkWorkersStatus()
 {
 	// add new worker
+	patchWorkers.clear();
 	for (auto & unit : BWAPI::Broodwar->self()->getUnits())
 	{
 		// add the depot if it exists
@@ -489,7 +490,7 @@ bool WorkerData::isRefinery(BWAPI::Unit refinery) const
 		&& refinery->getPlayer() == BWAPI::Broodwar->self();
 }
 
-std::pair<BWAPI::Unit, BWAPI::Unit> WorkerData::getClosestMineral(BWAPI::Unit worker) const
+std::pair<BWAPI::Unit, BWAPI::Unit> WorkerData::getClosestMineral(BWAPI::Unit worker)
 {
 	if (!worker) { return{ nullptr, nullptr }; }
 
@@ -497,7 +498,6 @@ std::pair<BWAPI::Unit, BWAPI::Unit> WorkerData::getClosestMineral(BWAPI::Unit wo
 	int			minDist0 = 1000000, minDist1 = 1000000;
 	BWAPI::Unit bestPatch0 = nullptr, bestPatch1 = nullptr;
 	BWAPI::Unit bestMineralBase0 = nullptr, bestMineralBase1 = nullptr;
-	std::hash_map<BWAPI::Unit, int> patchWorkers;
 	for (const auto & worker : workers)
 	{
 		if (getWorkerJob(worker) == Minerals)
@@ -556,12 +556,14 @@ std::pair<BWAPI::Unit, BWAPI::Unit> WorkerData::getClosestMineral(BWAPI::Unit wo
 			}
 		}
 	}
-	if ((bestPatch0 && minDist0 - minDist1 < 300) || !bestPatch1)
+	if ((bestPatch0 && minDist0 - minDist1 < 600) || !bestPatch1)
 	{
+		if (bestPatch0) patchWorkers[bestPatch0] = 1;
 		return { bestPatch0, bestMineralBase0 };
 	}
 	else
 	{
+		if (bestPatch1) patchWorkers[bestPatch1] = 1;
 		return { bestPatch1, bestMineralBase1 };
 	}
 }

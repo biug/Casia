@@ -27,70 +27,42 @@ void LurkerManager::executeMicro(const BWAPI::Unitset & targets)
 			// if there are targets
 			if (!lurkerTargets.empty())
 			{
-				bool flee = false;
-				for (auto & target : targets)
+				// find the best target for this lurker
+				BWAPI::Unit target = getTarget(lurker, lurkerTargets);
+
+				if (target && Config::Debug::DrawUnitTargetInfo)
 				{
-					BWAPI::UnitType targetType = target->getType();
-					if(targetType == BWAPI::UnitTypes::Terran_Missile_Turret ||
-						targetType == BWAPI::UnitTypes::Terran_Science_Vessel ||
-						targetType == BWAPI::UnitTypes::Protoss_Photon_Cannon ||
-						targetType == BWAPI::UnitTypes::Protoss_Observer ||
-						targetType == BWAPI::UnitTypes::Zerg_Spore_Colony ||
-						targetType == BWAPI::UnitTypes::Zerg_Overlord)
-					{
-						if (lurker->getDistance(target) >= target->getType().sightRange() - 32)
-						{
-							continue;
-						}
-						if (lurker->canUnburrow()){
-							lurker->unburrow();
-						}
-						BWAPI::Position fleeVector = Micro::GetKiteVector(target, lurker);
-						BWAPI::Position moveToPosition(lurker->getPosition() + fleeVector);
-						Micro::SmartMove(lurker, moveToPosition);
-						flee = true;
-						break;
-					}
+					BWAPI::Broodwar->drawLineMap(lurker->getPosition(), lurker->getTargetPosition(), BWAPI::Colors::Purple);
 				}
-				if (!flee)
+
+				// if we are within attack range, burrow
+				if (lurker->getDistance(target) < lurkerRange && lurker->canBurrow())
 				{
-					// find the best target for this lurker
-					BWAPI::Unit target = getTarget(lurker, lurkerTargets);
+					lurker->burrow();
+				}
+				// otherwise unburrow and move in
+				else if ((!target || lurker->getDistance(target) > lurkerRange + 64) && lurker->canUnburrow())
+				{
+					lurker->unburrow();
+				}
 
-					if (target && Config::Debug::DrawUnitTargetInfo)
-					{
-						BWAPI::Broodwar->drawLineMap(lurker->getPosition(), lurker->getTargetPosition(), BWAPI::Colors::Purple);
-					}
-
-					// if we are within attack range, burrow
-					if (lurker->getDistance(target) < lurkerRange && lurker->canBurrow())
-					{
-						lurker->burrow();
-					}
-					// otherwise unburrow and move in
-					else if ((!target || lurker->getDistance(target) > lurkerRange + 32) && lurker->canUnburrow())
-					{
-						lurker->unburrow();
-					}
-
-					// if we're in siege mode just attack the target
-					if (lurker->isBurrowed())
-					{
-						Micro::SmartAttackUnit(lurker, target);
-					}
-					// if we're not in siege mode kite the target
-					else
-					{
-						// move to it
-						Micro::SmartMove(lurker, target->getPosition());
-					}
+				// if we're in siege mode just attack the target
+				if (lurker->isBurrowed())
+				{
+					Micro::SmartAttackUnit(lurker, target);
+				}
+				// if we're not in siege mode kite the target
+				else
+				{
+					// move to it
+					Micro::SmartMove(lurker, target->getPosition());
 				}
 			}
 			// if there are no targets
 			else
 			{
 				// if we're not near the order position
-				if (lurker->getDistance(order.getPosition()) > 160)
+				if (lurker->getDistance(order.getPosition()) > lurkerRange + 96)
 				{
 					if (lurker->canUnburrow())
 					{

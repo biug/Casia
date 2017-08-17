@@ -11,6 +11,7 @@
 #include "HydraliskManager.h"
 #include "ZerglingManager.h"
 #include "MutaliskManager.h"
+#include "ScourgeManager.h"
 #include "OverlordManager.h"
 #include "HarassZerglingManager.h"
 #include "HarassMutaliskManager.h"
@@ -35,6 +36,7 @@ namespace CasiaBot
 		HydraliskManager	_hydraliskManager;
 		ZerglingManager		_zerglingManager;
 		MutaliskManager		_mutaliskManager;
+		ScourgeManager		_scourgeManager;
 		OverlordManager		_overlordManager;
 		HarassZerglingManager _harassZerglingManager;
 		HarassMutaliskManager _harassMutaliskManager;

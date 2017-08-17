@@ -130,16 +130,16 @@ void ActionZVTBarracksUnits::getBuildOrderList(CasiaBot::ProductionQueue & queue
 	// lurker科技
 	if (_status.hydralisk_den_completed > 0
 		&& _status.lair_completed > 0
-		&& _status.lurker_aspect_count == 0)
+		&& _status.lurker_aspect_total == 0)
 	{
 		queue.add(MetaType(BWAPI::TechTypes::Lurker_Aspect), true);
 	}
 	// 小狗科技
-	if (_status.spawning_pool_completed > 0 && _status.metabolic_boost_count == 0)
+	if (_status.spawning_pool_completed > 0 && _status.metabolic_boost_total == 0)
 	{
 		queue.add(MetaType(BWAPI::UpgradeTypes::Metabolic_Boost));
 	}
-	if (_status.hive_completed > 0 && _status.adrenal_glands_count == 0)
+	if (_status.hive_completed > 0 && _status.adrenal_glands_total == 0)
 	{
 		queue.add(MetaType(BWAPI::UpgradeTypes::Adrenal_Glands));
 	}
