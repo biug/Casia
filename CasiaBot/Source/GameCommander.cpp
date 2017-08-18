@@ -254,8 +254,11 @@ BWAPI::Unit GameCommander::getClosestWorkerToTarget(BWAPI::Position target)
 
 	for (auto & unit : _validUnits)
 	{
-		if (!isAssigned(unit) && unit->getType().isWorker() && WorkerManager::Instance().isFree(unit))
+		if (!isAssigned(unit)
+			&& unit->getType().isWorker()
+			&& WorkerManager::Instance().isFree(unit))
 		{
+			if (!unit->isCarryingMinerals()) continue;
 			double dist = unit->getDistance(target);
 			if (!closestUnit || dist < closestDist)
 			{

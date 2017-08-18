@@ -90,7 +90,7 @@ void BuildingManager::assignWorkersToUnassignedBuildings()
         if (_debugMode) { BWAPI::Broodwar->printf("Assigning Worker To: %s",b.type.getName().c_str()); }
 
         // grab a worker unit from WorkerManager which is closest to this final position
-        BWAPI::Unit workerToAssign = WorkerManager::Instance().getBuilder(b, false);
+        BWAPI::Unit workerToAssign = WorkerManager::Instance().getBuilder(b, true);
 
 		if (!workerToAssign || !workerToAssign->getType().isWorker()) continue;
 
@@ -122,7 +122,8 @@ void BuildingManager::constructAssignedBuildings()
 			if (!b.builderUnit->isConstructing())
 			{
 				// if we haven't explored the build position, go there
-				if (!isBuildingPositionExplored(b) || b.builderUnit->getDistance(BWAPI::Position(b.finalPosition)) > 128)
+				if (!isBuildingPositionExplored(b)
+					|| b.builderUnit->getDistance(BWAPI::Position(b.finalPosition)) > 128)
 				{
 					Micro::SmartMove(b.builderUnit, BWAPI::Position(b.finalPosition));
 				}

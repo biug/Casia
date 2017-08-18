@@ -493,10 +493,11 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
         }
 
 		// mining worker check
-		if (worker->isCompleted() && worker->getPosition().isValid() && (workerData.getWorkerJob(worker) == WorkerData::Minerals))
+		if (worker->isCompleted()
+			&& worker->getPosition().isValid()
+			&& workerData.getWorkerJob(worker) == WorkerData::Minerals
+			&& !worker->isCarryingMinerals())
 		{
-			// if it is a new closest distance, set the pointer
-			if (!worker->isMoving()) continue;
 			double distance = worker->getDistance(BWAPI::Position(b.finalPosition));
 			if (!closestMiningWorker || distance < closestMiningWorkerDistance)
 			{
@@ -505,10 +506,11 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 			}
 		}
 
-		if (worker->isCompleted() && worker->getPosition().isValid() && (workerData.getWorkerJob(worker) == WorkerData::Gas))
+		if (worker->isCompleted()
+			&& worker->getPosition().isValid()
+			&& workerData.getWorkerJob(worker) == WorkerData::Gas
+			&& !worker->isCarryingGas())
 		{
-			// if it is a new closest distance, set the pointer
-			if (!worker->isMoving()) continue;
 			double distance = worker->getDistance(BWAPI::Position(b.finalPosition));
 			if (!closestGasWorker || distance < closestGasWorkerDistance)
 			{
@@ -518,7 +520,9 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 		}
 
 		// moving worker check
-		if (worker->isCompleted() && worker->getPosition().isValid() && (workerData.getWorkerJob(worker) == WorkerData::Move))
+		if (worker->isCompleted()
+			&& worker->getPosition().isValid()
+			&& (workerData.getWorkerJob(worker) == WorkerData::Move))
 		{
 			// if it is a new closest distance, set the pointer
 			double distance = worker->getDistance(BWAPI::Position(b.finalPosition));
@@ -653,8 +657,8 @@ bool WorkerManager::willHaveResources(int mineralsRequired, int gasRequired, dou
 	double gasRate     = getNumGasWorkers() * 0.07;
 
 	// calculate if we will have enough by the time the worker gets there
-	if (mineralRate * framesToMove >= (mineralsRequired == 0 ? 0 : mineralsRequired + 16) &&
-		gasRate * framesToMove >= (gasRequired == 0 ? 0 : gasRequired + 8))
+	if (mineralRate * framesToMove >= (mineralsRequired == 0 ? 0 : mineralsRequired) &&
+		gasRate * framesToMove >= (gasRequired == 0 ? 0 : gasRequired))
 	{
 		return true;
 	}
