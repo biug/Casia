@@ -106,15 +106,6 @@ void WorkerManager::updateWorkerStatus()
 			}
 		}
 
-		// if it's idle
-		if (worker->isIdle() && 
-			(workerData.getWorkerJob(worker) != WorkerData::Build) && 
-			(workerData.getWorkerJob(worker) != WorkerData::Move) &&
-			(workerData.getWorkerJob(worker) != WorkerData::Scout)) 
-		{
-			workerData.setWorkerIdle(worker);
-		}
-
 		// if its job is gas
 		if (workerData.getWorkerJob(worker) == WorkerData::Gas)
 		{
@@ -156,7 +147,7 @@ void WorkerManager::handleGasWorkers()
 			if (needLessGas || needMoreMineral)
 			{
 				BWAPI::Unit gasWorker = workerData.getRefineryWorker(unit);
-				if (gasWorker != nullptr && gasWorker->isMoving())
+				if (gasWorker != nullptr && gasWorker->isMoving() && !gasWorker->isCarryingGas())
 				{
 					setWorkerGatheringMineral(gasWorker);
 				}
@@ -194,6 +185,7 @@ void WorkerManager::handleMineralWorkers()
 void WorkerManager::handleIdleWorkers() 
 {
 	// for each of our workers
+	int idlen = 0;
 	for (auto & worker : workerData.getWorkers())
 	{
         CAB_ASSERT(worker != nullptr, "Worker was null");
@@ -203,6 +195,7 @@ void WorkerManager::handleIdleWorkers()
 		{
 			// send it to the nearest mineral patch
 			setWorkerGatheringMineral(worker);
+			++idlen;
 		}
 	}
 }
@@ -255,6 +248,7 @@ void WorkerManager::finishedWithCombatWorkers()
 
 		if (workerData.getWorkerJob(worker) == WorkerData::Combat)
 		{
+			BWAPI::Broodwar->printf("set a m worker from combat");
 			setWorkerGatheringMineral(worker);
 		}
 	}
@@ -432,6 +426,7 @@ void WorkerManager::finishedWithWorker(BWAPI::Unit unit)
 	//BWAPI::Broodwar->printf("BuildingManager finished with worker %d", unit->getID());
 	if (workerData.getWorkerJob(unit) != WorkerData::Scout)
 	{
+		BWAPI::Broodwar->printf("finish work");
 		workerData.setWorkerIdle(unit);
 	}
 }
@@ -450,7 +445,8 @@ BWAPI::Unit WorkerManager::getGasWorker(BWAPI::Unit refinery)
 		if (workerData.getWorkerJob(unit) == WorkerData::Minerals)
 		{
 			double distance = unit->getDistance(refinery);
-			if (!closestWorker || distance < closestDistance)
+			if (distance > 480) continue;
+			if ((!closestWorker || distance < closestDistance) && !unit->isCarryingMinerals())
 			{
 				closestWorker = unit;
 				closestDistance = distance;
@@ -730,9 +726,20 @@ void WorkerManager::rebalanceMineralWorkers()
 			continue;
 		}
 
-		if (worker && workerData.isWorkerInOverloadMineral(worker))
+		if (worker->canReturnCargo()
+			&& worker->isCarryingMinerals()
+			&& worker->isMoving()
+			&& worker->getLastCommand().getType() != BWAPI::UnitCommandTypes::Return_Cargo)
 		{
-			workerData.setWorkerIdle(worker);
+			worker->returnCargo();
+		}
+		else
+		{
+			if (worker && workerData.isWorkerInOverloadMineral(worker))
+			{
+				BWAPI::Broodwar->printf("finish overload");
+				workerData.setWorkerIdle(worker);
+			}
 		}
 	}
 }

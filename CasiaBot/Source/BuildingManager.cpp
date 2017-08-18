@@ -122,7 +122,7 @@ void BuildingManager::constructAssignedBuildings()
 			if (!b.builderUnit->isConstructing())
 			{
 				// if we haven't explored the build position, go there
-				if (!isBuildingPositionExplored(b))
+				if (!isBuildingPositionExplored(b) || b.builderUnit->getDistance(BWAPI::Position(b.finalPosition)) > 128)
 				{
 					Micro::SmartMove(b.builderUnit, BWAPI::Position(b.finalPosition));
 				}

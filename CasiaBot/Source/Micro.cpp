@@ -148,20 +148,20 @@ void Micro::SmartMove(BWAPI::Unit attacker, const BWAPI::Position & targetPositi
     }
 }
 
-void Micro::SmartRightClick(BWAPI::Unit unit, BWAPI::Unit target)
+bool Micro::SmartRightClick(BWAPI::Unit unit, BWAPI::Unit target)
 {
     CAB_ASSERT(unit, "SmartRightClick: Unit not valid");
     CAB_ASSERT(target, "SmartRightClick: Target not valid");
 
     if (!unit || !target)
     {
-        return;
+        return false;
     }
 
     // if we have issued a command to this unit already this frame, ignore this one
-    if (unit->getLastCommandFrame() >= BWAPI::Broodwar->getFrameCount() || unit->isAttackFrame())
+    if (unit->isAttackFrame())
     {
-        return;
+        return false;
     }
 
     // get the unit's current command
@@ -170,11 +170,10 @@ void Micro::SmartRightClick(BWAPI::Unit unit, BWAPI::Unit target)
     // if we've already told this unit to move to this position, ignore this command
     if ((currentCommand.getType() == BWAPI::UnitCommandTypes::Right_Click_Unit) && (currentCommand.getTargetPosition() == target->getPosition()))
     {
-        return;
+        return false;
     }
 
     // if nothing prevents it, attack the target
-    unit->rightClick(target);
     TotalCommands++;
 
     if (Config::Debug::DrawUnitTargetInfo) 
@@ -183,6 +182,7 @@ void Micro::SmartRightClick(BWAPI::Unit unit, BWAPI::Unit target)
         BWAPI::Broodwar->drawCircleMap(target->getPosition(), dotRadius, BWAPI::Colors::Cyan, true);
         BWAPI::Broodwar->drawLineMap(unit->getPosition(), target->getPosition(), BWAPI::Colors::Cyan);
     }
+	return unit->rightClick(target);
 }
 
 void Micro::SmartLaySpiderMine(BWAPI::Unit unit, BWAPI::Position pos)

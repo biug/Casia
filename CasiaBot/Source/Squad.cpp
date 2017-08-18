@@ -58,6 +58,7 @@ void Squad::update()
 	}
 	else // otherwise, execute micro
 	{
+		BWAPI::Broodwar->drawCircleMap(_order.getPosition(), 10, BWAPI::Colors::Orange, true);
 		_meleeManager.execute(_order);
 		_rangedManager.execute(_order);
 		_lurkerManager.execute(_order);
@@ -472,7 +473,6 @@ bool Squad::airRetreat(BWAPI::Position center)
 // calculates whether or not to regroup
 bool Squad::groundNeedsToRegroup()
 {
-
 	// if we are not attacking, never regroup
 	if (_units.empty() || (_order.getType() != SquadOrderTypes::Attack))
 	{
