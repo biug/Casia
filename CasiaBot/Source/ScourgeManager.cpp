@@ -139,9 +139,15 @@ int ScourgeManager::getAttackPriority(BWAPI::Unit hydraliskUnit, BWAPI::Unit tar
 
 	if (targetType.isFlyer())
 	{
-		if (targetType.canAttack() && targetType.airWeapon().isValid())
+		if (targetType.canAttack()
+			&& targetType.airWeapon().isValid()
+			&& targetType != BWAPI::UnitTypes::Zerg_Scourge) // scourge not attack scourge
 			return targetType.airWeapon().damageAmount();
-		else return 1;
+		else if (targetType == BWAPI::UnitTypes::Zerg_Scourge)
+		{
+			return 2;
+		}
+		return 1;
 	}
 
 	return 0;

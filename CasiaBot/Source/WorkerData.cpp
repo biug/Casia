@@ -63,7 +63,7 @@ void WorkerData::checkWorkersStatus()
 				}
 				// 在采气，但是Job不是采气
 				if (workerJobMap[worker].first != WorkerJob::Gas
-					&& worker->isGatheringGas()
+					&& worker->isCarryingGas()
 					&& workerRefineryMap.find(worker) != workerRefineryMap.end()
 					&& worker->getDistance(workerRefineryMap.at(worker)) < 300)
 				{
@@ -71,11 +71,10 @@ void WorkerData::checkWorkersStatus()
 				}
 				// 在采矿，但是Job不是采矿
 				if (workerJobMap[worker].first != WorkerJob::Minerals
-					&& worker->isGatheringMinerals()
+					&& worker->isCarryingMinerals()
 					&& workerMineralBaseMap.find(worker) != workerMineralBaseMap.end()
 					&& worker->getDistance(workerMineralBaseMap.at(worker)) < 300)
 				{
-					BWAPI::Broodwar->printf("set a m worker from error");
 					setWorkerGatheringMineral(worker);
 				}
 			}

@@ -127,12 +127,12 @@ int MutaliskManager::getAttackPriority(BWAPI::Unit mutaliskUnit, BWAPI::Unit tar
     BWAPI::Position ourBasePosition = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
     if (targetType.isWorker() && (target->isConstructing() || target->isRepairing()) && target->getDistance(ourBasePosition) < 1200)
     {
-        return 100;
+        return 80;
     }
 	//可以攻击空中单位
     if (targetType.canAttack() && targetType.airWeapon().isValid())
     {
-		if (targetType.isFlyer()) return 95;
+		if (targetType.isFlyer()) return 95 + targetType.airWeapon().damageAmount();
         else return 90;
     }
     
