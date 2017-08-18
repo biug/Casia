@@ -7,7 +7,6 @@ using namespace CasiaBot;
 
 WorkerManager::WorkerManager() 
 {
-	needLessGas = needMoreGas = needLessMineral = needMoreMineral = false;
     previousClosestWorker = nullptr;
 }
 
@@ -30,50 +29,19 @@ void WorkerManager::update()
 
 void WorkerManager::updateResourceStatus()
 {
-	if (BWAPI::Broodwar->getFrameCount() % 15 == 0)
-	{
-		needLessGas = needMoreGas = needLessMineral = needMoreMineral = false;
-		gasNotUsed = false;
-		gasUsed.push_back(BWAPI::Broodwar->self()->spentGas());
-		if (gasUsed.size() >= 30)
-		{
-			if (gasUsed.front() == gasUsed.back()) {
-				gasNotUsed = true;
-			}
-			gasUsed.pop_front();
-		}
-		int mineral = BWAPI::Broodwar->self()->minerals();
-		int gas = BWAPI::Broodwar->self()->gas();
-		int spentMineral = BWAPI::Broodwar->self()->spentMinerals();
-		int spentGas = BWAPI::Broodwar->self()->spentGas();
-		int numLairInQueue = ActionZergBase::_status.lair_in_queue;
-		int numMetabolicBoostInQueue = ActionZergBase::_status.metabolic_boost_in_queue;
-		int numLurkerAspectInQueue = ActionZergBase::_status.lurker_aspect_in_queue;
-		int numLurkerInQueue = ActionZergBase::_status.lurker_in_queue;
-		int numMutaliskInQueue = ActionZergBase::_status.mutalisk_in_queue;
-		int numSpireInQueue = ActionZergBase::_status.spire_in_queue;
-		
-		// 需要采气
-		needMoreGas =
-			numLairInQueue
-			+ numMetabolicBoostInQueue
-			+ numLurkerAspectInQueue
-			+ numLurkerInQueue
-			+ numMutaliskInQueue
-			+ numSpireInQueue > 0;
-		if (!needMoreGas)
-		{
-			if (mineral < 100)
-			{
-				needMoreMineral = true;
-			}
-			// 如果很长一段时间没有用气，并且还没有出刺蛇/飞龙，那么停止采气
-			if (gas > 300 && gasNotUsed)
-			{
-				needLessGas = true;
-			}
-		}
-	}
+	int numLairInQueue = ActionZergBase::_status.lair_in_queue;
+	int numMetabolicBoostInQueue = ActionZergBase::_status.metabolic_boost_in_queue;
+	int numLurkerAspectInQueue = ActionZergBase::_status.lurker_aspect_in_queue;
+	int numSpireInQueue = ActionZergBase::_status.spire_waiting;
+	int numHydraliskDenInQueue = ActionZergBase::_status.hydralisk_den_waiting;
+	int numGroovedSpinesInQueue = ActionZergBase::_status.grooved_spines_in_queue;
+	int numMuscularArguments = ActionZergBase::_status.muscular_arguments_in_queue;
+
+	gasNeed = numLairInQueue * 100 + numMetabolicBoostInQueue * 100
+		+ numLurkerAspectInQueue * 200 + numSpireInQueue * 200
+		+ numHydraliskDenInQueue * 100 + numGroovedSpinesInQueue * 100
+		+ numGroovedSpinesInQueue * 100
+		- BWAPI::Broodwar->self()->gas();
 }
 
 void WorkerManager::updateWorkerStatus() 
@@ -144,15 +112,10 @@ void WorkerManager::handleGasWorkers()
 		// if that unit is a refinery
 		if (workerData.isRefinery(unit) && !isGasStealRefinery(unit))
 		{
-			if (needLessGas || needMoreMineral)
-			{
-				BWAPI::Unit gasWorker = workerData.getRefineryWorker(unit);
-				if (gasWorker != nullptr && gasWorker->isMoving() && !gasWorker->isCarryingGas())
-				{
-					setWorkerGatheringMineral(gasWorker);
-				}
-			}
-			else
+			// 刚需
+			if (gasNeed > 0
+				|| ActionZergBase::_status.spire_completed > 0
+				|| BWAPI::Broodwar->self()->hasResearched(BWAPI::TechTypes::Lurker_Aspect))
 			{
 				// get the number of workers currently assigned to it
 				int workersNeeded = Config::Macro::WorkersPerRefinery
@@ -166,6 +129,34 @@ void WorkerManager::handleGasWorkers()
 					{
 						setWorkerGatheringGas(gasWorker);
 					}
+				}
+			}
+			else if (ActionZergBase::_status.hydralisk_in_queue > 0)
+			{
+				// get the number of workers currently assigned to it
+				int workersNeeded = Config::Macro::WorkersPerRefinery
+					- workerData.getNumRefineryWorkers(unit) - 1;
+				if (BWAPI::Broodwar->self()->gas() >= 200)
+				{
+					workersNeeded -= 1;
+				}
+
+				// if it's less than we want it to be, fill 'er up
+				for (int i = 0; i < workersNeeded; ++i)
+				{
+					BWAPI::Unit gasWorker = getGasWorker(unit);
+					if (gasWorker)
+					{
+						setWorkerGatheringGas(gasWorker);
+					}
+				}
+			}
+			else
+			{
+				BWAPI::Unit gasWorker = workerData.getRefineryWorker(unit);
+				if (gasWorker != nullptr && gasWorker->isMoving() && !gasWorker->isCarryingGas())
+				{
+					setWorkerGatheringMineral(gasWorker);
 				}
 			}
 		}
