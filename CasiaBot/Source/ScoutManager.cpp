@@ -401,7 +401,7 @@ BWAPI::Position ScoutManager::getFleePosition()
         double distanceFromCurrentVertex = _enemyRegionVertices[_currentRegionVertexIndex].getDistance(_workerScout->getPosition());
 
 		BWAPI::Position ourBaseLocation(BWAPI::Broodwar->self()->getStartLocation());
-		CAB_ASSERT_SIMPLE("%d", Config::Micro::ScoutRound);
+		//CAB_ASSERT_SIMPLE("%d", Config::Micro::ScoutRound);
         // keep going to the next vertex in the perimeter until we get to one we're far enough from to issue another move command
         while (distanceFromCurrentVertex < 128)
         {
