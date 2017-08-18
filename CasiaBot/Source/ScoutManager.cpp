@@ -128,19 +128,20 @@ void ScoutManager::moveScouts()
 			// if the worker scout is not under attack
 			if (!_scoutUnderAttack)
 			{
+				//不主动攻击，注释掉部分为骚扰敌方农民
 				// if there is a worker nearby, harass it
-				if (Config::Opening::ScoutHarassEnemy && (!Config::Opening::GasStealWithScout || _gasStealFinished) && closestWorker && (_workerScout->getDistance(closestWorker) < 800))
-				{
-                    _scoutStatus = "Harass enemy worker";
-                    _currentRegionVertexIndex = -1;
-					Micro::SmartAttackUnit(_workerScout, closestWorker);
-				}
+				// if (Config::Opening::ScoutHarassEnemy && (!Config::Opening::GasStealWithScout || _gasStealFinished) && closestWorker && (_workerScout->getDistance(closestWorker) < 800))
+				// {
+                    // _scoutStatus = "Harass enemy worker";
+                    // _currentRegionVertexIndex = -1;
+					// Micro::SmartAttackUnit(_workerScout, closestWorker);
+				// }
 				// otherwise keep moving to the enemy region
-				else
-				{
+				// else
+				// {
                     _scoutStatus = "Following perimeter";
                     followPerimeter();  
-                }
+                // }
 				
 			}
 			// if the worker scout is under attack
@@ -399,15 +400,37 @@ BWAPI::Position ScoutManager::getFleePosition()
     {
         double distanceFromCurrentVertex = _enemyRegionVertices[_currentRegionVertexIndex].getDistance(_workerScout->getPosition());
 
+		BWAPI::Position ourBaseLocation(BWAPI::Broodwar->self()->getStartLocation());
+		CAB_ASSERT_SIMPLE("%d", Config::Micro::ScoutRound);
         // keep going to the next vertex in the perimeter until we get to one we're far enough from to issue another move command
         while (distanceFromCurrentVertex < 128)
         {
-            _currentRegionVertexIndex = (_currentRegionVertexIndex + 1) % _enemyRegionVertices.size();
-
-            distanceFromCurrentVertex = _enemyRegionVertices[_currentRegionVertexIndex].getDistance(_workerScout->getPosition());
+			if (Config::Micro::ScoutRound == 0)
+			{
+				Config::Modules::UsingScoutManager = false;
+				WorkerManager::Instance().finishedWithWorker(_workerScout);
+				return ourBaseLocation;
+			}
+			_currentRegionVertexIndex = _currentRegionVertexIndex + 1;
+			if (_currentRegionVertexIndex == _enemyRegionVertices.size()){
+				_currentRegionVertexIndex = 0;
+				Config::Micro::ScoutRound--;
+			}
+			if (Config::Micro::ScoutRound > 0){
+				distanceFromCurrentVertex = _enemyRegionVertices[_currentRegionVertexIndex].getDistance(_workerScout->getPosition());
+			}
+			else{
+				distanceFromCurrentVertex = ourBaseLocation.getDistance(_workerScout->getPosition());
+			}
         }
-
-        return _enemyRegionVertices[_currentRegionVertexIndex];
+		if (Config::Micro::ScoutRound > 0){
+			return _enemyRegionVertices[_currentRegionVertexIndex];
+			
+		}
+		else{
+			return ourBaseLocation;
+		}
+        
     }
 
 }

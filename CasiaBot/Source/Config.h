@@ -94,7 +94,8 @@ namespace Config
         extern int RetreatMeleeUnitHP;
         extern int CombatRadius;                
         extern int CombatRegroupRadius;         
-        extern int UnitNearEnemyRadius;         
+        extern int UnitNearEnemyRadius;
+		extern int ScoutRound;
     }
 
     namespace Macro

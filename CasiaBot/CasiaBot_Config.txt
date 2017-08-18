@@ -24,7 +24,8 @@
         "RetreatMeleeUnitHP"        : 0,
         "InCombatRadius"            : 1000,
         "RegroupRadius"             : 300,
-        "UnitNearEnemyRadius"       : 600
+        "UnitNearEnemyRadius"       : 600,
+		"ScoutRound"				: 2
     },
     
     "Macro" :
