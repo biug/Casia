@@ -5,90 +5,9 @@ using namespace CasiaBot;
 
 OverlordManager::OverlordManager() 
 {
-	initializeFlag = false;
-	startBase[0] = BWAPI::TilePositions::None;
-	startBase[2] = BWAPI::TilePositions::None;
-	startBase[1] = BWAPI::TilePositions::None;
-	needDetect[0] = true;
-	needDetect[1] = false;
-	needDetect[2] = false;
 }
 void OverlordManager::executeMicro(const BWAPI::Unitset & targets)
 {
-}
-void OverlordManager::initEnemyBase()
-{
-	if (initializeFlag)
-	{
-		return;
-	}
-	const auto & sbases = InformationManager::Instance().getSelfBases();
-	auto sbaseTP = sbases.empty()
-		? BWAPI::Broodwar->self()->getStartLocation()
-		: sbases.front()->getTilePosition();
-	auto sbaseP = BWAPI::Position(sbaseTP);
-	//0最近的，1最远的，2剩下那个
-	int minDistance = 0;
-	int maxDistance = 0;
-	int nowDistance;
-	for (const auto & base : BWEM::Map::Instance().StartingLocations()) {
-		nowDistance = abs(base.x - sbaseTP.x) + abs(base.y - sbaseTP.y);
-		if ((!startBase[0].isValid() || minDistance > nowDistance) && nowDistance != 0){
-			startBase[0] = base;
-			minDistance = nowDistance;
-		}
-		if ((!startBase[1].isValid() || maxDistance < nowDistance) && nowDistance != 0){
-			startBase[1] = base;
-			maxDistance = nowDistance;
-			needDetect[1] = true;
-		}
-	}
-	if (startBase[1] == startBase[0])
-	{
-		startBase[1] = BWAPI::TilePositions::None;
-		needDetect[1] = false;
-	}
-	for (const auto & base : BWEM::Map::Instance().StartingLocations()) {
-		if (startBase[0] != base && startBase[1] != base && sbaseTP != base){
-			startBase[2] = base;
-			needDetect[2] = true;
-		}
-	}
-	//获取初始位置结束
-	initializeFlag = true;
-	int halfWidth = 16 * BWAPI::Broodwar->mapWidth();
-	int halfHeight = 16 * BWAPI::Broodwar->mapHeight();
-	//以地图中心建立坐标系，与地图数据中y方向相反
-	double angle[4];
-	auto start0 = BWAPI::Position(startBase[0]);
-	angle[0] = atan2(halfHeight - start0.y, start0.x - halfWidth);
-	angle[3] = atan2(halfHeight - sbaseP.y, sbaseP.x - halfWidth);
-	int compare = 0;
-	if (needDetect[2])
-	{
-		compare = 2;
-	}
-	else if (needDetect[1]){
-		compare = 1;
-	}
-	if (compare == 0)
-	{
-		return;
-	}
-	auto startCompare = BWAPI::Position(startBase[compare]);
-	angle[compare] = atan2(halfHeight - startCompare.y, startCompare.x - halfWidth);
-	if ((angle[3] > angle[0] && angle[3] > angle[compare] && angle[0] < angle[compare])//基地左上角
-		|| (angle[3] < angle[0] && angle[3] > angle[compare] && angle[0] < angle[compare])//基地右侧
-		|| (angle[3] < angle[0] && angle[3] < angle[compare] && angle[0] < angle[compare]))//基地左下角
-	{
-		//交换成顺时针方向
-		std::swap(startBase[0], startBase[compare]);
-	}
-	//CAB_ASSERT_SIMPLE("1 %d %d", startBase[0]->getPosition().x, startBase[0]->getPosition().y);
-	//CAB_ASSERT_SIMPLE("2 %d %d", startBase[1]->getPosition().x, startBase[1]->getPosition().y);
-	//CAB_ASSERT_SIMPLE("3 %d %d", startBase[2]->getPosition().x, startBase[2]->getPosition().y);
-	//CAB_ASSERT_SIMPLE("4 %d %d", ourBaseLocation.x, ourBaseLocation.y);
-	//CAB_ASSERT_SIMPLE("Map %d %d", BWAPI::Broodwar->mapWidth(), BWAPI::Broodwar->mapHeight());
 }
 void OverlordManager::executeMove(const SquadOrder & inputOrder) 
 {
@@ -101,8 +20,6 @@ void OverlordManager::executeMove(const SquadOrder & inputOrder)
 		? BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation())
 		: sbases.front()->getPosition();
 	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
-	//初始化开始基地的数据
-	initEnemyBase();
 	
 	size_t numOverlord = InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Overlord, BWAPI::Broodwar->self());
     size_t current(0);
@@ -155,42 +72,35 @@ void OverlordManager::executeMove(const SquadOrder & inputOrder)
 			{
 				BWAPI::Position aimPosition;
 				int aimPlace = -1;
-				//顺时针探路
 				if (ebases.empty())
 				{
-					////从最小开始的方向
-					//if (current == 0)
-					//{
-					if (needDetect[0])
+					//顺时针探路
+					auto baseTPs = BWEM::Map::Instance().StartingLocations();
+					auto cmp = [](const BWAPI::TilePosition baseTP1, const BWAPI::TilePosition baseTP2) {
+						BWAPI::Position center(BWAPI::Broodwar->mapWidth() * 16, BWAPI::Broodwar->mapHeight() * 16);
+						BWAPI::Position baseP1(baseTP1), baseP2(baseTP2);
+						int dx1 = baseP1.x - center.x, dy1 = baseP1.y - center.y;
+						int dx2 = baseP2.x - center.x, dy2 = baseP2.y - center.y;
+						double theta1 = std::atan2(dy1, dx1);
+						double theta2 = std::atan2(dy2, dx2);
+						//升序列->顺时针
+						return theta1 < theta2;
+					};
+
+					std::sort(baseTPs.begin(), baseTPs.end(), cmp);
+					auto iter = std::find(baseTPs.begin(), baseTPs.end(), BWAPI::Broodwar->self()->getStartLocation());
+					std::reverse(baseTPs.begin(), iter);
+					std::reverse(iter++, baseTPs.end());
+					std::reverse(baseTPs.begin(), baseTPs.end());
+					for (const auto baseTP : baseTPs)
 					{
-						aimPosition = BWAPI::Position(startBase[0]);
-						aimPlace = 0;
+						// if we haven't explored it yet
+						if (!BWAPI::Broodwar->isExplored(baseTP))
+						{
+							aimPosition = BWAPI::Position(baseTP);
+							break;
+						}
 					}
-					else if (needDetect[1])
-					{
-						aimPosition = BWAPI::Position(startBase[1]);
-						aimPlace = 1;
-					}
-					else if (needDetect[2])
-					{
-						aimPosition = BWAPI::Position(startBase[2]);
-						aimPlace = 2;
-					}
-					//}
-					////换个方向
-					//else
-					//{
-					//	if (needDetect[2] && startBase[2] != nullptr)
-					//	{
-					//		aimPosition = startBase[1]->getPosition();
-					//		aimPlace = 2;
-					//	}
-					//	else if (needDetect[1] && startBase[1] != nullptr)
-					//	{
-					//		aimPosition = startBase[1]->getPosition();
-					//		aimPlace = 1;
-					//	}
-					//}
 				}
 				//探到基地，去角落呆着
 				else
@@ -222,11 +132,6 @@ void OverlordManager::executeMove(const SquadOrder & inputOrder)
 				//BWAPI::Position movePosition(static_cast<int>(640 * sin(fleeAngle)), static_cast<int>(-640 * cos(fleeAngle)));
 				//aimPosition = BWAPI::Position(aimPosition - fleeVec);
 				Micro::SmartMove(overlordUnit, aimPosition);
-
-				if (overlordUnit->getDistance(aimPosition) < 32 && aimPlace != -1)
-				{
-					needDetect[aimPlace] = false;
-				}
 				current++;
 			}
 			//基地每个一只

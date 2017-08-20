@@ -176,22 +176,12 @@ void ScoutManager::moveScouts()
 		//ÄæÊ±ÕëÌ½Â·
 		auto baseTPs = BWEM::Map::Instance().StartingLocations();
 		auto cmp = [](const BWAPI::TilePosition baseTP1, const BWAPI::TilePosition baseTP2) {
-			BWAPI::Position center(BWAPI::Broodwar->mapWidth() / 2, BWAPI::Broodwar->mapHeight() / 2);
+			BWAPI::Position center(BWAPI::Broodwar->mapWidth() * 16, BWAPI::Broodwar->mapHeight() * 16);
 			BWAPI::Position baseP1(baseTP1), baseP2(baseTP2);
 			int dx1 = baseP1.x - center.x, dy1 = baseP1.y - center.y;
 			int dx2 = baseP2.x - center.x, dy2 = baseP2.y - center.y;
-			double theta1 =
-				dx1 == 0 ?
-					theta1 = dy1 > 0 ?
-						M_PI / 2.0 :
-						M_PI * 3.0 / 2.0 :
-					std::atan2(dy1, dx1);
-			double theta2 =
-				dx2 == 0 ?
-					theta1 = dy2 > 0 ?
-						M_PI / 2.0 :
-						M_PI * 3.0 / 2.0 :
-					std::atan2(dy2, dx2);
+			double theta1 = std::atan2(dy1, dx1);
+			double theta2 = std::atan2(dy2, dx2);
 			//½µÐòÁÐ->ÄæÊ±Õë
 			return theta1 > theta2;
 		};
@@ -199,7 +189,7 @@ void ScoutManager::moveScouts()
 		std::sort(baseTPs.begin(), baseTPs.end(), cmp);
 		auto iter = std::find(baseTPs.begin(), baseTPs.end(), BWAPI::Broodwar->self()->getStartLocation());
 		std::reverse(baseTPs.begin(), iter);
-		std::reverse(iter, baseTPs.end());
+		std::reverse(iter++, baseTPs.end());
 		std::reverse(baseTPs.begin(), baseTPs.end());
 
 		for (const auto baseTP : baseTPs)
@@ -209,7 +199,7 @@ void ScoutManager::moveScouts()
 			{
 				// assign a zergling to go scout it
 				Micro::SmartMove(_workerScout, BWAPI::Position(baseTP));
-				return;
+				break;
 			}
 		}
 	}
