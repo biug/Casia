@@ -249,6 +249,9 @@
     <ClCompile Include="..\Source\ScourgeManager.cpp">
       <Filter>game\combat\micro</Filter>
     </ClCompile>
+    <ClCompile Include="..\Source\ZergStrategyManager.cpp">
+      <Filter>game\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\CombatCommander.h">
@@ -475,6 +478,9 @@
     </ClInclude>
     <ClInclude Include="..\Source\ScourgeManager.h">
       <Filter>game\combat\micro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ZergStrategyManager.h">
+      <Filter>game\util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

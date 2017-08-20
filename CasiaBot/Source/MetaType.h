@@ -10,6 +10,17 @@ namespace MetaTypes
     enum {Unit, Tech, Upgrade, Command, Default};
 }
 
+enum class MetaLocation
+{
+	Anywhere     // default location
+	, Macro        // macro hatchery
+	, Expo         // gas expansion hatchery
+	, MinOnly      // any expansion hatchery (mineral-only or gas, whatever's next)
+	, Hidden       // gas expansion hatchery far from both main bases
+	, Main         // starting base
+	, Natural      // "natural" first expansion base
+};
+
 class MetaCondition
 {
 	std::string _condition;

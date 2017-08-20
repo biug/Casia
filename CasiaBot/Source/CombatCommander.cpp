@@ -255,7 +255,7 @@ void CombatCommander::updateDefenseSquads()
     }
 
 	// for each of our occupied regions
-	for (const auto & base : InformationManager::Instance().getSelfBases())
+	for (const auto & base : InformationManager::Instance().getSelfDepotBases())
 	{
 		const auto & area = InformationManager::Instance().getTileArea(base->getTilePosition());
 		if (!area) continue;
@@ -462,7 +462,7 @@ void CombatCommander::drawSquadInformation(int x, int y)
 
 BWAPI::Position CombatCommander::getMainAttackLocation()
 {
-	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
+	const auto & ebases = InformationManager::Instance().getEnemyDepotBaseInfos();
 
     // First choice: Attack an enemy region if we can see units inside it
     if (!ebases.empty())

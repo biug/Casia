@@ -272,7 +272,7 @@ BWAPI::TilePosition BuildingPlacer::getRefineryPosition()
 	BWAPI::TilePosition homeTilePosition = BWAPI::Broodwar->self()->getStartLocation();
 
     // for each geyser
-	const auto & bases = InformationManager::Instance().getSelfBases();
+	const auto & bases = InformationManager::Instance().getSelfDepotBases();
 	const auto & extractors = InformationManager::Instance().getUnitset(BWAPI::UnitTypes::Zerg_Extractor);
 	for (const auto & geyser : BWEM::Map::Instance().Geysers())
 	{
@@ -379,7 +379,7 @@ bool BuildingPlacer::isAwayResource(BWAPI::TilePosition tp, BWAPI::Unit base)
 
 BWAPI::Unit BuildingPlacer::getDefenseBase()
 {
-	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
+	const auto & ebases = InformationManager::Instance().getEnemyDepotBaseInfos();
 	auto enemyP = BWAPI::Positions::None;
 	if (!ebases.empty())
 	{
@@ -390,7 +390,7 @@ BWAPI::Unit BuildingPlacer::getDefenseBase()
 		return nullptr;
 	}
 	auto enemyTP = BWAPI::TilePosition(enemyP);
-	const auto & bases = InformationManager::Instance().getSelfBases();
+	const auto & bases = InformationManager::Instance().getSelfDepotBases();
 	for (const auto & base : bases)
 	{
 		const auto & infos = InformationManager::Instance().getUnitInfo(BWAPI::Broodwar->self());
@@ -445,7 +445,7 @@ BWAPI::TilePosition BuildingPlacer::getCreepPosition(int numCreep, BWAPI::Unit b
 	int numColony = numCreep
 		+ InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Creep_Colony, BWAPI::Broodwar->self())
 		+ InformationManager::Instance().getNumUnits(BWAPI::UnitTypes::Zerg_Sunken_Colony, BWAPI::Broodwar->self());
-	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
+	const auto & ebases = InformationManager::Instance().getEnemyDepotBaseInfos();
 	auto enemyP = BWAPI::Positions::None;
 	if (!ebases.empty())
 	{
@@ -571,7 +571,7 @@ BWAPI::TilePosition BuildingPlacer::getNextExpansion()
 
 	BWAPI::TilePosition homeTile = BWAPI::Broodwar->self()->getStartLocation();
 
-	const auto & baseTPs = InformationManager::Instance().getBaseTiles();
+	const auto & baseTPs = InformationManager::Instance().getUsedDepots();
 
 	for (const auto & area : BWEM::Map::Instance().Areas())
 	{

@@ -54,10 +54,12 @@ void InformationManager::initializeRegionInformation()
 		if (unit->getType().isResourceDepot())
 		{
 			_selfBases.push_back(unit);
+			_selfDepotBases.push_back(unit);
 			break;
 		}
 	}
 	_enemyBaseInfos.clear();
+	_enemyDepotBaseInfos.clear();
 }
 
 void InformationManager::updateLocationInfo() 
@@ -72,8 +74,21 @@ void InformationManager::updateLocationInfo()
 		++_scanned;
 		if (_scanned % 192 == 0) break;
 	}
+	if (_scanned >= _cols * _rows)
+	{
+		_mapDepots.clear();
+		auto baseArea = getTileArea(BWAPI::Broodwar->self()->getStartLocation());
+		for (const auto & area : BWEM::Map::Instance().Areas())
+		{
+			if (!baseArea->AccessibleFrom(&area)) continue;
+			for (auto & base : area.Bases())
+			{
+				_mapDepots.emplace_back(&base);
+			}
+		}
+	}
 
-	_baseTiles.clear();
+	_usedDepots.clear();
 	// for each enemy unit we know about
 	for (const auto & kv : _unitData[_enemy].getUnits())
 	{
@@ -87,14 +102,22 @@ void InformationManager::updateLocationInfo()
 			|| type == BWAPI::UnitTypes::Terran_Command_Center
 			|| type == BWAPI::UnitTypes::Protoss_Nexus) if (getTileArea(ui.lastTilePosition))
 		{
-			_baseTiles.emplace_back(kv.second.lastTilePosition);
-			auto itr = std::find_if(_enemyBaseInfos.begin(), _enemyBaseInfos.end(), [&ui](const UnitInfo & u)
+			if (ui.type.isResourceDepot())
+			{
+				_usedDepots.emplace_back(kv.second.lastTilePosition);
+			}
+			auto itr = std::find_if(_enemyBaseInfos.begin(), _enemyBaseInfos.end(),
+				[&ui](const UnitInfo & u)
 			{
 				return u.lastTilePosition == ui.lastTilePosition;
 			});
 			if (itr == _enemyBaseInfos.end())
 			{
 				_enemyBaseInfos.emplace_back(ui);
+				if (ui.type.isResourceDepot())
+				{
+					_enemyDepotBaseInfos.emplace_back(ui);
+				}
 			}
 		}
 	}
@@ -110,16 +133,23 @@ void InformationManager::updateLocationInfo()
 			|| type == BWAPI::UnitTypes::Zerg_Lair
 			|| type == BWAPI::UnitTypes::Zerg_Hive) if (getTileArea(unit->getTilePosition()))
 		{
-			_baseTiles.emplace_back(unit->getTilePosition());
+			if (unit->getType().isResourceDepot())
+			{
+				_usedDepots.emplace_back(unit->getTilePosition());
+			}
 			auto itr = std::find(_selfBases.begin(), _selfBases.end(), unit);
 			if (itr == _selfBases.end())
 			{
 				_selfBases.emplace_back(unit);
+				if (unit->getType().isResourceDepot())
+				{
+					_selfDepotBases.emplace_back(unit);
+				}
 			}
 		}
 	}
 
-	for (const auto &baseTP : _baseTiles)
+	for (const auto &baseTP : _usedDepots)
 	{
 		BWAPI::Position baseP(baseTP);
 		BWAPI::Broodwar->drawBoxMap(baseP - BWAPI::Position(16, 16), baseP + BWAPI::Position(16, 16), BWAPI::Colors::Blue, true);
@@ -181,19 +211,34 @@ const UIMap & InformationManager::getUnitInfo(BWAPI::Player player) const
 	return getUnitData(player).getUnits();
 }
 
+const std::vector<BWAPI::Unit> & InformationManager::getSelfDepotBases() const
+{
+	return _selfDepotBases;
+}
+
 const std::vector<BWAPI::Unit> & InformationManager::getSelfBases() const
 {
 	return _selfBases;
 }
 
-const std::vector<UnitInfo> & InformationManager::getEnemyBaseInfos() const
+const std::vector<UnitInfo> & InformationManager::getEnemyDepotBaseInfos() const
 {
-	return _enemyBaseInfos;
+	return _enemyDepotBaseInfos;
 }
 
-const std::vector<BWAPI::TilePosition> & InformationManager::getBaseTiles() const
+const std::vector<const BWEM::Base *> & InformationManager::getMapDepots() const
 {
-	return _baseTiles;
+	return _mapDepots;
+}
+
+const std::vector<BWAPI::TilePosition> & InformationManager::getUsedDepots() const
+{
+	return _usedDepots;
+}
+
+int InformationManager::numFreeDepots() const
+{
+	return _mapDepots.size() - _usedDepots.size();
 }
 
 const BWEM::Area * InformationManager::getTileArea(BWAPI::TilePosition base) const
@@ -468,7 +513,17 @@ void InformationManager::onUnitDestroy(BWAPI::Unit unit)
     _unitData[player].removeUnit(unit);
 	if (player == _enemy)
 	{
-		auto itr = std::find_if(_enemyBaseInfos.begin(), _enemyBaseInfos.end(), [&tile](const UnitInfo & u)
+		auto itr = std::find_if(_enemyDepotBaseInfos.begin(), _enemyDepotBaseInfos.end(),
+			[&tile](const UnitInfo & u)
+		{
+			return u.lastTilePosition == tile;
+		});
+		if (itr != _enemyDepotBaseInfos.end())
+		{
+			_enemyDepotBaseInfos.erase(itr);
+		}
+		itr = std::find_if(_enemyBaseInfos.begin(), _enemyBaseInfos.end(),
+			[&tile](const UnitInfo & u)
 		{
 			return u.lastTilePosition == tile;
 		});
@@ -483,6 +538,11 @@ void InformationManager::onUnitDestroy(BWAPI::Unit unit)
 		if (itr != _selfBases.end())
 		{
 			_selfBases.erase(itr);
+		}
+		auto itr = std::find(_selfDepotBases.begin(), _selfDepotBases.end(), unit);
+		if (itr != _selfDepotBases.end())
+		{
+			_selfDepotBases.erase(itr);
 		}
 	}
 }

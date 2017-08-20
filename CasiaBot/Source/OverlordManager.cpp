@@ -22,7 +22,7 @@ void OverlordManager::initEnemyBase()
 	{
 		return;
 	}
-	const auto & sbases = InformationManager::Instance().getSelfBases();
+	const auto & sbases = InformationManager::Instance().getSelfDepotBases();
 	auto sbaseTP = sbases.empty()
 		? BWAPI::Broodwar->self()->getStartLocation()
 		: sbases.front()->getTilePosition();
@@ -96,11 +96,11 @@ void OverlordManager::executeMove(const SquadOrder & inputOrder)
 
     const BWAPI::Unitset & overlordUnits = getUnits();
     //different position need to do
-	const auto & sbases = InformationManager::Instance().getSelfBases();
+	const auto & sbases = InformationManager::Instance().getSelfDepotBases();
 	auto sbaseP = sbases.empty()
 		? BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation())
 		: sbases.front()->getPosition();
-	const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
+	const auto & ebases = InformationManager::Instance().getEnemyDepotBaseInfos();
 	//初始化开始基地的数据
 	initEnemyBase();
 	

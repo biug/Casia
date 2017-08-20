@@ -184,6 +184,7 @@
     <ClCompile Include="..\source\WorkerData.cpp" />
     <ClCompile Include="..\source\WorkerManager.cpp" />
     <ClCompile Include="..\Source\ZerglingManager.cpp" />
+    <ClCompile Include="..\Source\ZergStrategyManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\ActionHelper.h" />
@@ -261,6 +262,7 @@
     <ClInclude Include="..\source\WorkerData.h" />
     <ClInclude Include="..\source\WorkerManager.h" />
     <ClInclude Include="..\Source\ZerglingManager.h" />
+    <ClInclude Include="..\Source\ZergStrategyManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Source\bwem\src\area.h.bak" />

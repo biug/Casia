@@ -21,9 +21,12 @@ class InformationManager
     BWAPI::Player       _enemy;
 
     std::hash_map<BWAPI::Player, UnitData>						_unitData;
+	std::vector<const BWEM::Base*>								_mapDepots;
 	std::vector<BWAPI::Unit>									_selfBases;
+	std::vector<BWAPI::Unit>									_selfDepotBases;
 	std::vector<UnitInfo>										_enemyBaseInfos;
-	std::vector<BWAPI::TilePosition>							_baseTiles;
+	std::vector<UnitInfo>										_enemyDepotBaseInfos;
+	std::vector<BWAPI::TilePosition>							_usedDepots;
 	std::vector<const BWEM::Area *>								_tileAreas;
 
 	bool					_isEncounterRush;
@@ -68,9 +71,12 @@ public:
 
     const UIMap &           getUnitInfo(BWAPI::Player player) const;
 
-    const std::vector<BWAPI::Unit> &			getSelfBases() const;
-	const std::vector<UnitInfo> &				getEnemyBaseInfos() const;
-	const std::vector<BWAPI::TilePosition> &	getBaseTiles() const;
+	const std::vector<BWAPI::Unit> &			getSelfBases() const;
+    const std::vector<BWAPI::Unit> &			getSelfDepotBases() const;
+	const std::vector<UnitInfo> &				getEnemyDepotBaseInfos() const;
+	const std::vector<const BWEM::Base*> &		getMapDepots() const;
+	const std::vector<BWAPI::TilePosition> &	getUsedDepots() const;
+	int											numFreeDepots() const;
 	BWAPI::Position	getLastPosition(BWAPI::Unit unit, BWAPI::Player player) const;
 	const BWEM::Area *					getTileArea(BWAPI::TilePosition base) const;
 	const BWEM::CPPath & getPath(BWAPI::TilePosition base1, BWAPI::TilePosition base2, int * length);

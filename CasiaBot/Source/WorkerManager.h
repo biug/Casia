@@ -50,6 +50,8 @@ public:
     int         getNumMineralWorkers();
     int         getNumGasWorkers();
     int         getNumIdleWorkers();
+	int			getNumMineralPatches();
+	int			getMaxNumWorkers();
     void        setScoutWorker(BWAPI::Unit worker);
 
     bool        isWorkerScout(BWAPI::Unit worker);

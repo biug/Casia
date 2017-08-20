@@ -800,6 +800,25 @@ int WorkerManager::getNumGasWorkers()
 	return workerData.getNumGasWorkers();
 }
 
+int WorkerManager::getNumMineralPatches()
+{
+	int num = 0;
+	for (const auto & base : workerData.getMineralBases())
+	{
+		num += workerData.getMineralPatches(base).size();
+	}
+	return num;
+}
+
+int WorkerManager::getMaxNumWorkers()
+{
+	int maxNeed =
+		workerData.getRefineries().size() * Config::Macro::WorkersPerRefinery
+		+ getNumMineralPatches() * Config::Macro::WorkersPerMineralPatch
+		+ 1;
+	return std::min(75, maxNeed);
+}
+
 void WorkerManager::drawResourceDebugInfo(int x, int y)
 {
 	if (Config::Debug::DrawResourceInfo)

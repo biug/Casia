@@ -157,7 +157,7 @@ void ActionZVPZealot::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 	// 计算需要的农民数量
 	int numTotalPatch = 0;
 	int minNumWorkers = 0;
-	for (const auto & base : InformationManager::Instance().getSelfBases())
+	for (const auto & base : InformationManager::Instance().getSelfDepotBases())
 	{
 		int numWorkers = WorkerManager::Instance().getMineralPatches(base).size();
 		numTotalPatch += numWorkers;

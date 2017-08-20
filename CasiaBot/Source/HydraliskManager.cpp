@@ -35,7 +35,7 @@ void HydraliskManager::execute(const SquadOrder & inputOrder)
 		}
 		auto center = creepsunken.getPosition();
 		// find sunken region
-		auto bases = InformationManager::Instance().getSelfBases();
+		auto bases = InformationManager::Instance().getSelfDepotBases();
 		BWAPI::Position baseP = BWAPI::Positions::None;
 		for (const auto & b : bases)
 		{
@@ -49,7 +49,7 @@ void HydraliskManager::execute(const SquadOrder & inputOrder)
 		{
 			baseP = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
 		}
-		const auto & ebases = InformationManager::Instance().getEnemyBaseInfos();
+		const auto & ebases = InformationManager::Instance().getEnemyDepotBaseInfos();
 		if (!center.isValid() || ebases.empty()) center = baseP;
 		auto path = MapPath::Instance().getPath({ baseP, ebases.front().lastPosition });
 		if (path.empty())
