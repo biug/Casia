@@ -12,11 +12,8 @@ class WorkerManager
 {
     WorkerData  workerData;
 	BWAPI::Unit previousClosestWorker;
-	bool		needLessGas;
-	bool		needMoreGas;
-	bool		needLessMineral;
-	bool		needMoreMineral;
 	bool		gasNotUsed;
+	int			gasNeed;
 
 	std::deque<int>										gasUsed;
 	std::map<BWAPI::Unit, std::deque<BWAPI::Position>>	workersPos;

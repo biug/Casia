@@ -113,8 +113,17 @@ void GameCommander::handleUnitAssignments()
 
 	// set each type of unit
 	// zerg_5d不需要侦查
-	if (Config::Opening::OpeningName != "Zerg_5D")
-		setScoutUnits();
+	// 二人图且敌方虫族不需要侦查
+	if (Config::Modules::UsingScoutManager)
+	{
+		if (Config::Opening::OpeningName != "Zerg_5D" && 
+			!(BWEM::Map::Instance().StartingLocations().size() == 2 && BWAPI::Broodwar->enemy()->getRace() == BWAPI::Races::Zerg)){
+			setScoutUnits();
+		}
+		else{
+			Config::Modules::UsingScoutManager = false;
+		}
+	}
 	setCombatUnits();
 }
 
@@ -254,8 +263,11 @@ BWAPI::Unit GameCommander::getClosestWorkerToTarget(BWAPI::Position target)
 
 	for (auto & unit : _validUnits)
 	{
-		if (!isAssigned(unit) && unit->getType().isWorker() && WorkerManager::Instance().isFree(unit))
+		if (!isAssigned(unit)
+			&& unit->getType().isWorker()
+			&& WorkerManager::Instance().isFree(unit))
 		{
+			if (!unit->isCarryingMinerals()) continue;
 			double dist = unit->getDistance(target);
 			if (!closestUnit || dist < closestDist)
 			{

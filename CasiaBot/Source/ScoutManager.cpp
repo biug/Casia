@@ -128,19 +128,20 @@ void ScoutManager::moveScouts()
 			// if the worker scout is not under attack
 			if (!_scoutUnderAttack)
 			{
+				//不主动攻击，注释掉部分为骚扰敌方农民
 				// if there is a worker nearby, harass it
-				if (Config::Opening::ScoutHarassEnemy && (!Config::Opening::GasStealWithScout || _gasStealFinished) && closestWorker && (_workerScout->getDistance(closestWorker) < 800))
-				{
-                    _scoutStatus = "Harass enemy worker";
-                    _currentRegionVertexIndex = -1;
-					Micro::SmartAttackUnit(_workerScout, closestWorker);
-				}
+				// if (Config::Opening::ScoutHarassEnemy && (!Config::Opening::GasStealWithScout || _gasStealFinished) && closestWorker && (_workerScout->getDistance(closestWorker) < 800))
+				// {
+                    // _scoutStatus = "Harass enemy worker";
+                    // _currentRegionVertexIndex = -1;
+					// Micro::SmartAttackUnit(_workerScout, closestWorker);
+				// }
 				// otherwise keep moving to the enemy region
-				else
-				{
+				// else
+				// {
                     _scoutStatus = "Following perimeter";
                     followPerimeter();  
-                }
+                // }
 				
 			}
 			// if the worker scout is under attack
@@ -175,22 +176,12 @@ void ScoutManager::moveScouts()
 		//逆时针探路
 		auto baseTPs = BWEM::Map::Instance().StartingLocations();
 		auto cmp = [](const BWAPI::TilePosition baseTP1, const BWAPI::TilePosition baseTP2) {
-			BWAPI::Position center(BWAPI::Broodwar->mapWidth() / 2, BWAPI::Broodwar->mapHeight() / 2);
+			BWAPI::Position center(BWAPI::Broodwar->mapWidth() * 16, BWAPI::Broodwar->mapHeight() * 16);
 			BWAPI::Position baseP1(baseTP1), baseP2(baseTP2);
 			int dx1 = baseP1.x - center.x, dy1 = baseP1.y - center.y;
 			int dx2 = baseP2.x - center.x, dy2 = baseP2.y - center.y;
-			double theta1 =
-				dx1 == 0 ?
-					theta1 = dy1 > 0 ?
-						M_PI / 2.0 :
-						M_PI * 3.0 / 2.0 :
-					std::atan2(dy1, dx1);
-			double theta2 =
-				dx2 == 0 ?
-					theta1 = dy2 > 0 ?
-						M_PI / 2.0 :
-						M_PI * 3.0 / 2.0 :
-					std::atan2(dy2, dx2);
+			double theta1 = std::atan2(dy1, dx1);
+			double theta2 = std::atan2(dy2, dx2);
 			//降序列->逆时针
 			return theta1 > theta2;
 		};
@@ -198,7 +189,7 @@ void ScoutManager::moveScouts()
 		std::sort(baseTPs.begin(), baseTPs.end(), cmp);
 		auto iter = std::find(baseTPs.begin(), baseTPs.end(), BWAPI::Broodwar->self()->getStartLocation());
 		std::reverse(baseTPs.begin(), iter);
-		std::reverse(iter, baseTPs.end());
+		std::reverse(iter++, baseTPs.end());
 		std::reverse(baseTPs.begin(), baseTPs.end());
 
 		for (const auto baseTP : baseTPs)
@@ -208,7 +199,7 @@ void ScoutManager::moveScouts()
 			{
 				// assign a zergling to go scout it
 				Micro::SmartMove(_workerScout, BWAPI::Position(baseTP));
-				return;
+				break;
 			}
 		}
 	}
@@ -399,15 +390,37 @@ BWAPI::Position ScoutManager::getFleePosition()
     {
         double distanceFromCurrentVertex = _enemyRegionVertices[_currentRegionVertexIndex].getDistance(_workerScout->getPosition());
 
+		BWAPI::Position ourBaseLocation(BWAPI::Broodwar->self()->getStartLocation());
+		//CAB_ASSERT_SIMPLE("%d", Config::Micro::ScoutRound);
         // keep going to the next vertex in the perimeter until we get to one we're far enough from to issue another move command
         while (distanceFromCurrentVertex < 128)
         {
-            _currentRegionVertexIndex = (_currentRegionVertexIndex + 1) % _enemyRegionVertices.size();
-
-            distanceFromCurrentVertex = _enemyRegionVertices[_currentRegionVertexIndex].getDistance(_workerScout->getPosition());
+			if (Config::Micro::ScoutRound == 0)
+			{
+				Config::Modules::UsingScoutManager = false;
+				WorkerManager::Instance().finishedWithWorker(_workerScout);
+				return ourBaseLocation;
+			}
+			_currentRegionVertexIndex = _currentRegionVertexIndex + 1;
+			if (_currentRegionVertexIndex == _enemyRegionVertices.size()){
+				_currentRegionVertexIndex = 0;
+				Config::Micro::ScoutRound--;
+			}
+			if (Config::Micro::ScoutRound > 0){
+				distanceFromCurrentVertex = _enemyRegionVertices[_currentRegionVertexIndex].getDistance(_workerScout->getPosition());
+			}
+			else{
+				distanceFromCurrentVertex = ourBaseLocation.getDistance(_workerScout->getPosition());
+			}
         }
-
-        return _enemyRegionVertices[_currentRegionVertexIndex];
+		if (Config::Micro::ScoutRound > 0){
+			return _enemyRegionVertices[_currentRegionVertexIndex];
+			
+		}
+		else{
+			return ourBaseLocation;
+		}
+        
     }
 
 }

@@ -10,6 +10,7 @@ WorkerData::WorkerData()
 void WorkerData::checkWorkersStatus()
 {
 	// add new worker
+	patchWorkers.clear();
 	for (auto & unit : BWAPI::Broodwar->self()->getUnits())
 	{
 		// add the depot if it exists
@@ -24,7 +25,7 @@ void WorkerData::checkWorkersStatus()
 		}
 
 		// if something morphs into a worker, add it
-		if (unit->getType().isWorker() && unit->getHitPoints() > 0)
+		if (unit->getType().isWorker() && unit->isCompleted() && unit->getHitPoints() > 0)
 		{
 			//BWAPI::Broodwar->printf("A worker was shown %d", unit->getID());
 			addWorker(unit);
@@ -42,25 +43,37 @@ void WorkerData::checkWorkersStatus()
 		{
 			newWorkers.insert(worker);
 			int frameOffset = frame - workerJobMap[worker].second;
-			// 没有在采气，但是Job是采气
-			if (!worker->isGatheringGas() && workerJobMap[worker].first == WorkerJob::Gas)
+			if (frameOffset > 80)
 			{
-				setWorkerIdle(worker);
-			}
-			// 没有在采矿，但是Job是采矿
-			if (!worker->isGatheringMinerals() && workerJobMap[worker].first == WorkerJob::Minerals)
-			{
-				setWorkerIdle(worker);
-			}
-			if (frameOffset > 75)
-			{
+				// 没有在采气，但是Job是采气
+				if (!worker->isGatheringGas()
+					&& workerJobMap[worker].first == WorkerJob::Gas
+					&& workerRefineryMap.find(worker) != workerRefineryMap.end()
+					&& worker->getDistance(workerRefineryMap.at(worker)) > 300)
+				{
+					setWorkerIdle(worker);
+				}
+				// 没有在采矿，但是Job是采矿
+				if (!worker->isGatheringMinerals()
+					&& workerJobMap[worker].first == WorkerJob::Minerals
+					&& workerMineralBaseMap.find(worker) != workerMineralBaseMap.end()
+					&& worker->getDistance(workerMineralBaseMap.at(worker)) > 300)
+				{
+					setWorkerIdle(worker);
+				}
 				// 在采气，但是Job不是采气
-				if (workerJobMap[worker].first != WorkerJob::Gas && worker->isGatheringGas())
+				if (workerJobMap[worker].first != WorkerJob::Gas
+					&& worker->isCarryingGas()
+					&& workerRefineryMap.find(worker) != workerRefineryMap.end()
+					&& worker->getDistance(workerRefineryMap.at(worker)) < 300)
 				{
 					setWorkerGatheringGas(worker);
 				}
 				// 在采矿，但是Job不是采矿
-				if (workerJobMap[worker].first != WorkerJob::Minerals && worker->isGatheringMinerals())
+				if (workerJobMap[worker].first != WorkerJob::Minerals
+					&& worker->isCarryingMinerals()
+					&& workerMineralBaseMap.find(worker) != workerMineralBaseMap.end()
+					&& worker->getDistance(workerMineralBaseMap.at(worker)) < 300)
 				{
 					setWorkerGatheringMineral(worker);
 				}
@@ -93,24 +106,7 @@ void WorkerData::addWorker(BWAPI::Unit unit)
 	if (workers.find(unit) == workers.end())
 	{
 		workers.insert(unit);
-		workerJobMap[unit] = { Default,BWAPI::Broodwar->getFrameCount() };
-	}
-}
-
-void WorkerData::addGatheringWorker(BWAPI::Unit worker, WorkerJob job)
-{
-	if (!worker) { return; }
-
-	assert(workers.find(worker) == workers.end());
-
-	workers.insert(worker);
-	if (job == Minerals)
-	{
-		setWorkerGatheringMineral(worker);
-	}
-	if (job == Gas)
-	{
-		setWorkerGatheringGas(worker);
+		workerJobMap[unit] = { Idle,BWAPI::Broodwar->getFrameCount() };
 	}
 }
 
@@ -141,6 +137,15 @@ void WorkerData::addMineralBase(BWAPI::Unit mineralBase)
 		{
 			patches.insert(unit);
 			mineralPatchMineralBaseMap[unit] = mineralBase;
+		}
+	}
+	if (mineralBaseMineralPatchInitMap.find(mineralBase) == mineralBaseMineralPatchInitMap.end())
+	{
+		auto & initMap = mineralBaseMineralPatchInitMap[mineralBase];
+		initMap.clear();
+		for (const auto & patch : patches)
+		{
+			initMap.push_back({ patch, false });
 		}
 	}
 }
@@ -180,6 +185,7 @@ void WorkerData::removeMineralBase(BWAPI::Unit mineralBase)
 
 	mineralBaseWorkersMap.erase(mineralBase);
 	mineralBaseMineralPatchMap.erase(mineralBase);
+	mineralBaseMineralPatchInitMap.erase(mineralBase);
 }
 
 void WorkerData::removeMineralPatch(BWAPI::Unit mineralPatch)
@@ -195,6 +201,10 @@ void WorkerData::removeMineralPatch(BWAPI::Unit mineralPatch)
 
 	if (!mineralBase) { return; }
 	mineralBaseMineralPatchMap[mineralBase].erase(mineralPatch);
+	auto & initMap = mineralBaseMineralPatchInitMap[mineralBase];
+	auto itr = std::find(initMap.begin(), initMap.end(), std::make_pair(mineralPatch, true));
+	if (itr == initMap.end()) itr = std::find(initMap.begin(), initMap.end(), std::make_pair(mineralPatch, false));
+	if (itr != initMap.end()) initMap.erase(itr);
 }
 
 void WorkerData::removeRefinery(BWAPI::Unit refinery)
@@ -241,12 +251,25 @@ void WorkerData::setWorkerGatheringMineral(BWAPI::Unit worker)
 		return;
 	}
 
+	// right click the mineral to start mining
+	if (!Micro::SmartRightClick(worker, mineralPatch))
+	{
+		// if click fail, return
+		workerJobMap[worker] = { Idle,BWAPI::Broodwar->getFrameCount() };
+		return;
+	}
+
 	// set the mineral the worker is working on
 	workerMineralBaseMap[worker] = mineralBase;
 	mineralBaseWorkersMap[mineralBase].insert(worker);
-
-	// right click the mineral to start mining
-	Micro::SmartRightClick(worker, mineralPatch);
+	for (auto & initMap : mineralBaseMineralPatchInitMap[mineralBase])
+	{
+		if (initMap.first == mineralPatch)
+		{
+			initMap.second = true;
+			break;
+		}
+	}
 }
 
 void WorkerData::setWorkerGatheringGas(BWAPI::Unit worker)
@@ -459,7 +482,7 @@ bool WorkerData::isWorkerInOverloadMineral(BWAPI::Unit worker) const
 	}
 
 	return itWorkers->second.size() >
-		Config::Macro::WorkersPerMineralPatch * itPatch->second.size();
+		Config::Macro::WorkersPerMineralPatch * itPatch->second.size() + 2;
 }
 
 bool WorkerData::isMineralBase(BWAPI::Unit base) const
@@ -489,7 +512,7 @@ bool WorkerData::isRefinery(BWAPI::Unit refinery) const
 		&& refinery->getPlayer() == BWAPI::Broodwar->self();
 }
 
-std::pair<BWAPI::Unit, BWAPI::Unit> WorkerData::getClosestMineral(BWAPI::Unit worker) const
+std::pair<BWAPI::Unit, BWAPI::Unit> WorkerData::getClosestMineral(BWAPI::Unit worker)
 {
 	if (!worker) { return{ nullptr, nullptr }; }
 
@@ -497,7 +520,6 @@ std::pair<BWAPI::Unit, BWAPI::Unit> WorkerData::getClosestMineral(BWAPI::Unit wo
 	int			minDist0 = 1000000, minDist1 = 1000000;
 	BWAPI::Unit bestPatch0 = nullptr, bestPatch1 = nullptr;
 	BWAPI::Unit bestMineralBase0 = nullptr, bestMineralBase1 = nullptr;
-	std::hash_map<BWAPI::Unit, int> patchWorkers;
 	for (const auto & worker : workers)
 	{
 		if (getWorkerJob(worker) == Minerals)
@@ -516,6 +538,21 @@ std::pair<BWAPI::Unit, BWAPI::Unit> WorkerData::getClosestMineral(BWAPI::Unit wo
 		if (itWorkers == mineralBaseWorkersMap.end()) { continue; }
 		auto itPatch = mineralBaseMineralPatchMap.find(mineralBase);
 		if (itPatch == mineralBaseMineralPatchMap.end()) { continue; }
+		auto itPatchInit = mineralBaseMineralPatchInitMap.find(mineralBase);
+		if (itPatchInit == mineralBaseMineralPatchInitMap.end()) { continue; }
+		std::sort(itPatchInit->second.begin(), itPatchInit->second.end(),
+			[worker](const std::pair<BWAPI::Unit, bool> & p1, const std::pair<BWAPI::Unit, bool> & p2)
+		{
+			return p1.first->getDistance(worker) < p2.first->getDistance(worker);
+		});
+		for (auto & patchInit : itPatchInit->second)
+		{
+			if (!patchInit.second && patchInit.first->getDistance(worker) < 300)
+			{
+				patchWorkers[patchInit.first] = 1;
+				return { patchInit.first, mineralBase };
+			}
+		}
 		for (const auto & patch : itPatch->second)
 		{
 			if (!patch || !patch->exists()) continue;
@@ -558,10 +595,12 @@ std::pair<BWAPI::Unit, BWAPI::Unit> WorkerData::getClosestMineral(BWAPI::Unit wo
 	}
 	if ((bestPatch0 && minDist0 - minDist1 < 300) || !bestPatch1)
 	{
+		if (bestPatch0) patchWorkers[bestPatch0] = 1;
 		return { bestPatch0, bestMineralBase0 };
 	}
 	else
 	{
+		if (bestPatch1) patchWorkers[bestPatch1] = 1;
 		return { bestPatch1, bestMineralBase1 };
 	}
 }

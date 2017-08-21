@@ -38,16 +38,8 @@ void MutaliskManager::assignTargetsOld(const BWAPI::Unitset & targets)
 		            BWAPI::Broodwar->drawLineMap(mutaliskUnit->getPosition(), mutaliskUnit->getTargetPosition(), BWAPI::Colors::Purple);
 	            }
 
-
 				// attack it
-                if (Config::Micro::KiteWithRangedUnits)
-                {
-                    Micro::SmartKiteTarget(mutaliskUnit, target);
-                }
-                else
-                {
-                    Micro::SmartAttackUnit(mutaliskUnit, target);
-                }
+                Micro::MutaDanceTarget(mutaliskUnit, target);
 			}
 			// if there are no targets
 			else
@@ -121,26 +113,27 @@ int MutaliskManager::getAttackPriority(BWAPI::Unit mutaliskUnit, BWAPI::Unit tar
 	BWAPI::UnitType rangedType = mutaliskUnit->getType();
 	BWAPI::UnitType targetType = target->getType();
 
-    if (target->getType() == BWAPI::UnitTypes::Zerg_Larva || target->getType() == BWAPI::UnitTypes::Zerg_Egg)
+    if (targetType == BWAPI::UnitTypes::Zerg_Larva || targetType == BWAPI::UnitTypes::Zerg_Egg)
     {
         return 0;
     }
 
-    if (target->getType() == BWAPI::UnitTypes::Protoss_Carrier)
+    if (targetType == BWAPI::UnitTypes::Protoss_Carrier)
     {
         return 101;
     }
 
     // if the target is building something near our base something is fishy
     BWAPI::Position ourBasePosition = BWAPI::Position(BWAPI::Broodwar->self()->getStartLocation());
-    if (target->getType().isWorker() && (target->isConstructing() || target->isRepairing()) && target->getDistance(ourBasePosition) < 1200)
+    if (targetType.isWorker() && (target->isConstructing() || target->isRepairing()) && target->getDistance(ourBasePosition) < 1200)
     {
-        return 100;
+        return 80;
     }
-
-    if (target->getType().isBuilding() && (target->isCompleted() || target->isBeingConstructed()) && target->getDistance(ourBasePosition) < 1200)
+	//可以攻击空中单位
+    if (targetType.canAttack() && targetType.airWeapon().isValid())
     {
-        return 90;
+		if (targetType.isFlyer()) return 95 + targetType.airWeapon().damageAmount();
+        else return 90;
     }
     
 
@@ -177,11 +170,6 @@ int MutaliskManager::getAttackPriority(BWAPI::Unit mutaliskUnit, BWAPI::Unit tar
     else if (targetType.isWorker())
     {
         return priority + 9;
-    }
-    //can attack us
-    else if (targetType.airWeapon() != BWAPI::WeaponTypes::None)
-    {
-        return priority + 11;
     }
     else if (targetType.groundWeapon() != BWAPI::WeaponTypes::None)
     {

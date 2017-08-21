@@ -45,7 +45,8 @@ private:
 
 	std::hash_map<BWAPI::Unit, BWAPI::Unit>					workerMineralBaseMap;
 	std::hash_map<BWAPI::Unit, BWAPI::Unitset>				mineralBaseWorkersMap;
-	std::hash_map<BWAPI::Unit, BWAPI::Unitset>	mineralBaseMineralPatchMap;
+	std::hash_map<BWAPI::Unit, BWAPI::Unitset>				mineralBaseMineralPatchMap;
+	std::hash_map<BWAPI::Unit, std::vector<std::pair<BWAPI::Unit, bool>>>	mineralBaseMineralPatchInitMap;
 
 	std::hash_map<BWAPI::Unit, BWAPI::Unit>					mineralPatchMineralBaseMap;
 
@@ -54,6 +55,7 @@ private:
 
 	const int		mineralPatchRadius = 300;
 	const int		sameMineralBaseRadius = 300;
+	std::hash_map<BWAPI::Unit, int> patchWorkers;
 
 	void clearPreviousJob(BWAPI::Unit unit);
 
@@ -70,7 +72,6 @@ public:
 	void					removeMineralPatch(BWAPI::Unit mineralPatch);
 	void					removeRefinery(BWAPI::Unit refinery);
 	void					addWorker(BWAPI::Unit unit);
-	void					addGatheringWorker(BWAPI::Unit worker, WorkerJob job);
 	void					addBuildingWorker(BWAPI::Unit worker, BWAPI::UnitType buildingType);
 	void					setWorkerIdle(BWAPI::Unit);
 	void					setWorkerGatheringMineral(BWAPI::Unit worker);
@@ -93,7 +94,7 @@ public:
 	bool					isRefinery(BWAPI::Unit refinery) const;
 	bool					isWorkerInOverloadMineral(BWAPI::Unit unit) const;
 
-	std::pair<BWAPI::Unit, BWAPI::Unit>				getClosestMineral(BWAPI::Unit worker) const;
+	std::pair<BWAPI::Unit, BWAPI::Unit>				getClosestMineral(BWAPI::Unit worker);
 	BWAPI::Unit										getClosestRefinery(BWAPI::Unit worker) const;
 	BWAPI::Unit										getLarvaDepot() const;
 	const BWAPI::Unitset &							getRefineries() const;

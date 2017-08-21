@@ -31,6 +31,18 @@ void ProductionManager::performBuildOrderSearch()
 
 void ProductionManager::update() 
 {
+	// update status
+	ActionZergBase::updateStatus(_queue);
+	for (const auto & item : _openingQueue)
+	{
+		if (item._unit.isUpgrade()
+			&& item._unit.getUpgradeType() == BWAPI::UpgradeTypes::Metabolic_Boost)
+		{
+			ActionZergBase::_status.metabolic_boost_in_queue = 1;
+			break;
+		}
+	}
+
 	// check the _queue for stuff we can build
 	manageBuildOrderQueue();
     
@@ -237,7 +249,13 @@ void ProductionManager::manageBuildOrderQueue()
 			}
 			else
 			{
-				double distance = workerToAssign->getDistance(BWAPI::Position(b.finalPosition));
+				const auto & area1 = InformationManager::Instance().getTileArea(workerToAssign->getTilePosition());
+				const auto & area2 = InformationManager::Instance().getTileArea(b.finalPosition);
+				auto p1 = workerToAssign->getPosition();
+				auto p2 = BWAPI::Position(b.finalPosition);
+				const auto & chokes = BWEM::Map::Instance().GetPath(area1, area2);
+				double distance = MapTools::Instance().getPathDistance(p1, p2, chokes);
+
 				canMake = WorkerManager::Instance().willHaveResources(
 					b.type.mineralPrice() - getFreeMinerals(),
 					b.type.gasPrice() - getFreeGas(),

@@ -1,12 +1,12 @@
 #include "Common.h"
 #include "WorkerManager.h"
 #include "Micro.h"
+#include "ActionZergBase.h"
 
 using namespace CasiaBot;
 
 WorkerManager::WorkerManager() 
 {
-	needLessGas = needMoreGas = needLessMineral = needMoreMineral = false;
     previousClosestWorker = nullptr;
 }
 
@@ -29,62 +29,20 @@ void WorkerManager::update()
 
 void WorkerManager::updateResourceStatus()
 {
-	if (BWAPI::Broodwar->getFrameCount() % 15 == 0)
-	{
-		needLessGas = needMoreGas = needLessMineral = needMoreMineral = false;
-		gasNotUsed = false;
-		gasUsed.push_back(BWAPI::Broodwar->self()->spentGas());
-		if (gasUsed.size() >= 30)
-		{
-			if (gasUsed.front() == gasUsed.back()) {
-				gasNotUsed = true;
-			}
-			gasUsed.pop_front();
-		}
-		int mineral = BWAPI::Broodwar->self()->minerals();
-		int gas = BWAPI::Broodwar->self()->gas();
-		/*
-		if (mineral < 200 && gas > 150 || 
-			(gas > mineral && gas > 500) ||
-			(InformationManager::Instance().isEncounterRush() && BWAPI::Broodwar->getFrameCount() < 7200))
-		{
-			needMoreMineral = true;
-		}
-		*/
-		int spentMineral = BWAPI::Broodwar->self()->spentMinerals();
-		int spentGas = BWAPI::Broodwar->self()->spentGas();
-		int numHydra =
-			InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Hydralisk, BWAPI::Broodwar->self());
-		int numMuta =
-			InformationManager::Instance().getNumConstructedUnits(BWAPI::UnitTypes::Zerg_Mutalisk, BWAPI::Broodwar->self());
-		// 晶矿不多时
-		if (mineral < 200)
-		{
-			// 如果已经消耗很多气
-			if (spentGas >= 600)
-			{
-				// 晶矿不足阈值降低
-				if (mineral < 100)
-				{
-					needMoreMineral = true;
-				}
-			}
-			else
-			{
-				needMoreMineral = true;
-			}
-		}
-		// 如果很长一段时间没有用气，并且还没有出刺蛇/飞龙，那么停止采气
-		if (gas > 200 && gasNotUsed && numHydra == 0 && numMuta == 0)
-		{
-			needLessGas = true;
-		}
-		// 如果不需要更多的矿，并且气体不足
-		else if (!needMoreMineral)
-		{
-			needMoreGas = true;
-		}
-	}
+
+	int numLairInQueue = ActionZergBase::_status.lair_in_queue;
+	int numMetabolicBoostInQueue = ActionZergBase::_status.metabolic_boost_in_queue;
+	int numLurkerAspectInQueue = ActionZergBase::_status.lurker_aspect_in_queue;
+	int numSpireInQueue = ActionZergBase::_status.spire_waiting;
+	int numHydraliskDenInQueue = ActionZergBase::_status.hydralisk_den_waiting;
+	int numGroovedSpinesInQueue = ActionZergBase::_status.grooved_spines_in_queue;
+	int numMuscularArguments = ActionZergBase::_status.muscular_arguments_in_queue;
+
+	gasNeed = numLairInQueue * 100 + numMetabolicBoostInQueue * 100
+		+ numLurkerAspectInQueue * 200 + numSpireInQueue * 200
+		+ numHydraliskDenInQueue * 100 + numGroovedSpinesInQueue * 100
+		+ numGroovedSpinesInQueue * 100
+		- BWAPI::Broodwar->self()->gas();
 }
 
 void WorkerManager::updateWorkerStatus() 
@@ -115,15 +73,6 @@ void WorkerManager::updateWorkerStatus()
 					workersPos[worker].pop_front();
 				}
 			}
-		}
-
-		// if it's idle
-		if (worker->isIdle() && 
-			(workerData.getWorkerJob(worker) != WorkerData::Build) && 
-			(workerData.getWorkerJob(worker) != WorkerData::Move) &&
-			(workerData.getWorkerJob(worker) != WorkerData::Scout)) 
-		{
-			workerData.setWorkerIdle(worker);
 		}
 
 		// if its job is gas
@@ -164,15 +113,10 @@ void WorkerManager::handleGasWorkers()
 		// if that unit is a refinery
 		if (workerData.isRefinery(unit) && !isGasStealRefinery(unit))
 		{
-			if (needLessGas || needMoreMineral)
-			{
-				BWAPI::Unit gasWorker = workerData.getRefineryWorker(unit);
-				if (gasWorker != nullptr && gasWorker->isMoving())
-				{
-					setWorkerGatheringMineral(gasWorker);
-				}
-			}
-			else
+			// 刚需
+			if (gasNeed > 0
+				|| ActionZergBase::_status.spire_completed > 0
+				|| BWAPI::Broodwar->self()->hasResearched(BWAPI::TechTypes::Lurker_Aspect))
 			{
 				// get the number of workers currently assigned to it
 				int workersNeeded = Config::Macro::WorkersPerRefinery
@@ -186,6 +130,34 @@ void WorkerManager::handleGasWorkers()
 					{
 						setWorkerGatheringGas(gasWorker);
 					}
+				}
+			}
+			else if (ActionZergBase::_status.hydralisk_in_queue > 0)
+			{
+				// get the number of workers currently assigned to it
+				int workersNeeded = Config::Macro::WorkersPerRefinery
+					- workerData.getNumRefineryWorkers(unit) - 1;
+				if (BWAPI::Broodwar->self()->gas() >= 200)
+				{
+					workersNeeded -= 1;
+				}
+
+				// if it's less than we want it to be, fill 'er up
+				for (int i = 0; i < workersNeeded; ++i)
+				{
+					BWAPI::Unit gasWorker = getGasWorker(unit);
+					if (gasWorker)
+					{
+						setWorkerGatheringGas(gasWorker);
+					}
+				}
+			}
+			else
+			{
+				BWAPI::Unit gasWorker = workerData.getRefineryWorker(unit);
+				if (gasWorker != nullptr && gasWorker->isMoving() && !gasWorker->isCarryingGas())
+				{
+					setWorkerGatheringMineral(gasWorker);
 				}
 			}
 		}
@@ -205,6 +177,7 @@ void WorkerManager::handleMineralWorkers()
 void WorkerManager::handleIdleWorkers() 
 {
 	// for each of our workers
+	int idlen = 0;
 	for (auto & worker : workerData.getWorkers())
 	{
         CAB_ASSERT(worker != nullptr, "Worker was null");
@@ -214,6 +187,7 @@ void WorkerManager::handleIdleWorkers()
 		{
 			// send it to the nearest mineral patch
 			setWorkerGatheringMineral(worker);
+			++idlen;
 		}
 	}
 }
@@ -266,6 +240,7 @@ void WorkerManager::finishedWithCombatWorkers()
 
 		if (workerData.getWorkerJob(worker) == WorkerData::Combat)
 		{
+			BWAPI::Broodwar->printf("set a m worker from combat");
 			setWorkerGatheringMineral(worker);
 		}
 	}
@@ -443,6 +418,7 @@ void WorkerManager::finishedWithWorker(BWAPI::Unit unit)
 	//BWAPI::Broodwar->printf("BuildingManager finished with worker %d", unit->getID());
 	if (workerData.getWorkerJob(unit) != WorkerData::Scout)
 	{
+		BWAPI::Broodwar->printf("finish work");
 		workerData.setWorkerIdle(unit);
 	}
 }
@@ -461,7 +437,8 @@ BWAPI::Unit WorkerManager::getGasWorker(BWAPI::Unit refinery)
 		if (workerData.getWorkerJob(unit) == WorkerData::Minerals)
 		{
 			double distance = unit->getDistance(refinery);
-			if (!closestWorker || distance < closestDistance)
+			if (distance > 480) continue;
+			if ((!closestWorker || distance < closestDistance) && !unit->isCarryingMinerals())
 			{
 				closestWorker = unit;
 				closestDistance = distance;
@@ -508,10 +485,11 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
         }
 
 		// mining worker check
-		if (worker->isCompleted() && worker->getPosition().isValid() && (workerData.getWorkerJob(worker) == WorkerData::Minerals))
+		if (worker->isCompleted()
+			&& worker->getPosition().isValid()
+			&& workerData.getWorkerJob(worker) == WorkerData::Minerals
+			&& !worker->isCarryingMinerals())
 		{
-			// if it is a new closest distance, set the pointer
-			if (!worker->isMoving()) continue;
 			double distance = worker->getDistance(BWAPI::Position(b.finalPosition));
 			if (!closestMiningWorker || distance < closestMiningWorkerDistance)
 			{
@@ -520,10 +498,11 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 			}
 		}
 
-		if (worker->isCompleted() && worker->getPosition().isValid() && (workerData.getWorkerJob(worker) == WorkerData::Gas))
+		if (worker->isCompleted()
+			&& worker->getPosition().isValid()
+			&& workerData.getWorkerJob(worker) == WorkerData::Gas
+			&& !worker->isCarryingGas())
 		{
-			// if it is a new closest distance, set the pointer
-			if (!worker->isMoving()) continue;
 			double distance = worker->getDistance(BWAPI::Position(b.finalPosition));
 			if (!closestGasWorker || distance < closestGasWorkerDistance)
 			{
@@ -533,7 +512,9 @@ BWAPI::Unit WorkerManager::getBuilder(Building & b, bool setJobAsBuilder)
 		}
 
 		// moving worker check
-		if (worker->isCompleted() && worker->getPosition().isValid() && (workerData.getWorkerJob(worker) == WorkerData::Move))
+		if (worker->isCompleted()
+			&& worker->getPosition().isValid()
+			&& (workerData.getWorkerJob(worker) == WorkerData::Move))
 		{
 			// if it is a new closest distance, set the pointer
 			double distance = worker->getDistance(BWAPI::Position(b.finalPosition));
@@ -668,8 +649,8 @@ bool WorkerManager::willHaveResources(int mineralsRequired, int gasRequired, dou
 	double gasRate     = getNumGasWorkers() * 0.07;
 
 	// calculate if we will have enough by the time the worker gets there
-	if (mineralRate * framesToMove >= (mineralsRequired == 0 ? 0 : mineralsRequired + 16) &&
-		gasRate * framesToMove >= (gasRequired == 0 ? 0 : gasRequired + 8))
+	if (mineralRate * framesToMove >= (mineralsRequired == 0 ? 0 : mineralsRequired) &&
+		gasRate * framesToMove >= (gasRequired == 0 ? 0 : gasRequired))
 	{
 		return true;
 	}
@@ -741,9 +722,20 @@ void WorkerManager::rebalanceMineralWorkers()
 			continue;
 		}
 
-		if (worker && workerData.isWorkerInOverloadMineral(worker))
+		if (worker->canReturnCargo()
+			&& worker->isCarryingMinerals()
+			&& worker->isMoving()
+			&& worker->getLastCommand().getType() != BWAPI::UnitCommandTypes::Return_Cargo)
 		{
-			workerData.setWorkerIdle(worker);
+			worker->returnCargo();
+		}
+		else
+		{
+			if (worker && workerData.isWorkerInOverloadMineral(worker))
+			{
+				BWAPI::Broodwar->printf("finish overload");
+				workerData.setWorkerIdle(worker);
+			}
 		}
 	}
 }

@@ -120,34 +120,45 @@ void ActionStatus::updateCurrentState(CasiaBot::ProductionQueue &queue)
 	guardian_total = guardian_count + guardian_in_queue;
 	devourer_total = devourer_count + devourer_in_queue;
 
-	metabolic_boost_count = queue.upgradeCount(BWAPI::UpgradeTypes::Metabolic_Boost)
+	metabolic_boost_in_queue = queue.upgradeCount(BWAPI::UpgradeTypes::Metabolic_Boost);
+	lurker_aspect_in_queue = queue.techCount(BWAPI::TechTypes::Lurker_Aspect);
+	adrenal_glands_in_queue = queue.upgradeCount(BWAPI::UpgradeTypes::Adrenal_Glands);
+	grooved_spines_in_queue = queue.upgradeCount(BWAPI::UpgradeTypes::Grooved_Spines);
+	muscular_arguments_in_queue = queue.upgradeCount(BWAPI::UpgradeTypes::Muscular_Augments);
+	melee_attacks_in_queue = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Melee_Attacks);
+	missile_attacks_in_queue = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Missile_Attacks);
+	ground_carapace_in_queue = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Carapace);
+	flyer_attacks_in_queue = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Flyer_Attacks);
+	flyer_carapace_in_queue = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Flyer_Carapace);
+
+	metabolic_boost_total = queue.upgradeCount(BWAPI::UpgradeTypes::Metabolic_Boost)
 		+ self->getUpgradeLevel(BWAPI::UpgradeTypes::Metabolic_Boost)
 		+ self->isUpgrading(BWAPI::UpgradeTypes::Metabolic_Boost);
-	lurker_aspect_count = queue.techCount(BWAPI::TechTypes::Lurker_Aspect)
+	lurker_aspect_total = queue.techCount(BWAPI::TechTypes::Lurker_Aspect)
 		+ self->hasResearched(BWAPI::TechTypes::Lurker_Aspect)
 		+ self->isResearching(BWAPI::TechTypes::Lurker_Aspect);
-	adrenal_glands_count = queue.upgradeCount(BWAPI::UpgradeTypes::Adrenal_Glands)
+	adrenal_glands_total = queue.upgradeCount(BWAPI::UpgradeTypes::Adrenal_Glands)
 		+ self->getUpgradeLevel(BWAPI::UpgradeTypes::Adrenal_Glands)
 		+ self->isUpgrading(BWAPI::UpgradeTypes::Adrenal_Glands);
-	grooved_spines_count = queue.upgradeCount(BWAPI::UpgradeTypes::Grooved_Spines)
+	grooved_spines_total = queue.upgradeCount(BWAPI::UpgradeTypes::Grooved_Spines)
 		+ self->getUpgradeLevel(BWAPI::UpgradeTypes::Grooved_Spines)
 		+ self->isUpgrading(BWAPI::UpgradeTypes::Grooved_Spines);
-	muscular_arguments_count = queue.upgradeCount(BWAPI::UpgradeTypes::Muscular_Augments)
+	muscular_arguments_total = queue.upgradeCount(BWAPI::UpgradeTypes::Muscular_Augments)
 		+ self->getUpgradeLevel(BWAPI::UpgradeTypes::Muscular_Augments)
 		+ self->isUpgrading(BWAPI::UpgradeTypes::Muscular_Augments);
-	melee_attacks_count = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Melee_Attacks)
+	melee_attacks_total = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Melee_Attacks)
 		+ self->getUpgradeLevel(BWAPI::UpgradeTypes::Zerg_Melee_Attacks)
 		+ self->isUpgrading(BWAPI::UpgradeTypes::Zerg_Melee_Attacks);
-	missile_attacks_count = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Missile_Attacks)
+	missile_attacks_total = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Missile_Attacks)
 		+ self->getUpgradeLevel(BWAPI::UpgradeTypes::Zerg_Missile_Attacks)
 		+ self->isUpgrading(BWAPI::UpgradeTypes::Zerg_Missile_Attacks);
-	ground_carapace_count = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Carapace)
+	ground_carapace_total = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Carapace)
 		+ self->getUpgradeLevel(BWAPI::UpgradeTypes::Zerg_Carapace)
 		+ self->isUpgrading(BWAPI::UpgradeTypes::Zerg_Carapace);
-	flyer_attacks_count = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Flyer_Attacks)
+	flyer_attacks_total = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Flyer_Attacks)
 		+ self->getUpgradeLevel(BWAPI::UpgradeTypes::Zerg_Flyer_Attacks)
 		+ self->isUpgrading(BWAPI::UpgradeTypes::Zerg_Flyer_Attacks);
-	flyer_carapace_count = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Flyer_Carapace)
+	flyer_carapace_total = queue.upgradeCount(BWAPI::UpgradeTypes::Zerg_Flyer_Carapace)
 		+ self->getUpgradeLevel(BWAPI::UpgradeTypes::Zerg_Flyer_Carapace)
 		+ self->isUpgrading(BWAPI::UpgradeTypes::Zerg_Flyer_Carapace);
 
@@ -219,6 +230,23 @@ void ActionStatus::updateCurrentState(CasiaBot::ProductionQueue &queue)
 	greater_spire_being_built = BuildingManager::Instance().numBeingBuilt(BWAPI::UnitTypes::Zerg_Greater_Spire);
 	nydus_canal_being_built = BuildingManager::Instance().numBeingBuilt(BWAPI::UnitTypes::Zerg_Nydus_Canal);
 	ultralisk_cavern_being_built = BuildingManager::Instance().numBeingBuilt(BWAPI::UnitTypes::Zerg_Ultralisk_Cavern);
+
+	hatchery_waiting = hatchery_in_queue + hatchery_being_built;
+	lair_waiting = lair_in_queue + lair_being_built;
+	hive_waiting = hive_in_queue + hive_being_built;
+	base_waiting = hatchery_waiting + lair_waiting + hive_waiting;
+	extractor_waiting = extractor_in_queue + extractor_being_built;
+	creep_colony_waiting = creep_colony_in_queue + creep_colony_being_built;
+	sunken_colony_waiting = sunken_colony_in_queue + sunken_colony_being_built;
+	spore_colony_waiting = spore_colony_in_queue + spore_colony_being_built;
+	spawning_pool_waiting = spawning_pool_in_queue + spawning_pool_being_built;
+	hydralisk_den_waiting = hydralisk_den_in_queue + hydralisk_den_being_built;
+	queens_nest_waiting = queens_nest_in_queue + queens_nest_being_built;
+	defiler_mound_waiting = defiler_mound_in_queue + defiler_mound_being_built;
+	spire_waiting = spire_in_queue + spire_being_built;
+	greater_spire_waiting = greater_spire_in_queue + greater_spire_being_built;
+	nydus_canal_waiting = nydus_canal_in_queue + nydus_canal_being_built;
+	ultralisk_cavern_waiting = ultralisk_cavern_in_queue + ultralisk_cavern_being_built;
 
 	hatchery_total = hatchery_count + hatchery_in_queue + hatchery_being_built;
 	lair_total = lair_count + lair_in_queue + lair_being_built;
@@ -424,6 +452,6 @@ ActionZergBase::~ActionZergBase()
 
 void ActionZergBase::updateStatus(CasiaBot::ProductionQueue &queue)
 {
-	_status.checkCurrentQueue(queue);
 	_status.updateCurrentState(queue);
+	_status.checkCurrentQueue(queue);
 }

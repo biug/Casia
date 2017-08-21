@@ -59,8 +59,6 @@ void StrategyManager::updateProductionQueue(ProductionQueue & queue)
 	{
 		BWAPI::Broodwar->printf("find race, race change");
 	}
-	// update status
-	ActionZergBase::updateStatus(queue);
 	// ÈË×åaction
 	if (race == BWAPI::Races::Terran) {
 		if (_action == nullptr)
