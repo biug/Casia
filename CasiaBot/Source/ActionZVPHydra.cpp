@@ -193,7 +193,7 @@ void ActionZVPHydra::army(CasiaBot::ProductionQueue & queue, int mode)
 
 	case 3:
 	{
-		if (_status.hydralisk_in_queue < 3)
+		if (_status.hydralisk_in_queue < 3 && isHydraliskDenExist)
 		{
 			BWAPI::Broodwar->drawTextScreen(200, 310, "why not more hydras");
 			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk));
@@ -226,10 +226,10 @@ void ActionZVPHydra::staticDefend(CasiaBot::ProductionQueue & queue)
 {
 	if (!isCreepColonyExist && !isSunkenColonyExist)
 	{
-		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), true);
+		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Creep_Colony), false);
 		while (_status.drone_count + _status.drone_in_queue < 9)
 		{
-			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone), true);
+			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Drone), false);
 		}
 	}
 	else
@@ -252,7 +252,8 @@ void ActionZVPHydra::staticDefend(CasiaBot::ProductionQueue & queue)
 			}
 		}
 	}
-	if (0 < _status.creep_colony_completed)
+	if (0 < _status.creep_colony_completed && 
+		_status.sunken_colony_in_queue < _status.creep_colony_completed)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Sunken_Colony),
 			_status.sunken_colony_count + _status.sunken_colony_being_built < 3 && _status.being_rushed);
@@ -424,7 +425,8 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Spawning_Pool), true);
 	}
 
-	if (!isExtractorExist && _status.drone_count >= 11 && _status.spawning_pool_count > 0)
+	if (!isExtractorExist && _status.drone_count >= 11 && _status.spawning_pool_count > 0 &&
+		_status.extractor_being_built + _status.extractor_in_queue< 1)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Extractor), true);
 	}
@@ -433,6 +435,10 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 	{
 		queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hydralisk_Den), true);
 	}
+
+
+	BWAPI::Broodwar->drawTextScreen(200, 270, "base count: %d , completed: %d", _status.base_count, _status.real_base_completed);
+	BWAPI::Broodwar->drawTextScreen(200, 280, "base in queue%d , %d", _status.hatchery_in_queue, int(double(currentFrameCount) / 7200 + 0.3));
 
 	//being rushed
 	if (_status.being_rushed && !able_defend)
@@ -463,21 +469,23 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 		{
 			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Zergling), _status.zergling_count < 5);
 		}
-		
+
 		if (_status.drone_count > 11)
 		{
 			staticDefend(queue);
 		}
 		//more bases
 		if (larva_lacking && minerals > 400 && gas > 100 &&
-			_status.base_count - _status.real_base_completed < 2 &&
+			_status.base_count + _status.hatchery_in_queue + 
+			_status.hatchery_being_built - _status.real_base_completed < 2 &&
 			_status.hatchery_in_queue < 1)
 		{
 			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hatchery, "Main"));
 		}
 
 		//need more army force
-		else if (_status.enemy_army_supply > _status.army_supply * 1.3 && _status.larva_count > 0 ) {
+		else if (_status.enemy_army_supply > _status.army_supply * 1.3 + _status.sunken_colony_count * 2.5 && 
+			_status.larva_count > 0 ) {
 
 			BWAPI::Broodwar->drawTextScreen(200, 290, "too few army, enemy %d, self %d",
 				_status.enemy_army_supply, _status.army_supply);
@@ -485,10 +493,10 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 			army(queue, 2);
 			tech(queue, 2);
 		}
-		
-		//train more workers
+
 		else
 		{
+			//economy
 			if (_status.drone_count + _status.drone_in_queue < patches * 1.8 + _status.extractor_count * 3
 				&& _status.drone_in_queue < 2 && _status.larva_count > 0)
 			{
@@ -499,20 +507,19 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 
 			//search for more treasures
 			
-			else if (_status.real_base_completed < _status.enemy_nexus_count ||
-				_status.drone_count + _status.drone_in_queue >= _status.real_base_completed * 1.7 + _status.extractor_count * 3 &&
-				_status.real_base_completed + _status.hatchery_in_queue < int(double(currentFrameCount) / 7200 + 0.3) &&
+			if (_status.real_base_completed < _status.enemy_base_count ||
+				_status.drone_count + _status.drone_in_queue >= _status.real_base_completed * 1.5 + _status.extractor_count * 3 &&
+				_status.real_base_completed + _status.hatchery_in_queue < int(double(currentFrameCount) / 6600 + 0.7) &&
 				_status.hatchery_in_queue < 2 && minerals > 350
 				)
 			{
-				queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hatchery));
+				queue.add(MetaType(BWAPI::UnitTypes::Zerg_Hatchery), true);
 			}
 			
 			//train more army & upgrade tech
 			//else
 			{
-				BWAPI::Broodwar->drawTextScreen(200, 320, "tech is first power %d", 
-					int(double(currentFrameCount) / 7200 + 0.3));
+				BWAPI::Broodwar->drawTextScreen(200, 320, "tech is first power %d");
 				tech(queue, 3);
 				army(queue, 3);
 			}
@@ -524,7 +531,7 @@ void ActionZVPHydra::getBuildOrderList(CasiaBot::ProductionQueue & queue)
 			_status.extractor_count + _status.extractor_being_built + _status.extractor_in_queue < extractorUpperBound &&
 			_status.extractor_in_queue < 1 &&
 			((gas < 100 && minerals > 450) ||
-			currentFrameCount / _status.extractor_count < 9600))
+			currentFrameCount / _status.extractor_count > 9600))
 		{
 			BWAPI::Broodwar->drawTextScreen(200, 330, "GAS!GAS!GAS!");
 			queue.add(MetaType(BWAPI::UnitTypes::Zerg_Extractor));

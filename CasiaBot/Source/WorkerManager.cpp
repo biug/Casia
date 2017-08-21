@@ -43,13 +43,14 @@ void WorkerManager::updateResourceStatus()
 		}
 		int mineral = BWAPI::Broodwar->self()->minerals();
 		int gas = BWAPI::Broodwar->self()->gas();
+		/*
 		if (mineral < 200 && gas > 150 || 
 			(gas > mineral && gas > 500) ||
 			(InformationManager::Instance().isEncounterRush() && BWAPI::Broodwar->getFrameCount() < 7200))
 		{
 			needMoreMineral = true;
 		}
-		/*
+		*/
 		int spentMineral = BWAPI::Broodwar->self()->spentMinerals();
 		int spentGas = BWAPI::Broodwar->self()->spentGas();
 		int numHydra =
@@ -83,7 +84,6 @@ void WorkerManager::updateResourceStatus()
 		{
 			needMoreGas = true;
 		}
-		*/
 	}
 }
 

@@ -219,7 +219,6 @@ namespace CasiaBot
 		int enemy_dark_archon_count;			//黑暗执政官
 
 												//神族建筑
-		int enemy_nexus_count;
 		int enemy_cannon_count;					//光子炮塔
 		int enemy_gateway_count;				//兵营
 		int enemy_stargate_count;				//星门
