@@ -38,11 +38,23 @@ void WorkerManager::updateResourceStatus()
 	int numGroovedSpinesInQueue = ActionZergBase::_status.grooved_spines_in_queue;
 	int numMuscularArguments = ActionZergBase::_status.muscular_arguments_in_queue;
 
+	int gas = BWAPI::Broodwar->self()->gas();
+	int mineral = BWAPI::Broodwar->self()->minerals();
 	gasNeed = numLairInQueue * 100 + numMetabolicBoostInQueue * 100
 		+ numLurkerAspectInQueue * 200 + numSpireInQueue * 200
 		+ numHydraliskDenInQueue * 100 + numGroovedSpinesInQueue * 100
 		+ numGroovedSpinesInQueue * 100
-		- BWAPI::Broodwar->self()->gas();
+		- gas;
+
+	if (ActionZergBase::_status.extractor_count > 0 && BWAPI::Broodwar->getFrameCount() < 7200)
+		gasNeed = 80 - gas;
+
+	if ((mineral < 200 && gas > 150) ||
+		(gas > mineral && gas > 500) ||
+		(InformationManager::Instance().isEncounterRush() && BWAPI::Broodwar->getFrameCount() < 6000))
+	{
+		gasNeed = 0;
+	}
 }
 
 void WorkerManager::updateWorkerStatus() 
@@ -349,6 +361,7 @@ void WorkerManager::handleMoveWorkers()
 			WorkerMoveData data = workerData.getWorkerMoveData(worker);
 			
 			Micro::SmartMove(worker, data.position);
+
 		}
 	}
 }
